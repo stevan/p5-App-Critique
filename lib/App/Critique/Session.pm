@@ -84,10 +84,10 @@ sub collect_all_perl_files {
 sub add_files_to_track {
     my ($self, @files) = @_;
     push @{ $self->{tracked_files} } => map +{
-        path      => $_,
-        critiqued => 0,
-        edited    => 0,
-        commited  => 0,
+        path     => $_,
+        reviewed => 0,
+        edited   => 0,
+        commited => 0,
     }, @files;
 }
 
