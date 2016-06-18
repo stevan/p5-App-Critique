@@ -9,6 +9,8 @@ requires 'Git::Repository'           => 0;
 # Core
 requires 'FindBin'                   => 0;
 requires 'Path::Class'               => 0;
+requires 'Scalar::Util'              => 0;
+requires 'Carp'                      => 0;
 requires 'File::HomeDir'             => 0;
 
 # Development
