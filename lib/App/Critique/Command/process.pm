@@ -29,7 +29,22 @@ sub validate_args {
 sub execute {
     my ($self, $opt, $args) = @_;
     # ...
+    if ( my $session = App::Critique::Session->locate_session ) {
+
+        my @files = $session->tracked_files;
+
+        foreach my $file ( @files ) {
+            print "path: ", $file->{path}, "\n";
+        }
+
+    }
+    else {
+        die 'No session file found.';
+    }
+
 }
+
+
 
 1;
 

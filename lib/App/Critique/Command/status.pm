@@ -3,6 +3,8 @@ package App::Critique::Command::status;
 use strict;
 use warnings;
 
+use App::Critique::Session;
+
 use App::Critique -command;
 
 sub abstract    { 'Display status of the current critique session.' }
@@ -24,13 +26,20 @@ sub opt_spec {
 sub validate_args {
     my ($self, $opt, $args) = @_;
     # ...
-
-    # find the matching critique session file or throw an exception
 }
 
 sub execute {
     my ($self, $opt, $args) = @_;
     # ...
+
+    if ( my $session = App::Critique::Session->locate_session ) {
+        use Data::Dumper;
+        print Dumper $session->pack;
+    }
+    else {
+        die 'No session file found.';
+    }
+
 }
 
 1;

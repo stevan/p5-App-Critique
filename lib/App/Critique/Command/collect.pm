@@ -3,6 +3,8 @@ package App::Critique::Command::collect;
 use strict;
 use warnings;
 
+use App::Critique::Session;
+
 use App::Critique -command;
 
 sub abstract    { 'Collect list of files for critiquing.' }
@@ -20,7 +22,7 @@ session file trackers, etc.
 
 sub opt_spec {
     [ 'filter|f=s', 'filter the files with this regular expression' ],
-    [ 'force',      'force an overwrite of files in the session, regardless of status' ],
+    #[ 'force',      'force an overwrite of files in the session, regardless of status' ],
     [ 'dry-run',    'display list of files, but do not store them' ],
     [ 'verbose|v',  'display debugging information' ]
 }
@@ -28,13 +30,33 @@ sub opt_spec {
 sub validate_args {
     my ($self, $opt, $args) = @_;
     # ...
-
-    # find the matching critique session file or throw an exception
 }
 
 sub execute {
     my ($self, $opt, $args) = @_;
     # ...
+
+    if ( my $session = App::Critique::Session->locate_session ) {
+
+        my @all = $session->collect_all_perl_files;
+
+        if ( my $filter = $opt->filter ) {
+            @all = grep !/$filter/, @all,
+        }
+
+        if ( $opt->dry_run ) {
+            print $_, "\n" foreach @all;
+        }
+        else {
+            $session->add_files_to_track( @all );
+            $session->store;
+        }
+
+
+    }
+    else {
+        die 'No session file found.';
+    }
 }
 
 1;
