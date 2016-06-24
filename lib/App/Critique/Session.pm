@@ -56,22 +56,37 @@ sub new {
     } => $class;
 }
 
-sub locate_session {
+sub locate_session_file {
     my ($class) = @_;
+
+    Carp::confess('Cannot call locate_session_file with an instance')
+        if Scalar::Util::blessed( $class );
 
     my $git          = Git::Repository->new( work_tree => File::Spec->curdir );
     my ($branch)     = map /^\*\s(.*)$/, grep /^\*/, $git->run('branch');
     my $session_file = $class->_generate_critique_file_path( $git->work_tree, $branch );
 
     return unless -e $session_file;
-    return App::Critique::Session->load( $session_file );
+    return $session_file;
+}
+
+sub locate_session {
+    my ($class) = @_;
+    return App::Critique::Session->load( $class->locate_session_file );
 }
 
 # accessors
 
 sub tracked_files { @{ $_[0]->{tracked_files} } }
 
+sub session_file_path { $_[0]->{_path} }
+
 # Instance Methods
+
+sub session_file_exists {
+    my ($self) = @_;
+    return !! -e $self->{_path};
+}
 
 sub collect_all_perl_files {
     my ($self) = @_;
