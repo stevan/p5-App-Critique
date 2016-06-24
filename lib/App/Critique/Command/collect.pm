@@ -7,22 +7,8 @@ use App::Critique::Session;
 
 use App::Critique -command;
 
-sub abstract    { 'Collect list of files for critiquing.' }
-sub description {
-q[This command will traverse the critque directory and gather all possible Perl
-files for critiquing. It will then store this list inside the correct critique
-session file for processing during the critique session.
-
-As long as the critique session has not begun, this command can be run over
-and over until the desired file list is constructed. However, once a critique
-session has begun, running this command again will cause an error unless the
-`force` flag is set, in which case it will use the new list and reset all
-session file trackers, etc.
-] }
-
 sub opt_spec {
     [ 'filter|f=s', 'filter the files with this regular expression' ],
-    #[ 'force',      'force an overwrite of files in the session, regardless of status' ],
     [ 'dry-run',    'display list of files, but do not store them' ],
     [ 'verbose|v',  'display debugging information' ]
 }
@@ -63,6 +49,24 @@ sub execute {
 
 __END__
 
+# ABSTRACT: Collect list of files for critiquing.
+
 =pod
+
+=head1 NAME
+
+App::Critique::Command::collect - Collect list of files for critiquing
+
+=head1 DESCRIPTION
+
+This command will traverse the critque directory and gather all possible Perl
+files for critiquing. It will then store this list inside the correct critique
+session file for processing during the critique session.
+
+As long as the critique session has not begun, this command can be run over
+and over until the desired file list is constructed. However, once a critique
+session has begun, running this command again will cause an error unless the
+`force` flag is set, in which case it will use the new list and reset all
+session file trackers, etc.
 
 =cut

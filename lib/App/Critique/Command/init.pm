@@ -7,26 +7,6 @@ use App::Critique::Session;
 
 use App::Critique -command;
 
-sub abstract    { 'Initialize .critique file.' }
-sub description {
-q[This command will create a critique session file your ~/.critique
-directory. This file will be used to store information about the
-critque session. The specific file path for the critique session
-will be based on the information provided through the command line
-options, and will look something like this:
-
- ~/.critique/<git-repo-name>/<git-branch-name>/session.json
-
-Note that the branch name can be 'master', but must be specified
-as such.
-
-You must also Perl::Critic informaton must be specified, either as
-a Perl::Critic profile config (ex: perlcriticrc) with additional
-Perl::Critic 'theme' expression added. Alternatively you can just
-specify a single Perl::Critic::Policy to use during the critique
-session.
-] }
-
 sub opt_spec {
     [ 'perl-critic-profile=s', 'path to the Perl::Critic profile to use (default is to let Perl::Critic find the .perlcriticrc)' ],
     [ 'perl-critic-theme=s',   'name of a single Perl::Critic theme expression to use' ],
@@ -57,6 +37,30 @@ sub execute {
 
 __END__
 
+# ABSTRACT: Initialize .critique file.
+
 =pod
+
+=head1 NAME
+
+App::Critique::Command::init - Initialize .critique file
+
+=head1 DESCRIPTION
+
+This command will create a critique session file your F<~/.critique>
+directory. This file will be used to store information about the critque
+session. The specific file path for the critique session will be based
+on the information provided through the command line options, and will
+look something like this:
+
+  ~/.critique/<git-repo-name>/<git-branch-name>/session.json
+
+Note that the branch name can be C<master>, but must be specified as such.
+
+You must also supply L<Perl::Critic> informaton must be specified, either
+as a L<Perl::Critic> profile config (ex: F<perlcriticrc>) with additional
+L<Perl::Critic> 'theme' expression added. Alternatively you can just
+specify a single L<Perl::Critic::Policy> to use during the critique
+session.
 
 =cut
