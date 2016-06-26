@@ -19,14 +19,13 @@ sub validate_args {
 
 sub execute {
     my ($self, $opt, $args) = @_;
-    # ...
 
     if ( my $session = App::Critique::Session->locate_session ) {
         use Data::Dumper;
         print Dumper $session->pack;
     }
     else {
-        die 'No session file found.';
+        $self->runtime_error('No session file found.');
     }
 
 }
