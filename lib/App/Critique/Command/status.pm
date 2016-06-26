@@ -8,8 +8,7 @@ use App::Critique::Session;
 use App::Critique -command;
 
 sub opt_spec {
-    [ 'statistics', 'display additional statistical information' ],
-    [ 'verbose|v',  'display debugging information' ]
+    [ 'verbose|v', 'display debugging information' ]
 }
 
 sub validate_args {
