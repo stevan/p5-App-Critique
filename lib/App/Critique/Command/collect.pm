@@ -22,7 +22,7 @@ sub execute {
     my ($self, $opt, $args) = @_;
     # ...
 
-    if ( my $session = App::Critique::Session->locate_session ) {
+    if ( my $session = eval { App::Critique::Session->locate_session } ) {
 
         my @all = $session->collect_all_perl_files;
 
@@ -31,17 +31,22 @@ sub execute {
         }
 
         if ( $opt->dry_run ) {
-            print $_, "\n" foreach @all;
+            $self->output( $_ ) foreach @all;
         }
         else {
             $session->add_files_to_track( @all );
             $session->store;
         }
 
-
     }
     else {
-        die 'No session file found.';
+        if ( $opt->verbose ) {
+            $self->warning(
+                'Unable to locate session file, looking for (%s)',
+                App::Critique::Session->locate_session_file // 'undef'
+            );
+        }
+        $self->runtime_error('No session file found.');
     }
 }
 
