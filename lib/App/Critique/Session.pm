@@ -41,6 +41,12 @@ sub new {
     my $git  = Git::Repository->new( work_tree => $git_work_tree );
     my $path = $class->_generate_critique_file_path( $git->work_tree, $git_branch );
 
+    $git_work_tree       = Path::Class::Dir->new( $git_work_tree )       if $git_work_tree;
+    $perl_critic_profile = Path::Class::Dir->new( $perl_critic_profile ) if $perl_critic_profile;
+
+    # inflate them if you got them
+    $_->{path} = Path::Class::File->new( $_->{path} ) foreach @{ $args{tracked_files} };
+
     return bless {
         git_work_tree       => $git_work_tree,
         git_branch          => $git_branch,
@@ -105,8 +111,9 @@ sub collect_all_perl_files {
 sub add_files_to_track {
     my ($self, @files) = @_;
     push @{ $self->{tracked_files} } => map +{
-        path     => $_,
+        path     => Path::Class::File->new( $_ ),
         reviewed => 0,
+        skipped  => 0,
         edited   => 0,
         commited => 0,
     }, @files;
@@ -117,12 +124,12 @@ sub add_files_to_track {
 sub pack {
     my ($self) = @_;
     return +{
-        git_work_tree       => $self->{git_work_tree},
+        git_work_tree       => ($self->{git_work_tree} ? $self->{git_work_tree}->stringify : undef),
         git_branch          => $self->{git_branch},
-        perl_critic_profile => $self->{perl_critic_profile},
+        perl_critic_profile => ($self->{perl_critic_profile} ? $self->{perl_critic_profile}->stringify : undef),
         perl_critic_theme   => $self->{perl_critic_theme},
         perl_critic_policy  => $self->{perl_critic_policy},
-        tracked_files       => $self->{tracked_files},
+        tracked_files       => [ map { $_->stringify } @{ $self->{tracked_files} } ],
     };
 }
 
@@ -149,7 +156,7 @@ sub load {
 sub store {
     my ($self) = @_;
 
-    my $file = Path::Class::File->new( $self->{_path} );
+    my $file = $self->{_path};
     my $data = $self->pack;
 
     eval {
