@@ -20,23 +20,29 @@ sub execute {
     my ($self, $opt, $args) = @_;
 
     if ( my $session = eval { App::Critique::Session->locate_session } ) {
+        $self->output($self->HR_DARK);
         $self->output('CONFIG:');
+        $self->output($self->HR_LIGHT);
         $self->output('  --perl-critic-profile : %s', $session->perl_critic_profile // '');
         $self->output('  --perl-critic-theme   : %s', $session->perl_critic_theme   // '');
         $self->output('  --perl-critic-policy  : %s', $session->perl_critic_policy  // '');
         $self->output('  --git-work-tree       : %s', $session->git_work_tree       // '');
         $self->output('  --git-branch          : %s', $session->git_branch          // '');
-        $self->output('FILES:');
-        $self->output('(legend: e|r|c - path)',
+        $self->output($self->HR_DARK);
+        $self->output('FILES: <legend: [r|s|e|c] path>');
+        $self->output($self->HR_LIGHT);
         foreach my $file ( $session->tracked_files ) {
-            $self->output('%s|%s|%s - %s',
-                $file->{edited}   ? 'e' : '-',
-                $file->{reviewed} ? 'r' : '-',
-                $file->{commited} ? 'c' : '-',
-                $file->{path}
+            $self->output('[%s|%s|%s|%s] %s',
+                ($file->{reviewed} ? 'r' : '-'),
+                ($file->{skipped}  ? 's' : '-'),
+                ($file->{edited}   ? 'e' : '-'),
+                ($file->{commited} ? 'c' : '-'),
+                $file->{path}->relative( $session->git_work_tree ),
             );
         }
-
+        $self->output($self->HR_DARK);
+        $self->output('PATH: (%s)', $session->session_file_path);
+        $self->output($self->HR_DARK);
     }
     else {
         if ( $opt->verbose ) {
