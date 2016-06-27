@@ -31,15 +31,25 @@ sub execute {
         $self->output($self->HR_DARK);
         $self->output('FILES: <legend: [r|s|e|c] path>');
         $self->output($self->HR_LIGHT);
+        my ($num_files, $num_reviewed, $num_skipped, $num_edited, $num_commited) = (0,0,0,0,0);
         foreach my $file ( $session->tracked_files ) {
+            $num_files++;
             $self->output('[%s|%s|%s|%s] %s',
-                ($file->{reviewed} ? 'r' : '-'),
-                ($file->{skipped}  ? 's' : '-'),
-                ($file->{edited}   ? 'e' : '-'),
-                ($file->{commited} ? 'c' : '-'),
+                ($file->{reviewed} ? do { $num_reviewed++; 'r' } : '-'),
+                ($file->{skipped}  ? do { $num_skipped++ ; 's' } : '-'),
+                ($file->{edited}   ? do { $num_edited++  ; 'e' } : '-'),
+                ($file->{commited} ? do { $num_commited++; 'c' } : '-'),
                 $file->{path}->relative( $session->git_work_tree ),
             );
         }
+        $self->output($self->HR_DARK);
+        $self->output('TOTALS:');
+        $self->output($self->HR_LIGHT);
+        $self->output('  TOTAL      : %d files', $num_files );
+        $self->output('  (r)eviwed  : %d', $num_reviewed );
+        $self->output('  (s)kipped  : %d', $num_skipped );
+        $self->output('  (e)dited   : %d', $num_edited );
+        $self->output('  (c)ommited : %d', $num_commited );
         $self->output($self->HR_DARK);
         $self->output('PATH: (%s)', $session->session_file_path);
         $self->output($self->HR_DARK);
