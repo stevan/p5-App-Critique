@@ -71,7 +71,10 @@ sub locate_session_file {
     my $dir          = Path::Class::Dir->new( File::Spec->curdir );
     my $git          = Git::Repository->new( work_tree => $dir );
     my ($branch)     = map /^\*\s(.*)$/, grep /^\*/, $git->run('branch');
-    my $session_file = $class->_generate_critique_file_path( $git->work_tree, $branch );
+    my $session_file = $class->_generate_critique_file_path(
+        Path::Class::Dir->new( $git->work_tree ),
+        $branch
+    );
 
     return $session_file;
 }
@@ -129,7 +132,12 @@ sub pack {
         perl_critic_profile => ($self->{perl_critic_profile} ? $self->{perl_critic_profile}->stringify : undef),
         perl_critic_theme   => $self->{perl_critic_theme},
         perl_critic_policy  => $self->{perl_critic_policy},
-        tracked_files       => [ map { $_->stringify } @{ $self->{tracked_files} } ],
+        tracked_files       => [
+            map {
+                $_->{path} = $_->{path}->stringify;
+                $_
+            } @{ $self->{tracked_files} }
+        ],
     };
 }
 
