@@ -17,6 +17,11 @@ sub output {
     print((sprintf $msg, @args), "\n");
 }
 
+sub warning {
+    my ($self, $msg, @args) = @_;
+    warn((sprintf $msg, @args), "\n");
+}
+
 sub runtime_error {
     my ($self, $msg, @args) = @_;
     die "\n", HR_ERROR, "\n", (sprintf $msg, @args), "\n", HR_DARK, "\n";
