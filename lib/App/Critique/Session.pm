@@ -77,6 +77,12 @@ sub locate_session {
 
 # accessors
 
+sub git_work_tree       { $_[0]->{git_work_tree}       }
+sub git_branch          { $_[0]->{git_branch}          }
+sub perl_critic_profile { $_[0]->{perl_critic_profile} }
+sub perl_critic_theme   { $_[0]->{perl_critic_theme}   }
+sub perl_critic_policy  { $_[0]->{perl_critic_policy}  }
+
 sub tracked_files { @{ $_[0]->{tracked_files} } }
 
 sub session_file_path { $_[0]->{_path} }
