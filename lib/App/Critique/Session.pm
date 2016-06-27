@@ -72,7 +72,7 @@ sub locate_session_file {
 
 sub locate_session {
     my ($class) = @_;
-    return App::Critique::Session->load( $class->locate_session_file || return );
+    return App::Critique::Session->load( $class->locate_session_file );
 }
 
 # accessors
