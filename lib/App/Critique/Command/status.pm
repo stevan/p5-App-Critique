@@ -19,11 +19,32 @@ sub validate_args {
 sub execute {
     my ($self, $opt, $args) = @_;
 
-    if ( my $session = App::Critique::Session->locate_session ) {
-        use Data::Dumper;
-        print Dumper $session->pack;
+    if ( my $session = eval { App::Critique::Session->locate_session } ) {
+        $self->output('CONFIG:');
+        $self->output('  --perl-critic-profile : %s', $session->perl_critic_profile // '');
+        $self->output('  --perl-critic-theme   : %s', $session->perl_critic_theme   // '');
+        $self->output('  --perl-critic-policy  : %s', $session->perl_critic_policy  // '');
+        $self->output('  --git-work-tree       : %s', $session->git_work_tree       // '');
+        $self->output('  --git-branch          : %s', $session->git_branch          // '');
+        $self->output('FILES:');
+        $self->output('(legend: e|r|c - path)',
+        foreach my $file ( $session->tracked_files ) {
+            $self->output('%s|%s|%s - %s',
+                $file->{edited}   ? 'e' : '-',
+                $file->{reviewed} ? 'r' : '-',
+                $file->{commited} ? 'c' : '-',
+                $file->{path}
+            );
+        }
+
     }
     else {
+        if ( $opt->verbose ) {
+            $self->warning(
+                'Unable to locate session file, looking for (%s)',
+                App::Critique::Session->locate_session_file // 'undef'
+            );
+        }
         $self->runtime_error('No session file found.');
     }
 
