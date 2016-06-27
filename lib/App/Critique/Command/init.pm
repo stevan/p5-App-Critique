@@ -39,11 +39,11 @@ sub execute {
 
     if ( $opt->verbose ) {
         $self->output('Initializing session file using the following options:');
-        $self->output('  --perl_critic_profile = (%s)', $opt->perl_critic_profile // '');
-        $self->output('  --perl_critic_theme   = (%s)', $opt->perl_critic_theme   // '');
-        $self->output('  --perl_critic_policy  = (%s)', $opt->perl_critic_policy  // '');
-        $self->output('  --git_work_tree       = (%s)', $opt->git_work_tree       // '');
-        $self->output('  --git_branch          = (%s)', $opt->git_branch          // '');
+        $self->output('  --perl-critic-profile = (%s)', $opt->perl_critic_profile // '');
+        $self->output('  --perl-critic-theme   = (%s)', $opt->perl_critic_theme   // '');
+        $self->output('  --perl-critic-policy  = (%s)', $opt->perl_critic_policy  // '');
+        $self->output('  --git-work-tree       = (%s)', $opt->git_work_tree       // '');
+        $self->output('  --git-branch          = (%s)', $opt->git_branch          // '');
     }
     else {
         $self->output('Initializing session file.');
