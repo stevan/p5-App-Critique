@@ -44,8 +44,11 @@ sub new {
     $git_work_tree       = Path::Class::Dir->new( $git_work_tree )       if $git_work_tree;
     $perl_critic_profile = Path::Class::Dir->new( $perl_critic_profile ) if $perl_critic_profile;
 
-    # inflate them if you got them
-    $_->{path} = Path::Class::File->new( $_->{path} ) foreach @{ $args{tracked_files} };
+    # inflate them if you got them (as needed)
+    $_->{path} = Path::Class::File->new( $_->{path} )
+        foreach grep
+            not(Scalar::Util::blessed($_) && $_->isa('Path::Class::File')),
+                @{ $args{tracked_files} };
 
     return bless {
         git_work_tree       => $git_work_tree,
@@ -114,7 +117,7 @@ sub collect_all_perl_files {
 sub add_files_to_track {
     my ($self, @files) = @_;
     push @{ $self->{tracked_files} } => map +{
-        path     => Path::Class::File->new( $_ ),
+        path     => (Scalar::Util::blessed($_) && $_->isa('Path::Class::File') ? $_ : Path::Class::File->new( $_ )),
         reviewed => 0,
         skipped  => 0,
         edited   => 0,
