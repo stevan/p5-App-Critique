@@ -74,10 +74,12 @@ sub execute {
         $session->store;
         1;
     } or do {
+        my $e = $@;
+        chomp $e;
         $self->runtime_error(
             'Unable to store session file (%s) because (%s)',
             $session->session_file_path,
-            $@,
+            $e,
         );
     };
 

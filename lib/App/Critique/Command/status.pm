@@ -29,7 +29,7 @@ sub execute {
         $self->runtime_error(
             "Unable to load session file (%s) because:\n    %s",
             App::Critique::Session->locate_session_file // 'undef',
-            "$e",
+            $e,
         );
     };
 
