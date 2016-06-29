@@ -13,7 +13,7 @@ sub opt_spec {
     [ 'perl-critic-policy=s',  'singular Perl::Critic policy to use (overrides -theme and -policy)' ],
 
     [ 'git-work-tree=s',       'path to the git working directory (default is current directory)', { default => File::Spec->curdir } ],
-    [ 'git-branch=s',          'name of git branch to use for critique', { required => 1 } ],
+    [ 'git-branch=s',          'name of git branch to use for critique', { default => 'master' } ],
 
     [ 'force',                 'force overwriting of existing session file' ],
     [ 'verbose|v',             'display debugging information' ],
