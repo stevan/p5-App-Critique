@@ -46,7 +46,7 @@ sub execute {
         $self->output('  --git-branch          = (%s)', $opt->git_branch          // '');
     }
     else {
-        $self->output('Initializing session file.');
+        $self->output('Attempting to initialize session file ...');
     }
 
     my $session = App::Critique::Session->new(
@@ -57,11 +57,17 @@ sub execute {
         git_branch          => $opt->git_branch,
     );
 
-    if ( $session->session_file_exists && !$opt->force ) {
-        $self->runtime_error(
-            'Unable to overwrite session file (%s) without --force option.',
-            $session->session_file_path
-        );
+    if ( $session->session_file_exists ) {
+        my $session_file_path = $session->session_file_path;
+        if ( $opt->force ) {
+            $self->output('!! Overwriting session file (%s) with --force option.', $session_file_path);
+        }
+        else {
+            $self->runtime_error(
+                'Unable to overwrite session file (%s) without --force option.',
+                $session_file_path
+            );
+        }
     }
 
     eval {
