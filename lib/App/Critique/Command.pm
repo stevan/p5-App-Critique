@@ -24,7 +24,7 @@ sub warning {
 
 sub runtime_error {
     my ($self, $msg, @args) = @_;
-    die "\n", HR_ERROR, "\n", (sprintf $msg, @args), "\n", HR_DARK, "\n";
+    die HR_ERROR, "\n", (sprintf $msg, @args), "\n", HR_DARK, "\n";
 }
 
 1;
