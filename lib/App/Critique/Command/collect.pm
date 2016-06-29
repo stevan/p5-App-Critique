@@ -13,31 +13,57 @@ sub opt_spec {
     [ 'verbose|v',  'display debugging information' ]
 }
 
-sub validate_args {
-    my ($self, $opt, $args) = @_;
-    # ...
-}
-
 sub execute {
     my ($self, $opt, $args) = @_;
-    # ...
 
-    if ( my $session = eval { App::Critique::Session->locate_session } ) {
+    my $session;
+    eval {
+        $session = App::Critique::Session->locate_session;
+        1;
+    } or do {
+        my $e = $@;
+        chomp $e;
+        $self->runtime_error(
+            "Unable to load session file (%s) because:\n    %s",
+            App::Critique::Session->locate_session_file // 'undef',
+            $e,
+        );
+    };
+
+    if ( $session ) {
+
+        $self->output('Session file located.');
 
         my @all = $session->collect_all_perl_files;
 
+        my $num_files = scalar @all;
+        $self->output('Collected %d perl files for critique.', $num_files);
+
         if ( my $filter = $opt->filter ) {
-            @all = grep !/$filter/, @all,
+            $self->output('Filtering file list with (%s)', $filter);
+            @all = grep !/$filter/, @all;
+            $self->output('... removed %d files, leaving %d to be critiqued.', ($num_files - scalar @all), scalar @all);
+            $num_files = scalar @all;
+        }
+
+        if ( $opt->verbose ) {
+            foreach my $file ( @all ) {
+                $self->output(
+                    'Including %s',
+                    Path::Class::File->new( $file )->relative( $session->git_work_tree )
+                );
+            }
         }
 
         if ( $opt->dry_run ) {
-            $self->output( $_ ) foreach @all;
+            $self->output('[dry run] %d files found, 0 files added.', $num_files);
         }
         else {
             $session->add_files_to_track( @all );
+            $self->output('%d files added.', $num_files);
             $session->store;
+            $self->output('Session file stored successfully (%s).', $session->session_file_path);
         }
-
     }
     else {
         if ( $opt->verbose ) {
