@@ -19,7 +19,21 @@ sub validate_args {
 sub execute {
     my ($self, $opt, $args) = @_;
 
-    if ( my $session = eval { App::Critique::Session->locate_session } ) {
+    my $session;
+    eval {
+        $session = App::Critique::Session->locate_session;
+        1;
+    } or do {
+        my $e = $@;
+        chomp $e;
+        $self->runtime_error(
+            "Unable to load session file (%s) because:\n    %s",
+            App::Critique::Session->locate_session_file // 'undef',
+            "$e",
+        );
+    };
+
+    if ( $session ) {
 
         my @tracked_files = $session->tracked_files;
         my ($num_files, $num_reviewed, $num_skipped, $num_edited, $num_commited) = (0,0,0,0,0);
