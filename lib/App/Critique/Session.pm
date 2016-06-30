@@ -41,10 +41,8 @@ sub new {
             if $perl_critic_profile;
     }
 
-    my $git = Git::Repository->new( work_tree => File::Spec->curdir );
-
-    # auto-discover the current git branch
-    my ($git_branch) = map /^\*\s(.*)$/, grep /^\*/, $git->run('branch');
+    # auto-discover the current git repo and branch
+    my ($git, $git_branch) = $class->_initialize_git_repo( %args );
 
     # now that we have worked out all the details,
     # we need to determine the path to the actual
@@ -73,23 +71,25 @@ sub new {
 }
 
 sub locate_session_file {
-    my ($class) = @_;
+    my ($class, $git_work_tree) = @_;
 
     Carp::confess('Cannot call locate_session_file with an instance')
         if Scalar::Util::blessed( $class );
 
-    my $git          = Git::Repository->new( work_tree => File::Spec->curdir );
-    my ($branch)     = map /^\*\s(.*)$/, grep /^\*/, $git->run('branch');
+    my ($git, $git_branch) = $class->_initialize_git_repo( git_work_tree => $git_work_tree );
+
     my $session_file = $class->_generate_critique_file_path(
         Path::Class::Dir->new( $git->work_tree ),
-        $branch
+        $git_branch
     );
 
     return $session_file;
 }
 
 sub locate_session {
-    my ($class, $error_cb) = @_;
+    my $class         = shift;  # take the first one
+    my $error_cb      = pop @_; # take the last one
+    my $git_work_tree = shift;  # if there are any left, they were in the middle
 
     Carp::confess('Cannot call locate_session with an instance')
         if Scalar::Util::blessed( $class );
@@ -99,7 +99,7 @@ sub locate_session {
 
     my ($session, $session_file);
     eval {
-        $session_file = $class->locate_session_file;
+        $session_file = $class->locate_session_file( $git_work_tree );
         $session      = $class->load( $session_file );
         1;
     } or do {
@@ -232,6 +232,26 @@ sub _generate_critique_file_path {
     )->file(
         'session.json'
     );
+}
+
+sub _initialize_git_repo {
+    my ($class, %args) = @_;
+
+    my $git = Git::Repository->new( work_tree => $args{git_work_tree} || File::Spec->curdir );
+
+    # auto-discover the current git branch
+    my ($git_branch) = map /^\*\s(.*)$/, grep /^\*/, $git->run('branch');
+
+    # make sure the branch we are on is the
+    # same one we are being asked to load,
+    # this is very much unlikely to happen
+    # but something we should die about none
+    # the less.
+    Carp::confess('Attempting to inflate session for branch ('.$args{git_branch}.') but branch ('.$git_branch.') is currently active')
+        if exists $args{git_branch} && $args{git_branch} ne $git_branch;
+
+    # if all is well, return ...
+    return ($git, $git_branch);
 }
 
 1;
