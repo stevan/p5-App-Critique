@@ -18,8 +18,8 @@ sub execute {
 
     if (-e $session_file) {
         $self->output('Attempting to remove session file ...');
-        my $ok = unlink $session_file;
-        if ( $ok ) {
+
+        if ( $session_file->remove ) {
             $self->output('Successfully removed session file (%s).', $session_file);
         }
         else {
@@ -32,6 +32,59 @@ sub execute {
             }
             $self->runtime_error('Unable to remove session file.');
         }
+
+        $self->output('Attempting to clean up session directory ...');
+
+        my $branch = $session_file->parent;
+        if ( my @children = $branch->children ) {
+            $self->output('Branch directory (%s) is not empty, it will not be removed', $branch);
+            if ( $opt->verbose ) {
+                $self->output('Branch directory (%s) contains:', $branch);
+                $self->output('  %s', $_) foreach @children;
+            }
+        }
+        else {
+            $self->output('Attempting to remove empty branch directory ...');
+            if ( $branch->rmtree ) {
+                $self->output('Successfully removed empty branch directory (%s).', $branch);
+            }
+            else {
+                if ( $opt->verbose ) {
+                    $self->warning(
+                        'Could not remove empty branch directory (%s) because: %s',
+                        $branch,
+                        $!
+                    );
+                }
+                $self->runtime_error('Unable to remove empty branch directory file.');
+            }
+        }
+
+        my $repo = $branch->parent;
+        if ( my @children = $repo->children ) {
+            $self->output('Branch directory (%s) is not empty, it will not be removed', $repo);
+            if ( $opt->verbose ) {
+                $self->output('Repo directory (%s) contains:', $repo);
+                $self->output('  %s', $_) foreach @children;
+            }
+        }
+        else {
+            $self->output('Attempting to remove empty repo directory ...');
+            if ( $repo->rmtree ) {
+                $self->output('Successfully removed empty repo directory (%s).', $repo);
+            }
+            else {
+                if ( $opt->verbose ) {
+                    $self->warning(
+                        'Could not remove empty repo directory (%s) because: %s',
+                        $branch,
+                        $!
+                    );
+                }
+                $self->runtime_error('Unable to remove empty repo directory file.');
+            }
+        }
+
     }
     else {
         if ( $opt->verbose ) {
