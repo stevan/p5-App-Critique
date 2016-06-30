@@ -90,25 +90,34 @@ sub execute {
 
 __END__
 
-# ABSTRACT: Initialize .critique file.
+# ABSTRACT: Initialize critique session file
 
 =pod
 
 =head1 NAME
 
-App::Critique::Command::init - Initialize .critique file
+App::Critique::Command::init - Initialize critique session file
 
 =head1 DESCRIPTION
 
-This command will create a critique session file your F<~/.critique>
-directory. This file will be used to store information about the critque
-session. The specific file path for the critique session will be based
-on the information provided through the command line options, and will
-look something like this:
+This command will create a critique session file in your F<~/.critique>
+directory (including creating the F<~/.critique> directory if needed).
+This file will be used to store information about the critque session,
+such as the set of files you wish to critique and your progress in
+processing the set.
 
-  ~/.critique/<git-repo-name>/<git-branch-name>/session.json
+The specific file path for the critique session will be based on the
+information provided through the command line options, and will look
+something like this:
 
-Note that the branch name can be C<master>, but must be specified as such.
+  ~/.critique/<git-repo>/<git-branch>/session.json
+
+The value of C<git-repo> will be surmised from the C<git-work-tree>
+which itself defaults to finding the root of the C<git> working directory
+via your current working directory.
+
+The value of C<git-branch> comes directly from the command line option,
+or will default itself to the currently active C<git> branch.
 
 You must also supply L<Perl::Critic> informaton must be specified, either
 as a L<Perl::Critic> profile config (ex: F<perlcriticrc>) with additional

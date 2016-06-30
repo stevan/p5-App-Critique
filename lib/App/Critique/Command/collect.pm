@@ -85,24 +85,22 @@ sub execute {
 
 __END__
 
-# ABSTRACT: Collect list of files for critiquing.
+# ABSTRACT: Collect set of files for current critique session
 
 =pod
 
 =head1 NAME
 
-App::Critique::Command::collect - Collect list of files for critiquing
+App::Critique::Command::collect - Collect set of files for current critique session
 
 =head1 DESCRIPTION
 
-This command will traverse the critque directory and gather all possible Perl
+This command will traverse the critque directory and gather all available Perl
 files for critiquing. It will then store this list inside the correct critique
 session file for processing during the critique session.
 
-As long as the critique session has not begun, this command can be run over
-and over until the desired file list is constructed. However, once a critique
-session has begun, running this command again will cause an error unless the
-`force` flag is set, in which case it will use the new list and reset all
-session file trackers, etc.
+It should be noted that this is a destructive command, meaning that if you have
+begun critiquing your files and you re-run this command it will overwrite that
+list and you will loose any tracking information you currently have.
 
 =cut
