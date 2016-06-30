@@ -27,7 +27,7 @@ sub execute {
 
     if ( $session ) {
 
-        my @tracked_files = $session->tracked_files;
+        my @tracked_files = sort { $a->path cmp $b->path } $session->tracked_files;
         my ($num_files, $num_reviewed, $num_skipped, $num_edited, $num_commited) = (0,0,0,0,0);
         foreach my $file ( @tracked_files ) {
             $num_files++;

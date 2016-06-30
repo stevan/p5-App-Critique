@@ -3,12 +3,15 @@ package App::Critique::Command::collect;
 use strict;
 use warnings;
 
+use List::Util ();
+
 use App::Critique::Session;
 
 use App::Critique -command;
 
 sub opt_spec {
     [ 'filter|f=s', 'filter the files with this regular expression' ],
+    [ 'shuffle',    'shuffle the file list' ],
     [ 'dry-run',    'display list of files, but do not store them' ],
     [ 'verbose|v',  'display debugging information', { default => $ENV{CRITIQUE_VERBOSE} } ]
 }
@@ -41,6 +44,10 @@ sub execute {
             @all = grep !/$filter/, @all;
             $self->output('... removed %d files, leaving %d to be critiqued.', ($num_files - scalar @all), scalar @all);
             $num_files = scalar @all;
+        }
+
+        if ( $opt->shuffle ) {
+            @all = List::Util::shuffle( @all );
         }
 
         if ( $opt->verbose ) {
