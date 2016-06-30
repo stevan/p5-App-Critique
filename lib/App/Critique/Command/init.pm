@@ -12,9 +12,6 @@ sub opt_spec {
     [ 'perl-critic-theme=s',   'Perl::Critic theme expression to use' ],
     [ 'perl-critic-policy=s',  'singular Perl::Critic policy to use (overrides -theme and -policy)' ],
 
-    [ 'git-work-tree=s',       'path to the git working directory (default is current directory)', { default => File::Spec->curdir } ],
-    [ 'git-branch=s',          'name of git branch to use for critique', { default => 'master' } ],
-
     [ 'force',                 'force overwriting of existing session file' ],
     [ 'verbose|v',             'display debugging information', { default => $ENV{CRITIQUE_VERBOSE} } ],
 }
@@ -27,23 +24,16 @@ sub validate_args {
             || $self->usage_error('Unable to locate perl-critic-profile (' . $profile . ')');
     }
 
-    if ( my $work_tree = $opt->git_work_tree ) {
-        (-d $work_tree)
-            || $self->usage_error('Unable to locate git-work-tree (' . $work_tree . ')');
-    }
-
 }
 
 sub execute {
     my ($self, $opt, $args) = @_;
 
     if ( $opt->verbose ) {
-        $self->output('Initializing session file using the following options:');
-        $self->output('  --perl-critic-profile = (%s)', $opt->perl_critic_profile // '');
-        $self->output('  --perl-critic-theme   = (%s)', $opt->perl_critic_theme   // '');
-        $self->output('  --perl-critic-policy  = (%s)', $opt->perl_critic_policy  // '');
-        $self->output('  --git-work-tree       = (%s)', $opt->git_work_tree       // '');
-        $self->output('  --git-branch          = (%s)', $opt->git_branch          // '');
+        $self->output('Attempting to initialize session file using the following options:');
+        $self->output('  --perl-critic-profile = (%s)', $opt->perl_critic_profile // 'auto');
+        $self->output('  --perl-critic-theme   = (%s)', $opt->perl_critic_theme   // 'auto');
+        $self->output('  --perl-critic-policy  = (%s)', $opt->perl_critic_policy  // 'auto');
     }
     else {
         $self->output('Attempting to initialize session file ...');
@@ -53,9 +43,16 @@ sub execute {
         perl_critic_profile => $opt->perl_critic_profile,
         perl_critic_theme   => $opt->perl_critic_theme,
         perl_critic_policy  => $opt->perl_critic_policy,
-        git_work_tree       => $opt->git_work_tree,
-        git_branch          => $opt->git_branch,
     );
+
+    if ( $opt->verbose ) {
+        $self->output('Successuflly created session with the following configuration:');
+        $self->output('  --perl-critic-profile = (%s)', $session->perl_critic_profile // 'auto');
+        $self->output('  --perl-critic-theme   = (%s)', $session->perl_critic_theme   // 'auto');
+        $self->output('  --perl-critic-policy  = (%s)', $session->perl_critic_policy  // 'auto');
+        $self->output('  --git-work-tree       = (%s)', $session->git_work_tree       // 'auto');
+        $self->output('  --git-branch          = (%s)', $session->git_branch          // 'auto');
+    }
 
     if ( $session->session_file_exists ) {
         my $session_file_path = $session->session_file_path;

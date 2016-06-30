@@ -22,8 +22,6 @@ our $JSON = JSON::XS->new->utf8->pretty->canonical;
 sub new {
     my ($class, %args) = @_;
 
-    my $git_work_tree       = $args{git_work_tree} || File::Spec->curdir;
-    my $git_branch          = $args{git_branch}    || Carp::confess('You must specify a git branch');
     my $perl_critic_profile = $args{perl_critic_profile};
     my $perl_critic_theme   = $args{perl_critic_theme};
     my $perl_critic_policy  = $args{perl_critic_policy};
@@ -37,16 +35,24 @@ sub new {
             ($perl_critic_profile ? ('-profile' => $perl_critic_profile) : ()),
             ($perl_critic_theme   ? ('-theme'   => $perl_critic_theme)   : ()),
         );
+
+        # inflate this as needed
+        $perl_critic_profile = Path::Class::Dir->new( $perl_critic_profile )
+            if $perl_critic_profile;
     }
 
-    my $git  = Git::Repository->new( work_tree => $git_work_tree );
+    my $git = Git::Repository->new( work_tree => File::Spec->curdir );
+
+    # auto-discover the current git branch
+    my ($git_branch) = map /^\*\s(.*)$/, grep /^\*/, $git->run('branch');
+
+    # now that we have worked out all the details,
+    # we need to determine the path to the actual
+    # critique file.
     my $path = $class->_generate_critique_file_path( $git->work_tree, $git_branch );
 
-    $git_work_tree       = Path::Class::Dir->new( $git_work_tree )       if $git_work_tree;
-    $perl_critic_profile = Path::Class::Dir->new( $perl_critic_profile ) if $perl_critic_profile;
-
     my $self = bless {
-        git_work_tree       => $git_work_tree,
+        git_work_tree       => Path::Class::Dir->new( $git->work_tree ),
         git_branch          => $git_branch,
         perl_critic_profile => $perl_critic_profile,
         perl_critic_theme   => $perl_critic_theme,
@@ -72,8 +78,7 @@ sub locate_session_file {
     Carp::confess('Cannot call locate_session_file with an instance')
         if Scalar::Util::blessed( $class );
 
-    my $dir          = Path::Class::Dir->new( File::Spec->curdir );
-    my $git          = Git::Repository->new( work_tree => $dir );
+    my $git          = Git::Repository->new( work_tree => File::Spec->curdir );
     my ($branch)     = map /^\*\s(.*)$/, grep /^\*/, $git->run('branch');
     my $session_file = $class->_generate_critique_file_path(
         Path::Class::Dir->new( $git->work_tree ),
@@ -128,7 +133,7 @@ sub session_file_exists {
 sub collect_all_perl_files {
     my ($self) = @_;
 
-    my @files = Perl::Critic::Utils::all_perl_files( $self->{_git}->work_tree );
+    my @files = Perl::Critic::Utils::all_perl_files( $_[0]->{git_work_tree}->stringify );
 
     return @files;
 }
