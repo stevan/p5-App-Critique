@@ -15,6 +15,8 @@ use Git::Repository     ();
 use Perl::Critic        ();
 use Perl::Critic::Utils ();
 
+use App::Critique::Session::File;
+
 our $JSON = JSON::XS->new->utf8->pretty->canonical;
 
 sub new {
@@ -22,7 +24,6 @@ sub new {
 
     my $git_work_tree       = $args{git_work_tree} || File::Spec->curdir;
     my $git_branch          = $args{git_branch}    || Carp::confess('You must specify a git branch');
-    my $tracked_files       = $args{tracked_files} || [];
     my $perl_critic_profile = $args{perl_critic_profile};
     my $perl_critic_theme   = $args{perl_critic_theme};
     my $perl_critic_policy  = $args{perl_critic_policy};
@@ -44,25 +45,25 @@ sub new {
     $git_work_tree       = Path::Class::Dir->new( $git_work_tree )       if $git_work_tree;
     $perl_critic_profile = Path::Class::Dir->new( $perl_critic_profile ) if $perl_critic_profile;
 
-    # inflate them if you got them (as needed)
-    $_->{path} = Path::Class::File->new( $_->{path} )
-        foreach grep
-            not(Scalar::Util::blessed($_) && $_->isa('Path::Class::File')),
-                @{ $args{tracked_files} };
-
-    return bless {
+    my $self = bless {
         git_work_tree       => $git_work_tree,
         git_branch          => $git_branch,
         perl_critic_profile => $perl_critic_profile,
         perl_critic_theme   => $perl_critic_theme,
         perl_critic_policy  => $perl_critic_policy,
-        tracked_files       => $tracked_files,
+        tracked_files       => [],
 
         # Do Not Serialize
         _path   => $path,
         _critic => $critic,
         _git    => $git,
     } => $class;
+
+    # handle adding tracked files
+    $self->set_files_to_track( @{ $args{tracked_files} } )
+        if exists $args{tracked_files};
+
+    return $self;
 }
 
 sub locate_session_file {
@@ -132,15 +133,15 @@ sub collect_all_perl_files {
     return @files;
 }
 
-sub add_files_to_track {
+sub set_files_to_track {
     my ($self, @files) = @_;
-    push @{ $self->{tracked_files} } => map +{
-        path     => (Scalar::Util::blessed($_) && $_->isa('Path::Class::File') ? $_ : Path::Class::File->new( $_ )),
-        reviewed => 0,
-        skipped  => 0,
-        edited   => 0,
-        commited => 0,
-    }, @files;
+    @{ $self->{tracked_files} } = map {
+        (Scalar::Util::blessed($_) && $_->isa('App::Critique::Session::File')
+            ? $_
+            : ((ref $_ eq 'HASH')
+                ? App::Critique::Session::File->new( %$_ )
+                : App::Critique::Session::File->new( path => $_ )))
+    } @files;
 }
 
 # ...
@@ -153,12 +154,7 @@ sub pack {
         perl_critic_profile => ($self->{perl_critic_profile} ? $self->{perl_critic_profile}->stringify : undef),
         perl_critic_theme   => $self->{perl_critic_theme},
         perl_critic_policy  => $self->{perl_critic_policy},
-        tracked_files       => [
-            map {
-                $_->{path} = $_->{path}->stringify;
-                $_
-            } @{ $self->{tracked_files} }
-        ],
+        tracked_files       => [ map $_->pack, @{ $self->{tracked_files} } ],
     };
 }
 
