@@ -43,6 +43,7 @@ sub execute {
         }
 
         if ( $opt->shuffle ) {
+            $self->output('Shuffling file list.');
             @all = List::Util::shuffle( @all );
         }
 
@@ -60,7 +61,7 @@ sub execute {
         }
         else {
             $session->set_files_to_track( @all );
-            $self->output('%d files added.', $num_files);
+            $self->output('Sucessfully added %d files.', $num_files);
             $session->store;
             $self->output('Session file stored successfully (%s).', $session->session_file_path);
         }
