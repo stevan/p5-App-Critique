@@ -19,19 +19,16 @@ sub validate_args {
 sub execute {
     my ($self, $opt, $args) = @_;
 
-    my $session;
-    eval {
-        $session = App::Critique::Session->locate_session;
-        1;
-    } or do {
-        my $e = $@;
-        chomp $e;
-        $self->runtime_error(
-            "Unable to load session file (%s) because:\n    %s",
-            App::Critique::Session->locate_session_file // 'undef',
-            $e,
-        );
-    };
+    my $session = App::Critique::Session->locate_session(
+        sub {
+            my ($session_file, $e) = @_;
+            $self->runtime_error(
+                "Unable to load session file (%s) because:\n    %s",
+                $session_file // '???',
+                $e,
+            );
+        }
+    );
 
     if ( $session ) {
 

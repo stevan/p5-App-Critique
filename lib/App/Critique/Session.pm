@@ -83,8 +83,26 @@ sub locate_session_file {
 }
 
 sub locate_session {
-    my ($class) = @_;
-    return App::Critique::Session->load( $class->locate_session_file );
+    my ($class, $error_cb) = @_;
+
+    Carp::confess('Cannot call locate_session with an instance')
+        if Scalar::Util::blessed( $class );
+
+    Carp::confess('You must pass an error callback')
+        if ref $error_cb ne 'CODE';
+
+    my ($session, $session_file);
+    eval {
+        $session_file = $class->locate_session_file;
+        $session      = $class->load( $session_file );
+        1;
+    } or do {
+        my $e = "$@";
+        chomp $e;
+        $error_cb->( $session_file, $e );
+    };
+
+    return $session;
 }
 
 # accessors
