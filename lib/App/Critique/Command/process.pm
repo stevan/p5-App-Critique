@@ -3,37 +3,39 @@ package App::Critique::Command::process;
 use strict;
 use warnings;
 
+use App::Critique::Session;
+
 use App::Critique -command;
 
 sub opt_spec {
     my ($class) = @_;
     return (
-        # ...
         $class->SUPER::opt_spec
     );
 }
 
 sub validate_args {
     my ($self, $opt, $args) = @_;
-    # ...
-
-    # find the matching critique session file or throw an exception
 }
 
 sub execute {
     my ($self, $opt, $args) = @_;
-    # ...
-    if ( my $session = App::Critique::Session->locate_session ) {
 
-        my @files = $session->tracked_files;
+    my $session = App::Critique::Session->locate_session(
+        sub { $self->handle_session_file_exception('load', @_, $opt->debug) }
+    );
 
-        foreach my $file ( @files ) {
-            print "path: ", $file->{path}, "\n";
-        }
+    if ( $session ) {
 
     }
     else {
-        die 'No session file found.';
+        if ( $opt->verbose ) {
+            $self->warning(
+                'Unable to locate session file, looking for (%s)',
+                App::Critique::Session->locate_session_file // 'undef'
+            );
+        }
+        $self->runtime_error('No session file found, perhaps you forgot to call `init`.');
     }
 
 }
