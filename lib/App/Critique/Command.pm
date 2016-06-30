@@ -12,6 +12,14 @@ use constant HR_LIGHT   => ('-' x TERM_WIDTH);
 
 use App::Cmd::Setup -command;
 
+sub opt_spec {
+    my ( $class, $app ) = @_;
+    return (
+        [ 'verbose|v', 'display additional information', { default => $ENV{CRITIQUE_VERBOSE}                     } ],
+        [ 'debug|d',   'display debugging information',  { default => $ENV{CRITIQUE_DEBUG}, implies => 'verbose' } ],
+    );
+}
+
 sub output {
     my ($self, $msg, @args) = @_;
     print((sprintf $msg, @args), "\n");

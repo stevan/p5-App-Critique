@@ -10,10 +10,13 @@ use App::Critique::Session;
 use App::Critique -command;
 
 sub opt_spec {
-    [ 'filter|f=s', 'filter the files with this regular expression' ],
-    [ 'shuffle',    'shuffle the file list' ],
-    [ 'dry-run',    'display list of files, but do not store them' ],
-    [ 'verbose|v',  'display debugging information', { default => $ENV{CRITIQUE_VERBOSE} } ]
+    my ($class) = @_;
+    return (
+        [ 'filter|f=s', 'filter the files with this regular expression' ],
+        [ 'shuffle',    'shuffle the file list' ],
+        [ 'dry-run',    'display list of files, but do not store them' ],
+        $class->SUPER::opt_spec,
+    );
 }
 
 sub execute {

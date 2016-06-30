@@ -8,12 +8,14 @@ use App::Critique::Session;
 use App::Critique -command;
 
 sub opt_spec {
-    [ 'perl-critic-profile=s', 'path to a Perl::Critic profile to use (default let Perl::Critic decide)' ],
-    [ 'perl-critic-theme=s',   'Perl::Critic theme expression to use' ],
-    [ 'perl-critic-policy=s',  'singular Perl::Critic policy to use (overrides -theme and -policy)' ],
-
-    [ 'force',                 'force overwriting of existing session file' ],
-    [ 'verbose|v',             'display debugging information', { default => $ENV{CRITIQUE_VERBOSE} } ],
+    my ($class) = @_;
+    return (
+        [ 'perl-critic-profile=s', 'path to a Perl::Critic profile to use (default let Perl::Critic decide)' ],
+        [ 'perl-critic-theme=s',   'Perl::Critic theme expression to use' ],
+        [ 'perl-critic-policy=s',  'singular Perl::Critic policy to use (overrides -theme and -policy)' ],
+        [ 'force',                 'force overwriting of existing session file' ],
+        $class->SUPER::opt_spec,
+    )
 }
 
 sub validate_args {

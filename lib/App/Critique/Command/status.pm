@@ -7,10 +7,6 @@ use App::Critique::Session;
 
 use App::Critique -command;
 
-sub opt_spec {
-    [ 'verbose|v', 'display debugging information', { default => $ENV{CRITIQUE_VERBOSE} } ]
-}
-
 sub execute {
     my ($self, $opt, $args) = @_;
 

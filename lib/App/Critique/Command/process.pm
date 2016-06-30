@@ -6,7 +6,11 @@ use warnings;
 use App::Critique -command;
 
 sub opt_spec {
-    [ 'verbose|v', 'display debugging information', { default => $ENV{CRITIQUE_VERBOSE} } ]
+    my ($class) = @_;
+    return (
+        # ...
+        $class->SUPER::opt_spec
+    );
 }
 
 sub validate_args {
