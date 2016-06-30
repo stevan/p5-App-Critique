@@ -33,6 +33,21 @@ sub new {
     } => $class;
 }
 
+# accessors
+
+sub path     { $_[0]->{path}     }
+sub reviewed { $_[0]->{reviewed} }
+sub skipped  { $_[0]->{skipped}  }
+sub edited   { $_[0]->{edited}   }
+sub commited { $_[0]->{commited} }
+
+# ...
+
+sub relative_path {
+    my ($self, $path) = @_;
+    return $self->{path}->relative( $path );
+}
+
 # ...
 
 sub pack {

@@ -31,10 +31,10 @@ sub execute {
         my ($num_files, $num_reviewed, $num_skipped, $num_edited, $num_commited) = (0,0,0,0,0);
         foreach my $file ( @tracked_files ) {
             $num_files++;
-            $num_reviewed++ if $file->{reviewed};
-            $num_skipped++  if $file->{skipped};
-            $num_edited++   if $file->{edited};
-            $num_commited++ if $file->{commited};
+            $num_reviewed++ if $file->reviewed;
+            $num_skipped++  if $file->skipped;
+            $num_edited++   if $file->edited;
+            $num_commited++ if $file->commited;
         }
 
         if ( $opt->verbose ) {
@@ -51,11 +51,11 @@ sub execute {
             $self->output($self->HR_LIGHT);
             foreach my $file ( @tracked_files ) {
                 $self->output('[%s|%s|%s|%s] %s',
-                    ($file->{reviewed} ? 'r' : '-'),
-                    ($file->{skipped}  ? 's' : '-'),
-                    ($file->{edited}   ? 'e' : '-'),
-                    ($file->{commited} ? 'c' : '-'),
-                    $file->{path}->relative( $session->git_work_tree ),
+                    ($file->reviewed ? 'r' : '-'),
+                    ($file->skipped  ? 's' : '-'),
+                    ($file->edited   ? 'e' : '-'),
+                    ($file->commited ? 'c' : '-'),
+                    $file->relative_path( $session->git_work_tree ),
                 );
             }
         }
