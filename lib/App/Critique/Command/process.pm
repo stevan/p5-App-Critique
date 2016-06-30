@@ -27,6 +27,55 @@ sub execute {
 
     if ( $session ) {
 
+        my @tracked_files = $session->tracked_files;
+
+        $self->output($self->HR_LIGHT);
+
+        while (1) {
+
+            my $idx  = $session->current_file_idx;
+            my $file = $tracked_files[ $idx ];
+            my $path = $file->relative_path( $session->git_work_tree );
+
+            $self->output('%s', $path);
+            $self->output($self->HR_LIGHT);
+
+            my $answer = prompt_str(
+                '>> (r)eview (e)dit (d)iff (c)ommit (n)ext (q)uit',
+                {
+                    valid   => sub { $_[0] =~ /[redcnq]{1}/ },
+                    default => 'n',
+                }
+            );
+            $self->output($self->HR_LIGHT);
+
+            if ( $answer eq 'r' ) {
+                $self->output('[reviewing] %s', $path);
+
+            }
+            elsif ( $answer eq 'e' ) {
+                $self->output('[editing] %s', $path);
+
+            }
+            elsif ( $answer eq 'd' ) {
+                $self->output('[diffing] %s', $path);
+                my $diff = $session->git_repository->run('diff');
+                warn $diff;
+            }
+            elsif ( $answer eq 'c' ) {
+                $self->output('[commiting] %s', $path);
+
+            }
+            elsif ( $answer eq 'n' ) {
+                $self->output('[advancing]');
+                $session->inc_file_idx;
+            }
+            elsif ( $answer eq 'q' ) {
+                $self->output('[quitting]');
+                last;
+            }
+        }
+
     }
     else {
         if ( $opt->verbose ) {
