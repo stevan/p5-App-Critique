@@ -49,11 +49,11 @@ sub execute {
 
     if ( $opt->verbose ) {
         $self->output('Successuflly created session with the following configuration:');
-        $self->output('  --perl-critic-profile = (%s)', $session->perl_critic_profile // 'auto');
-        $self->output('  --perl-critic-theme   = (%s)', $session->perl_critic_theme   // 'auto');
-        $self->output('  --perl-critic-policy  = (%s)', $session->perl_critic_policy  // 'auto');
-        $self->output('  --git-work-tree       = (%s)', $session->git_work_tree       // 'auto');
-        $self->output('  --git-branch          = (%s)', $session->git_branch          // 'auto');
+        $self->output('  perl_critic_profile = (%s)', $session->perl_critic_profile // 'auto');
+        $self->output('  perl_critic_theme   = (%s)', $session->perl_critic_theme   // 'auto');
+        $self->output('  perl_critic_policy  = (%s)', $session->perl_critic_policy  // 'auto');
+        $self->output('  git_work_tree       = (%s)', $session->git_work_tree       // 'auto');
+        $self->output('  git_branch          = (%s)', $session->git_branch          // 'auto');
     }
 
     if ( $session->session_file_exists ) {
