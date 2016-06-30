@@ -40,7 +40,7 @@ sub execute {
                 $session_file // 'undef'
             );
         }
-        $self->runtime_error('No session file found.');
+        $self->runtime_error('No session file found, nothing removed.');
     }
 }
 

@@ -77,7 +77,7 @@ sub execute {
                 App::Critique::Session->locate_session_file // 'undef'
             );
         }
-        $self->runtime_error('No session file found.');
+        $self->runtime_error('No session file found, perhaps you forgot to call `init`.');
     }
 }
 
