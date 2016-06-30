@@ -50,11 +50,15 @@ sub new {
     my $path = $class->_generate_critique_file_path( $git->work_tree, $git_branch );
 
     my $self = bless {
-        git_work_tree       => Path::Class::Dir->new( $git->work_tree ),
-        git_branch          => $git_branch,
+        # user supplied ...
         perl_critic_profile => $perl_critic_profile,
         perl_critic_theme   => $perl_critic_theme,
         perl_critic_policy  => $perl_critic_policy,
+
+        # auto-discovered
+        git_work_tree       => Path::Class::Dir->new( $git->work_tree ),
+        git_branch          => $git_branch,
+
         tracked_files       => [],
 
         # Do Not Serialize
@@ -154,11 +158,12 @@ sub set_files_to_track {
 sub pack {
     my ($self) = @_;
     return +{
-        git_work_tree       => ($self->{git_work_tree} ? $self->{git_work_tree}->stringify : undef),
-        git_branch          => $self->{git_branch},
         perl_critic_profile => ($self->{perl_critic_profile} ? $self->{perl_critic_profile}->stringify : undef),
         perl_critic_theme   => $self->{perl_critic_theme},
         perl_critic_policy  => $self->{perl_critic_policy},
+
+        git_work_tree       => ($self->{git_work_tree} ? $self->{git_work_tree}->stringify : undef),
+        git_branch          => $self->{git_branch},
         tracked_files       => [ map $_->pack, @{ $self->{tracked_files} } ],
     };
 }
