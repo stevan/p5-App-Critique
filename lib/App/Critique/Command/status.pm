@@ -17,7 +17,8 @@ sub execute {
     my $session = App::Critique::Session->locate_session(
         sub {
             my ($session_file, $e) = @_;
-            $self->runtime_error(
+            return unless $opt->verbose;
+            $self->warning(
                 "Unable to load session file (%s) because:\n    %s",
                 $session_file // '???',
                 $e,
