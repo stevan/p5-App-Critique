@@ -72,22 +72,9 @@ sub execute {
     eval {
         $session->store;
         1;
-    } or do {
-        if ( $opt->debug ) {
-            my $e = $@; chomp $e;
-            $self->runtime_error(
-                'Unable to store session file (%s) because (%s)',
-                $session->session_file_path,
-                $e,
-            );
-        }
-        else {
-            $self->runtime_error(
-                'Unable to store session file (%s), run with --debug|d for more information',
-                $session->session_file_path,
-            );
-        }
-    };
+    } or $self->handle_session_file_exception(
+        store => ($session->session_file_path, "$@", $opt->debug)
+    );
 
     $self->output('Session file (%s) initialized successfully.', $session->session_file_path);
 }

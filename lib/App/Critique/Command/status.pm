@@ -11,15 +11,7 @@ sub execute {
     my ($self, $opt, $args) = @_;
 
     my $session = App::Critique::Session->locate_session(
-        sub {
-            my ($session_file, $e) = @_;
-            return unless $opt->verbose;
-            $self->warning(
-                "Unable to load session file (%s) because:\n    %s",
-                $session_file // '???',
-                $e,
-            );
-        }
+        sub { $self->handle_session_file_exception('load', @_, $opt->debug) }
     );
 
     if ( $session ) {

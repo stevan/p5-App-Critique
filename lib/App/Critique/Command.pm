@@ -35,6 +35,17 @@ sub runtime_error {
     die HR_ERROR, "\n", (sprintf $msg, @args), "\n", HR_DARK, "\n";
 }
 
+sub handle_session_file_exception {
+    my ($self, $operation, $session_file_path, $e, $debug) = @_;
+    if ( $debug ) {
+        chomp $e;
+        $self->runtime_error("Unable to %s session file (%s), because:\n  %s", $operation, $session_file_path, $e);
+    }
+    else {
+        $self->runtime_error('Unable to %s session file (%s), run with --debug|d for more information', $operation, $session_file_path);
+    }
+}
+
 1;
 
 __END__
