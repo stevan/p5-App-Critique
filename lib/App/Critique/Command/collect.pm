@@ -10,7 +10,7 @@ use App::Critique -command;
 sub opt_spec {
     [ 'filter|f=s', 'filter the files with this regular expression' ],
     [ 'dry-run',    'display list of files, but do not store them' ],
-    [ 'verbose|v',  'display debugging information' ]
+    [ 'verbose|v',  'display debugging information', { default => $ENV{CRITIQUE_VERBOSE} } ]
 }
 
 sub execute {

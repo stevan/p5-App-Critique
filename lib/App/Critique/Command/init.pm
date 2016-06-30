@@ -16,7 +16,7 @@ sub opt_spec {
     [ 'git-branch=s',          'name of git branch to use for critique', { default => 'master' } ],
 
     [ 'force',                 'force overwriting of existing session file' ],
-    [ 'verbose|v',             'display debugging information' ],
+    [ 'verbose|v',             'display debugging information', { default => $ENV{CRITIQUE_VERBOSE} } ],
 }
 
 sub validate_args {

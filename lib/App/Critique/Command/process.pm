@@ -6,7 +6,7 @@ use warnings;
 use App::Critique -command;
 
 sub opt_spec {
-    [ 'verbose|v', 'display debugging information' ]
+    [ 'verbose|v', 'display debugging information', { default => $ENV{CRITIQUE_VERBOSE} } ]
 }
 
 sub validate_args {
