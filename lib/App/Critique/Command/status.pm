@@ -30,11 +30,11 @@ sub execute {
             $self->output($self->HR_DARK);
             $self->output('CONFIG:');
             $self->output($self->HR_LIGHT);
-            $self->output('  perl_critic_profile : %s', $session->perl_critic_profile // '');
-            $self->output('  perl_critic_theme   : %s', $session->perl_critic_theme   // '');
-            $self->output('  perl_critic_policy  : %s', $session->perl_critic_policy  // '');
-            $self->output('  git_work_tree       : %s', $session->git_work_tree       // '');
-            $self->output('  git_branch          : %s', $session->git_branch          // '');
+            $self->output('  perl_critic_profile : %s', $session->perl_critic_profile // 'auto');
+            $self->output('  perl_critic_theme   : %s', $session->perl_critic_theme   // 'auto');
+            $self->output('  perl_critic_policy  : %s', $session->perl_critic_policy  // 'auto');
+            $self->output('  git_work_tree       : %s', $session->git_work_tree       // 'auto');
+            $self->output('  git_branch          : %s', $session->git_branch          // 'auto');
             $self->output($self->HR_DARK);
             $self->output('FILES: <legend: [r|s|e|c] path>');
             $self->output($self->HR_LIGHT);
