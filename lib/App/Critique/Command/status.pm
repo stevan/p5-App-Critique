@@ -11,11 +11,6 @@ sub opt_spec {
     [ 'verbose|v', 'display debugging information', { default => $ENV{CRITIQUE_VERBOSE} } ]
 }
 
-sub validate_args {
-    my ($self, $opt, $args) = @_;
-    # ...
-}
-
 sub execute {
     my ($self, $opt, $args) = @_;
 
