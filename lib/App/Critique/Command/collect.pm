@@ -13,6 +13,7 @@ sub opt_spec {
     my ($class) = @_;
     return (
         [ 'filter|f=s', 'filter the files with this regular expression' ],
+        [ 'invert|i',   'invert the results of the filter' ],
         [ 'shuffle',    'shuffle the file list' ],
         [ 'dry-run',    'display list of files, but do not store them' ],
         $class->SUPER::opt_spec,
@@ -37,7 +38,12 @@ sub execute {
 
         if ( my $filter = $opt->filter ) {
             $self->output('Filtering file list with (%s)', $filter);
-            @all = grep !/$filter/, @all;
+            if ( $opt->invert ) {
+                @all = grep /$filter/, @all;
+            }
+            else {
+                @all = grep !/$filter/, @all;
+            }
             $self->output('... removed %d files, leaving %d to be critiqued.', ($num_files - scalar @all), scalar @all);
             $num_files = scalar @all;
         }
