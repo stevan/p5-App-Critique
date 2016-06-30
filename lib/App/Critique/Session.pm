@@ -60,7 +60,7 @@ sub new {
         git_branch          => $git_branch,
 
         # local storage
-        current_file_ptr    => 0,
+        current_file_idx    => 0,
         tracked_files       => [],
 
         # Do Not Serialize
@@ -73,8 +73,8 @@ sub new {
     $self->set_files_to_track( @{ $args{tracked_files} } )
         if exists $args{tracked_files};
 
-    $self->{current_file_ptr} += $args{current_file_ptr}
-        if exists $args{current_file_ptr};
+    $self->{current_file_idx} += $args{current_file_idx}
+        if exists $args{current_file_idx};
 
     return $self;
 }
@@ -128,7 +128,11 @@ sub perl_critic_profile { $_[0]->{perl_critic_profile} }
 sub perl_critic_theme   { $_[0]->{perl_critic_theme}   }
 sub perl_critic_policy  { $_[0]->{perl_critic_policy}  }
 
-sub tracked_files { @{ $_[0]->{tracked_files} } }
+sub tracked_files    { @{ $_[0]->{tracked_files} } }
+
+sub current_file_idx { $_[0]->{current_file_idx}   }
+sub inc_file_idx     { $_[0]->{current_file_idx}++ }
+sub dec_file_idx     { $_[0]->{current_file_idx}-- }
 
 sub session_file_path { $_[0]->{_path} }
 
@@ -170,7 +174,7 @@ sub pack {
         git_work_tree       => ($self->{git_work_tree} ? $self->{git_work_tree}->stringify : undef),
         git_branch          => $self->{git_branch},
 
-        current_file_ptr    => $self->{current_file_ptr},
+        current_file_idx    => $self->{current_file_idx},
         tracked_files       => [ map $_->pack, @{ $self->{tracked_files} } ],
     };
 }
