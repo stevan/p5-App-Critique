@@ -59,6 +59,8 @@ sub new {
         git_work_tree       => Path::Class::Dir->new( $git->work_tree ),
         git_branch          => $git_branch,
 
+        # local storage
+        current_file_ptr    => 0,
         tracked_files       => [],
 
         # Do Not Serialize
@@ -70,6 +72,9 @@ sub new {
     # handle adding tracked files
     $self->set_files_to_track( @{ $args{tracked_files} } )
         if exists $args{tracked_files};
+
+    $self->{current_file_ptr} += $args{current_file_ptr}
+        if exists $args{current_file_ptr};
 
     return $self;
 }
@@ -164,6 +169,8 @@ sub pack {
 
         git_work_tree       => ($self->{git_work_tree} ? $self->{git_work_tree}->stringify : undef),
         git_branch          => $self->{git_branch},
+
+        current_file_ptr    => $self->{current_file_ptr},
         tracked_files       => [ map $_->pack, @{ $self->{tracked_files} } ],
     };
 }
