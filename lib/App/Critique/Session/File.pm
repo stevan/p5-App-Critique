@@ -26,20 +26,12 @@ sub new {
 
     return bless {
         path     => $path,
-        reviewed => $args{reviewed} // 0,
-        skipped  => $args{skipped}  // 0,
-        edited   => $args{edited}   // 0,
-        commited => $args{commited} // 0,
     } => $class;
 }
 
 # accessors
 
-sub path     { $_[0]->{path}     }
-sub reviewed { $_[0]->{reviewed} }
-sub skipped  { $_[0]->{skipped}  }
-sub edited   { $_[0]->{edited}   }
-sub commited { $_[0]->{commited} }
+sub path { $_[0]->{path} }
 
 # ...
 
@@ -53,11 +45,7 @@ sub relative_path {
 sub pack {
     my ($self) = @_;
     return {
-        path     => $self->{path}->stringify,
-        reviewed => $self->{reviewed},
-        skipped  => $self->{skipped},
-        edited   => $self->{edited},
-        commited => $self->{commited},
+        path => $self->{path}->stringify,
     };
 }
 
