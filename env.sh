@@ -1,10 +1,11 @@
 #!/bin/sh
 
-export PERL5LIB="./lib:$PERL5LIB"
+export CRITIQUE_ROOT=`pwd`
+export PERL5LIB="$CRITIQUE_ROOT/lib:$PERL5LIB"
 export CRITIQUE_DEBUG=1
 
 critique () {
-    perl bin/critique $@
+    perl $CRITIQUE_ROOT/bin/critique $@
 }
 
 critique-open-dir () {
