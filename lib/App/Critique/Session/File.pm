@@ -25,13 +25,31 @@ sub new {
             && $path->isa('Path::Class::File');
 
     return bless {
-        path     => $path,
+        path => $path,
+        meta => $args{meta} // {},
     } => $class;
 }
 
 # accessors
 
 sub path { $_[0]->{path} }
+sub meta { $_[0]->{meta} }
+
+sub remember {
+    my ($self, $key, $value) = @_;
+    $self->{meta}->{ $key } = $value;
+    return;
+}
+
+sub recall {
+    my ($self, $key) = @_;
+    return $self->{meta}->{ $key };
+}
+
+sub forget {
+    my ($self, $key) = @_;
+    return delete $self->{meta}->{ $key };
+}
 
 # ...
 
@@ -46,6 +64,7 @@ sub pack {
     my ($self) = @_;
     return {
         path => $self->{path}->stringify,
+        meta => $self->{meta},
     };
 }
 
