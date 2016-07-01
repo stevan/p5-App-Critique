@@ -100,9 +100,9 @@ sub traverse_filesystem {
     my ($dir, $filter, $v) = @_;
 
     if ( -f $dir ) {
-        $v->( $dir )
-            if is_perl_file( $dir )
-            && $filter->( $dir );
+        return unless is_perl_file( $dir );
+        return if defined $filter && $filter->( $dir );
+        $v->( $dir );
     }
     elsif ( -l $dir ) {
         ;
