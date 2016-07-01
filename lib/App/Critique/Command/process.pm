@@ -44,21 +44,19 @@ sub execute {
             my $file = $tracked_files[ $idx ];
             my $path = $file->relative_path( $session->git_work_tree );
 
-            if ( my $num_violations = $file->recall('violations') ) {
+            if ( defined $file->recall('violations') ) {
                 my $should_review_again = prompt_yn(
-                    (sprintf 'File (%s) already checked, found %d violations, would you like to critique the file again?', $path, $num_violations),
+                    (sprintf 'File (%s) already checked, found %d violations, would you like to critique the file again?', $path, $file->recall('violations')),
                     { default => 'y' }
                 );
 
+                $self->output($self->HR_LIGHT);
                 if ( $should_review_again ) {
                     $file->forget('violations');
                 }
                 else {
                     next MAIN;
                 }
-            }
-            else {
-                $self->output('Already processed (%s) and found no violations, moving to next.', $path);
             }
 
             $self->output('Running Perl::Critic against (%s)', $path);
@@ -80,21 +78,33 @@ sub execute {
                 );
 
                 if ( $should_review ) {
+
+                    my ($reviewed, $edited, $fixed) = (0, 0, 0);
+
                     foreach my $violation ( @violations ) {
+
                         $self->display_violation( $session, $file, $violation, $opt );
+                        $reviewed++;
+
                         my $should_edit = prompt_yn(
                             'Would you like to fix this violation?',
                             { default => 'y' }
                         );
 
                         if ( $should_edit ) {
+                            $edited++;
                             EDIT:
                                 my $cmd = sprintf $ENV{CRITIQUE_EDITOR} => ($violation->filename, $violation->line_number, $violation->column_number);
                                 system $cmd;
                                 prompt_yn('Are you finished editing?', { default => 'y' })
                                     || goto EDIT;
+                            $fixed++;
                         }
                     }
+
+                    $file->remember('reviewed', $reviewed);
+                    $file->remember('edited',   $edited);
+                    $file->remember('fixed', $fixed);
                 }
             }
 
