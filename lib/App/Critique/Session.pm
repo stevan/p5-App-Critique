@@ -28,7 +28,7 @@ sub new {
 
     my $critic;
     if ( $perl_critic_policy ) {
-        $critic = Perl::Critic->new( '-single_policy' => $perl_critic_policy );
+        $critic = Perl::Critic->new( '-single-policy' => $perl_critic_policy );
     }
     else {
         $critic = Perl::Critic->new(
