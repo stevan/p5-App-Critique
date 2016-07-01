@@ -5,6 +5,7 @@ requires 'App::Cmd::Plugin::Prompt'  => '0';
 
 requires 'Perl::Critic'              => '0';
 requires 'Git::Repository'           => '0';
+requires 'JSON::XS'                  => '0';
 
 # Core
 requires 'FindBin'                   => '0';
