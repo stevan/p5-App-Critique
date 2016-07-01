@@ -145,14 +145,6 @@ sub session_file_exists {
     return !! -e $self->{_path};
 }
 
-sub collect_all_perl_files {
-    my ($self) = @_;
-
-    my @files = Perl::Critic::Utils::all_perl_files( $_[0]->{git_work_tree}->stringify );
-
-    return @files;
-}
-
 sub set_files_to_track {
     my ($self, @files) = @_;
     @{ $self->{tracked_files} } = map {

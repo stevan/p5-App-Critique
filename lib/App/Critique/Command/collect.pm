@@ -12,6 +12,7 @@ use App::Critique -command;
 sub opt_spec {
     my ($class) = @_;
     return (
+        [ 'root=s',     'directory to start traversal from (default is root of git work tree)' ],
         [ 'filter|f=s', 'filter the files with this regular expression' ],
         [ 'invert|i',   'invert the results of the filter' ],
         [ 'shuffle',    'shuffle the file list' ],
@@ -31,22 +32,31 @@ sub execute {
 
         $self->output('Session file located.');
 
-        my @all = $session->collect_all_perl_files;
+        my $root = $opt->root
+            ? Path::Class::Dir->new( $opt->root )
+            : $session->git_work_tree;
+
+        my $filter;
+        if ( my $f = $opt->filter ) {
+            if ( ref $f eq 'CODE' ) {
+                $filter = $f;
+            }
+            else {
+                $filter = $opt->invert
+                    ? sub { $_[0]->stringify !~ /$f/ }
+                    : sub { $_[0]->stringify =~ /$f/ };
+            }
+        }
+
+        my @all;
+        traverse_filesystem(
+            $root,
+            $filter,
+            sub { push @all => $_[0] },
+        );
 
         my $num_files = scalar @all;
         $self->output('Collected %d perl files for critique.', $num_files);
-
-        if ( my $filter = $opt->filter ) {
-            $self->output('Filtering file list with (%s)', $filter);
-            if ( $opt->invert ) {
-                @all = grep /$filter/, @all;
-            }
-            else {
-                @all = grep !/$filter/, @all;
-            }
-            $self->output('... removed %d files, leaving %d to be critiqued.', ($num_files - scalar @all), scalar @all);
-            $num_files = scalar @all;
-        }
 
         if ( $opt->shuffle ) {
             $self->output('Shuffling file list.');
@@ -81,6 +91,61 @@ sub execute {
         }
         $self->runtime_error('No session file found, perhaps you forgot to call `init`.');
     }
+}
+
+
+my %SKIP = map { ($_ => 1) } qw[  CVS RCS .svn _darcs {arch} .bzr .cdv .git .hg .pc _build blib  ];
+
+sub traverse_filesystem {
+    my ($dir, $filter, $v) = @_;
+
+    if ( -f $dir ) {
+        $v->( $dir )
+            if is_perl_file( $dir )
+            && $filter->( $dir );
+    }
+    elsif ( -l $dir ) {
+        ;
+    }
+    else {
+        my @children = $dir->children( no_hidden => 1 );
+        # prune the directories we really don't care about
+        @children = grep !$SKIP{ $_->basename }, @children;
+        # recurse ...
+        map traverse_filesystem( $_, $filter, $v ), @children;
+    }
+
+    return;
+}
+
+# NOTE:
+# This was mostly taken from the guts of
+# Perl::Critic::Util::{_is_perl,_is_backup}
+# - SL
+sub is_perl_file {
+    my ($file) = @_;
+
+    # skip all the backups
+    return 0 if $file =~ m{ [.] swp \z}xms;
+    return 0 if $file =~ m{ [.] bak \z}xms;
+    return 0 if $file =~ m{  ~ \z}xms;
+    return 0 if $file =~ m{ \A [#] .+ [#] \z}xms;
+
+    # but grab the perl files
+    return 1 if $file =~ m{ [.] PL    \z}xms;
+    return 1 if $file =~ m{ [.] p[lm] \z}xms;
+    return 1 if $file =~ m{ [.] t     \z}xms;
+
+    # if we have to, check for shebang
+    my $first;
+    {
+        open my $fh, '<', $file or return 0;
+        $first = <$fh>;
+        close $fh;
+    }
+
+    return 1 if defined $first && ( $first =~ m{ \A [#]!.*perl }xms );
+    return 0;
 }
 
 1;
