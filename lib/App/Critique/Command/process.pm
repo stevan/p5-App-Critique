@@ -10,6 +10,7 @@ use App::Critique -command;
 sub opt_spec {
     my ($class) = @_;
     return (
+        [ 'reset|r', 'resets the file index to 0', { default => 0 } ],
         $class->SUPER::opt_spec
     );
 }
@@ -27,53 +28,80 @@ sub execute {
 
     if ( $session ) {
 
+        $session->reset_file_idx if $opt->reset;
+
         my @tracked_files = $session->tracked_files;
 
         $self->output($self->HR_LIGHT);
 
+    MAIN:
         while (1) {
 
-            my $idx  = $session->current_file_idx;
+            my $idx = $session->current_file_idx;
+
+            last unless $idx < scalar @tracked_files;
+
             my $file = $tracked_files[ $idx ];
             my $path = $file->relative_path( $session->git_work_tree );
 
-            $self->output('%s', $path);
-            $self->output($self->HR_LIGHT);
+            if ( my $num_violations = $file->recall('violations') ) {
+                my $should_review_again = prompt_yn(
+                    (sprintf 'File (%s) already checked, found %d violations, would you like to critique the file again?', $path, $num_violations),
+                    { default => 'y' }
+                );
 
-            my $answer = prompt_str(
-                '>> (r)eview (e)dit (d)iff (c)ommit (n)ext (q)uit',
-                {
-                    valid   => sub { $_[0] =~ /[redcnq]{1}/ },
-                    default => 'n',
+                if ( $should_review_again ) {
+                    $file->forget('violations');
                 }
-            );
+                else {
+                    next MAIN;
+                }
+            }
+            else {
+                $self->output('Already processed (%s) and found no violations, moving to next.', $path);
+            }
+
+            $self->output('Running Perl::Critic against (%s)', $path);
             $self->output($self->HR_LIGHT);
 
-            if ( $answer eq 'r' ) {
-                $self->output('[reviewing] %s', $path);
+            my @violations = $self->discover_violations( $session, $file, $opt );
 
-            }
-            elsif ( $answer eq 'e' ) {
-                $self->output('[editing] %s', $path);
+            $file->remember('violations' => scalar @violations);
 
+            if ( @violations == 0 ) {
+                $self->output('No violations found, proceeding to next file.');
+                $self->output($self->HR_LIGHT);
+                next MAIN;
             }
-            elsif ( $answer eq 'd' ) {
-                $self->output('[diffing] %s', $path);
-                my $diff = $session->git_repository->run('diff');
-                warn $diff;
-            }
-            elsif ( $answer eq 'c' ) {
-                $self->output('[commiting] %s', $path);
+            else {
+                my $should_review = prompt_yn(
+                    (sprintf 'Found %d violations, would you like to review them?', (scalar @violations)),
+                    { default => 'y' }
+                );
 
+                if ( $should_review ) {
+                    foreach my $violation ( @violations ) {
+                        $self->display_violation( $session, $file, $violation, $opt );
+                        my $should_edit = prompt_yn(
+                            'Would you like to fix this violation?',
+                            { default => 'y' }
+                        );
+
+                        if ( $should_edit ) {
+                            EDIT:
+                                my $cmd = sprintf $ENV{CRITIQUE_EDITOR} => ($violation->filename, $violation->line_number, $violation->column_number);
+                                system $cmd;
+                                prompt_yn('Are you finished editing?', { default => 'y' })
+                                    || goto EDIT;
+                        }
+                    }
+                }
             }
-            elsif ( $answer eq 'n' ) {
-                $self->output('[advancing]');
-                $session->inc_file_idx;
-            }
-            elsif ( $answer eq 'q' ) {
-                $self->output('[quitting]');
-                last;
-            }
+
+            $self->output($self->HR_LIGHT);
+        } continue {
+            $session->inc_file_idx;
+            $session->store;
         }
 
     }
@@ -89,6 +117,35 @@ sub execute {
 
 }
 
+sub discover_violations {
+    my ($self, $session, $file, $opt) = @_;
+
+    my @violations = $session->perl_critic->critique( $file->path->stringify );
+
+    return @violations;
+}
+
+
+sub display_violation {
+    my ($self, $session, $file, $violation, $opt) = @_;
+    $self->output($self->HR_DARK);
+    $self->output('Violation: %s', $violation->description);
+    $self->output($self->HR_DARK);
+    $self->output('%s', $violation->explanation);
+    if ( $opt->verbose ) {
+        $self->output($self->HR_LIGHT);
+        $self->output('%s', $violation->diagnostics);
+    }
+    $self->output($self->HR_LIGHT);
+    $self->output('  policy   : %s'           => $violation->policy);
+    $self->output('  severity : %d'           => $violation->severity);
+    $self->output('  location : %s @ <%d:%d>' => Path::Class::File->new( $violation->filename )->relative( $session->git_work_tree ),
+                                                 $violation->line_number,
+                                                 $violation->column_number);
+    $self->output($self->HR_LIGHT);
+    $self->output('%s', $violation->source);
+    $self->output($self->HR_LIGHT);
+}
 
 
 1;
