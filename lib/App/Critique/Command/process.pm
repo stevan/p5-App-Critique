@@ -11,6 +11,7 @@ sub opt_spec {
     my ($class) = @_;
     return (
         [ 'reset|r', 'resets the file index to 0', { default => 0 } ],
+        [ 'prev|p',  'moves the file index back by one', { default => 0 } ],
         $class->SUPER::opt_spec
     );
 }
@@ -29,6 +30,7 @@ sub execute {
     if ( $session ) {
 
         $session->reset_file_idx if $opt->reset;
+        $session->dec_file_idx   if $opt->prev;
 
         my @tracked_files = $session->tracked_files;
 
