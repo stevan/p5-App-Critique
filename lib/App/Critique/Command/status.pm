@@ -29,10 +29,11 @@ sub execute {
             $self->output('  git_work_tree       : %s', $session->git_work_tree       // 'auto');
             $self->output('  git_branch          : %s', $session->git_branch          // 'auto');
             $self->output($self->HR_DARK);
-            $self->output('FILES: <legend: [??] path>');
+            $self->output('FILES: <legend: [path] - meta>');
             $self->output($self->HR_LIGHT);
             foreach my $file ( @tracked_files ) {
-                $self->output('[??] %s',
+                $self->output('[%s] %s',
+                    $file->recall('violations') || '-',
                     $file->relative_path( $session->git_work_tree ),
                 );
             }
