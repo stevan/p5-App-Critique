@@ -133,6 +133,7 @@ sub tracked_files    { @{ $_[0]->{tracked_files} } }
 sub current_file_idx { $_[0]->{current_file_idx}   }
 sub inc_file_idx     { $_[0]->{current_file_idx}++ }
 sub dec_file_idx     { $_[0]->{current_file_idx}-- }
+sub reset_file_idx   { $_[0]->{current_file_idx}=0 }
 
 sub session_file_path { $_[0]->{_path} }
 sub git_repository    { $_[0]->{_git}  }
