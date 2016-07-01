@@ -26,3 +26,6 @@ critique-debug-on () {
     export CRITIQUE_DEBUG=1
 }
 
+critique-list-policies () {
+    perl -MPerl::Critic -e 'print((join "\n" => Perl::Critic->new( -severity => 1 )->policies), "\n")'
+}
