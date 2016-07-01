@@ -32,86 +32,125 @@ sub execute {
 
         my @tracked_files = $session->tracked_files;
 
-        $self->output($self->HR_LIGHT);
+        if ( $session->current_file_idx == scalar @tracked_files ) {
+            $self->output($self->HR_DARK);
+            $self->output('All files have already been processed.');
+            $self->output($self->HR_LIGHT);
+            $self->output('- run `critique status` to see more information');
+            $self->output('- run `critique process --reset` to review all files again');
+            $self->output($self->HR_DARK);
+        }
+        else {
 
-    MAIN:
-        while (1) {
-
-            my $idx = $session->current_file_idx;
-
-            last unless $idx < scalar @tracked_files;
-
-            my $file = $tracked_files[ $idx ];
-            my $path = $file->relative_path( $session->git_work_tree );
-
-            if ( defined $file->recall('violations') ) {
-                my $should_review_again = prompt_yn(
-                    (sprintf 'File (%s) already checked, found %d violations, would you like to critique the file again?', $path, $file->recall('violations')),
-                    { default => 'y' }
-                );
+        MAIN:
+            while (1) {
 
                 $self->output($self->HR_LIGHT);
-                if ( $should_review_again ) {
-                    $file->forget('violations');
+
+                my $idx  = $session->current_file_idx;
+                my $file = $tracked_files[ $idx ];
+                my $path = $file->relative_path( $session->git_work_tree );
+
+                if ( defined $file->recall('violations') ) {
+                    my $should_review_again = prompt_yn(
+                        (sprintf 'File (%s) already checked, found %d violations, would you like to critique the file again?', $path, $file->recall('violations')),
+                        { default => 'y' }
+                    );
+
+                    $self->output($self->HR_LIGHT);
+                    if ( $should_review_again ) {
+                        $file->forget('violations');
+                    }
+                    else {
+                        next MAIN;
+                    }
                 }
-                else {
+
+                $self->output('Running Perl::Critic against (%s)', $path);
+                $self->output($self->HR_LIGHT);
+
+                my @violations = $self->discover_violations( $session, $file, $opt );
+
+                $file->remember('violations' => scalar @violations);
+
+                if ( @violations == 0 ) {
+                    $self->output('No violations found, proceeding to next file.');
+                    $self->output($self->HR_LIGHT);
                     next MAIN;
                 }
-            }
+                else {
+                    my $should_review = prompt_yn(
+                        (sprintf 'Found %d violations, would you like to review them?', (scalar @violations)),
+                        { default => 'y' }
+                    );
 
-            $self->output('Running Perl::Critic against (%s)', $path);
-            $self->output($self->HR_LIGHT);
+                    if ( $should_review ) {
 
-            my @violations = $self->discover_violations( $session, $file, $opt );
+                        my ($reviewed, $edited, $fixed) = (0, 0, 0);
 
-            $file->remember('violations' => scalar @violations);
+                        foreach my $violation ( @violations ) {
 
-            if ( @violations == 0 ) {
-                $self->output('No violations found, proceeding to next file.');
+                            $self->display_violation( $session, $file, $violation, $opt );
+                            $reviewed++;
+
+                            my $should_edit = prompt_yn(
+                                'Would you like to fix this violation?',
+                                { default => 'y' }
+                            );
+
+                            if ( $should_edit ) {
+                                $edited++;
+                                EDIT:
+                                    my $cmd = sprintf $ENV{CRITIQUE_EDITOR} => ($violation->filename, $violation->line_number, $violation->column_number);
+                                    system $cmd;
+                                    prompt_yn('Are you finished editing?', { default => 'y' })
+                                        || goto EDIT;
+                                $fixed++;
+                            }
+                        }
+
+                        $file->remember('reviewed', $reviewed);
+                        $file->remember('edited',   $edited);
+                        $file->remember('fixed',    $fixed);
+                    }
+                }
+
                 $self->output($self->HR_LIGHT);
-                next MAIN;
-            }
-            else {
-                my $should_review = prompt_yn(
-                    (sprintf 'Found %d violations, would you like to review them?', (scalar @violations)),
-                    { default => 'y' }
+            } continue {
+
+                if ( ($session->current_file_idx + 1) == scalar @tracked_files ) {
+                    $self->output('Processing complete, run `status` to see results.');
+                    $session->inc_file_idx;
+                    $session->store;
+                    last MAIN;
+                }
+
+                my $where_to = prompt_str(
+                    '>> (n)ext (p)rev (r)efresh (s)top',
+                    {
+                        valid   => sub { $_[0] =~ m/[nprs]{1}/ },
+                        default => 'n',
+                    }
                 );
 
-                if ( $should_review ) {
-
-                    my ($reviewed, $edited, $fixed) = (0, 0, 0);
-
-                    foreach my $violation ( @violations ) {
-
-                        $self->display_violation( $session, $file, $violation, $opt );
-                        $reviewed++;
-
-                        my $should_edit = prompt_yn(
-                            'Would you like to fix this violation?',
-                            { default => 'y' }
-                        );
-
-                        if ( $should_edit ) {
-                            $edited++;
-                            EDIT:
-                                my $cmd = sprintf $ENV{CRITIQUE_EDITOR} => ($violation->filename, $violation->line_number, $violation->column_number);
-                                system $cmd;
-                                prompt_yn('Are you finished editing?', { default => 'y' })
-                                    || goto EDIT;
-                            $fixed++;
-                        }
-                    }
-
-                    $file->remember('reviewed', $reviewed);
-                    $file->remember('edited',   $edited);
-                    $file->remember('fixed', $fixed);
+                if ( $where_to eq 'n' ) {
+                    $session->inc_file_idx;
+                    $session->store;
                 }
-            }
+                elsif ( $where_to eq 'p' ) {
+                    $session->dec_file_idx;
+                    $session->store;
+                }
+                elsif ( $where_to eq 'r' ) {
+                    redo MAIN;
+                }
+                elsif ( $where_to eq 's' ) {
+                    $session->inc_file_idx;
+                    $session->store;
+                    last MAIN;
+                }
 
-            $self->output($self->HR_LIGHT);
-        } continue {
-            $session->inc_file_idx;
-            $session->store;
+            }
         }
 
     }
