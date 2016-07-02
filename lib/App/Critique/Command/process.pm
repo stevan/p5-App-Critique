@@ -85,7 +85,7 @@ sub execute {
 
                     if ( $should_review ) {
 
-                        my ($reviewed, $edited, $fixed) = (0, 0, 0);
+                        my ($reviewed, $edited) = (0, 0);
 
                         foreach my $violation ( @violations ) {
 
@@ -104,13 +104,11 @@ sub execute {
                                     system $cmd;
                                     prompt_yn('Are you finished editing?', { default => 'y' })
                                         || goto EDIT;
-                                $fixed++;
                             }
                         }
 
                         $file->remember('reviewed', $reviewed);
                         $file->remember('edited',   $edited);
-                        $file->remember('fixed',    $fixed);
                     }
                 }
 

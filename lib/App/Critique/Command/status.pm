@@ -19,12 +19,11 @@ sub execute {
         my @tracked_files = sort { $a->path cmp $b->path } $session->tracked_files;
         my $num_files     = scalar @tracked_files;
 
-        my ($violations, $reviewed, $edited, $fixed) = (0, 0, 0, 0);
+        my ($violations, $reviewed, $edited) = (0, 0, 0);
         foreach my $file ( @tracked_files ) {
             $violations += $file->recall('violations') if defined $file->recall('violations');
             $reviewed   += $file->recall('reviewed')   if defined $file->recall('reviewed');
             $edited     += $file->recall('edited')     if defined $file->recall('edited');
-            $fixed      += $file->recall('fixed')      if defined $file->recall('fixed');
         }
 
         if ( $opt->verbose ) {
@@ -37,14 +36,13 @@ sub execute {
             $self->output('  git_work_tree       : %s', $session->git_work_tree       // 'auto');
             $self->output('  git_branch          : %s', $session->git_branch          // 'auto');
             $self->output($self->HR_DARK);
-            $self->output('FILES: <legend: [v|r|e|f] path>');
+            $self->output('FILES: <legend: [v|r|e] path>');
             $self->output($self->HR_LIGHT);
             foreach my $file ( @tracked_files ) {
-                $self->output('[%s|%s|%s|%s] %s',
+                $self->output('[%s|%s|%s] %s',
                     $file->recall('violations') // '-',
                     $file->recall('reviewed')   // '-',
                     $file->recall('edited')     // '-',
-                    $file->recall('fixed')      // '-',
                     $file->relative_path( $session->git_work_tree ),
                 );
             }
@@ -55,7 +53,6 @@ sub execute {
         $self->output('  (v)iolations : %d', $violations);
         $self->output('  (r)eviwed    : %d', $reviewed  );
         $self->output('  (e)dited     : %d', $edited    );
-        $self->output('  (f)ixed      : %d', $fixed     );
         $self->output($self->HR_LIGHT);
         $self->output('PATH: (%s)', $session->session_file_path);
         $self->output($self->HR_DARK);
