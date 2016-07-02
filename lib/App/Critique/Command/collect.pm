@@ -13,10 +13,14 @@ sub opt_spec {
     my ($class) = @_;
     return (
         [ 'root=s',     'directory to start traversal from (default is root of git work tree)' ],
+        [],
         [ 'filter|f=s', 'filter the files with this regular expression' ],
         [ 'invert|i',   'invert the results of the filter' ],
+        [],
         [ 'shuffle',    'shuffle the file list' ],
+        [],
         [ 'dry-run',    'display list of files, but do not store them' ],
+        [],
         $class->SUPER::opt_spec,
     );
 }

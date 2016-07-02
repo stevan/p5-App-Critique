@@ -12,6 +12,7 @@ sub opt_spec {
     return (
         [ 'reset|r', 'resets the file index to 0', { default => 0 } ],
         [ 'prev|p',  'moves the file index back by one', { default => 0 } ],
+        [],
         $class->SUPER::opt_spec
     );
 }

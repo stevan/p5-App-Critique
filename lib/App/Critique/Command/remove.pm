@@ -11,6 +11,7 @@ sub opt_spec {
     my ($class) = @_;
     return (
         [ 'dry-run', 'display list of files to be removed, but do not remove them' ],
+        [],
         $class->SUPER::opt_spec,
     );
 }
