@@ -121,18 +121,8 @@ App::Critique::Command::status - Critique all the files.
 
 =head1 DESCRIPTION
 
-This command will display information about the current critique session.
-Among other things, this will include information about each of the files,
-such as:
-
-=over 4
-
-=item has the file been reviewed for violations?
-
-=item did we perform an edit of the file?
-
-=item have any changes been commited?
-
-=back
+This command will remove the current session file, afterwhich
+it will attempt to delete the branch (../) directory and the
+repository (../../) directory if they are empty.
 
 =cut

@@ -79,22 +79,13 @@ __END__
 
 =head1 NAME
 
-App::Critique::Command::status - Critique all the files.
+App::Critique::Command::status - Display status of the current critique session.
 
 =head1 DESCRIPTION
 
 This command will display information about the current critique session.
 Among other things, this will include information about each of the files,
-such as:
-
-=over 4
-
-=item has the file been criqued already?
-
-=item did we perform an edit of the file?
-
-=item have any changes been commited?
-
-=back
+such as how many violations were found, how many of those violations were
+reviewed, and how many were edited.
 
 =cut
