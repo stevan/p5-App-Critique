@@ -98,6 +98,23 @@ sub execute {
                             );
 
                             if ( $should_edit ) {
+
+                                ## Improve the edit loop:
+                                ## -----------------------------------------------
+                                ## - edit file
+                                ##     - exit editor
+                                ## - use git to see if there are any changes made
+                                ##     - if not ask if they want to edit again
+                                ## - if there is changes, check the following:
+                                ##     > does the code compile still?
+                                ##         - if not, prompt to re-edit
+                                ##     > was there any whitespace changes made?
+                                ##         - if so, suggest they prune that
+                                ## - prompt user to commit changes
+                                ##     - if yes, help make a git commit
+                                ##     - if no, ask if editing is completed0
+                                ## -----------------------------------------------
+
                                 $edited++;
                                 EDIT:
                                     my $cmd = sprintf $ENV{CRITIQUE_EDITOR} => ($violation->filename, $violation->line_number, $violation->column_number);
