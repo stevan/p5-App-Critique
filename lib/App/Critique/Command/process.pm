@@ -98,29 +98,8 @@ sub execute {
                             );
 
                             if ( $should_edit ) {
-
-                                ## Improve the edit loop:
-                                ## -----------------------------------------------
-                                ## - edit file
-                                ##     - exit editor
-                                ## - use git to see if there are any changes made
-                                ##     - if not ask if they want to edit again
-                                ## - if there is changes, check the following:
-                                ##     > does the code compile still?
-                                ##         - if not, prompt to re-edit
-                                ##     > was there any whitespace changes made?
-                                ##         - if so, suggest they prune that
-                                ## - prompt user to commit changes
-                                ##     - if yes, help make a git commit
-                                ##     - if no, ask if editing is completed0
-                                ## -----------------------------------------------
-
                                 $edited++;
-                                EDIT:
-                                    my $cmd = sprintf $ENV{CRITIQUE_EDITOR} => ($violation->filename, $violation->line_number, $violation->column_number);
-                                    system $cmd;
-                                    prompt_yn('Are you finished editing?', { default => 'y' })
-                                        || goto EDIT;
+                                $self->edit_violation( $violation );
                             }
                         }
 
@@ -212,6 +191,31 @@ sub display_violation {
     info(HR_LIGHT);
 }
 
+sub edit_violation {
+    my ($self, $violation) = @_;
+
+    ## Improve the edit loop:
+    ## -----------------------------------------------
+    ## - edit file
+    ##     - exit editor
+    ## - use git to see if there are any changes made
+    ##     - if not ask if they want to edit again
+    ## - if there is changes, check the following:
+    ##     > does the code compile still?
+    ##         - if not, prompt to re-edit
+    ##     > was there any whitespace changes made?
+    ##         - if so, suggest they prune that
+    ## - prompt user to commit changes
+    ##     - if yes, help make a git commit
+    ##     - if no, ask if editing is completed0
+    ## -----------------------------------------------
+
+EDIT:
+    my $cmd = sprintf $ENV{CRITIQUE_EDITOR} => ($violation->filename, $violation->line_number, $violation->column_number);
+    system $cmd;
+    prompt_yn('Are you finished editing?', { default => 'y' })
+        || goto EDIT;
+}
 
 1;
 
