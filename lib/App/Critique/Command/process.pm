@@ -32,19 +32,19 @@ sub execute {
         my @tracked_files = $session->tracked_files;
 
         if ( $session->current_file_idx == scalar @tracked_files ) {
-            output(HR_DARK);
-            output('All files have already been processed.');
-            output(HR_LIGHT);
-            output('- run `critique status` to see more information');
-            output('- run `critique process --reset` to review all files again');
-            output(HR_DARK);
+            info(HR_DARK);
+            info('All files have already been processed.');
+            info(HR_LIGHT);
+            info('- run `critique status` to see more information');
+            info('- run `critique process --reset` to review all files again');
+            info(HR_DARK);
         }
         else {
 
         MAIN:
             while (1) {
 
-                output(HR_LIGHT);
+                info(HR_LIGHT);
 
                 my $idx  = $session->current_file_idx;
                 my $file = $tracked_files[ $idx ];
@@ -56,7 +56,7 @@ sub execute {
                         { default => 'y' }
                     );
 
-                    output(HR_LIGHT);
+                    info(HR_LIGHT);
                     if ( $should_review_again ) {
                         $file->forget('violations');
                     }
@@ -65,16 +65,16 @@ sub execute {
                     }
                 }
 
-                output('Running Perl::Critic against (%s)', $path);
-                output(HR_LIGHT);
+                info('Running Perl::Critic against (%s)', $path);
+                info(HR_LIGHT);
 
                 my @violations = $self->discover_violations( $session, $file, $opt );
 
                 $file->remember('violations' => scalar @violations);
 
                 if ( @violations == 0 ) {
-                    output('No violations found, proceeding to next file.');
-                    output(HR_LIGHT);
+                    info('No violations found, proceeding to next file.');
+                    info(HR_LIGHT);
                     next MAIN;
                 }
                 else {
@@ -129,11 +129,11 @@ sub execute {
                     }
                 }
 
-                output(HR_LIGHT);
+                info(HR_LIGHT);
             } continue {
 
                 if ( ($session->current_file_idx + 1) == scalar @tracked_files ) {
-                    output('Processing complete, run `status` to see results.');
+                    info('Processing complete, run `status` to see results.');
                     $session->inc_file_idx;
                     $session->store;
                     last MAIN;
@@ -175,7 +175,7 @@ sub execute {
                 App::Critique::Session->locate_session_file // 'undef'
             );
         }
-        runtime_error('No session file found, perhaps you forgot to call `init`.');
+        error('No session file found, perhaps you forgot to call `init`.');
     }
 
 }
@@ -191,25 +191,25 @@ sub discover_violations {
 
 sub display_violation {
     my ($self, $session, $file, $violation, $opt) = @_;
-    output(HR_DARK);
-    output('Violation: %s', $violation->description);
-    output(HR_DARK);
-    output('%s', $violation->explanation);
+    info(HR_DARK);
+    info('Violation: %s', $violation->description);
+    info(HR_DARK);
+    info('%s', $violation->explanation);
     if ( $opt->verbose ) {
-        output(HR_LIGHT);
-        output('%s', $violation->diagnostics);
+        info(HR_LIGHT);
+        info('%s', $violation->diagnostics);
     }
-    output(HR_LIGHT);
-    output('  policy   : %s'           => $violation->policy);
-    output('  severity : %d'           => $violation->severity);
-    output('  location : %s @ <%d:%d>' => (
+    info(HR_LIGHT);
+    info('  policy   : %s'           => $violation->policy);
+    info('  severity : %d'           => $violation->severity);
+    info('  location : %s @ <%d:%d>' => (
         Path::Class::File->new( $violation->filename )->relative( $session->git_work_tree ),
          $violation->line_number,
          $violation->column_number
     ));
-    output(HR_LIGHT);
-    output('%s', $violation->source);
-    output(HR_LIGHT);
+    info(HR_LIGHT);
+    info('%s', $violation->source);
+    info(HR_LIGHT);
 }
 
 

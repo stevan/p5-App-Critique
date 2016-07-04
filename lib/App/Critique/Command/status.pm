@@ -27,19 +27,19 @@ sub execute {
         }
 
         if ( $opt->verbose ) {
-            output(HR_DARK);
-            output('CONFIG:');
-            output(HR_LIGHT);
-            output('  perl_critic_profile : %s', $session->perl_critic_profile // 'auto');
-            output('  perl_critic_theme   : %s', $session->perl_critic_theme   // 'auto');
-            output('  perl_critic_policy  : %s', $session->perl_critic_policy  // 'auto');
-            output('  git_work_tree       : %s', $session->git_work_tree       // 'auto');
-            output('  git_branch          : %s', $session->git_branch          // 'auto');
-            output(HR_DARK);
-            output('FILES: <legend: [v|r|e] path>');
-            output(HR_LIGHT);
+            info(HR_DARK);
+            info('CONFIG:');
+            info(HR_LIGHT);
+            info('  perl_critic_profile : %s', $session->perl_critic_profile // 'auto');
+            info('  perl_critic_theme   : %s', $session->perl_critic_theme   // 'auto');
+            info('  perl_critic_policy  : %s', $session->perl_critic_policy  // 'auto');
+            info('  git_work_tree       : %s', $session->git_work_tree       // 'auto');
+            info('  git_branch          : %s', $session->git_branch          // 'auto');
+            info(HR_DARK);
+            info('FILES: <legend: [v|r|e] path>');
+            info(HR_LIGHT);
             foreach my $file ( @tracked_files ) {
-                output('[%s|%s|%s] %s',
+                info('[%s|%s|%s] %s',
                     $file->recall('violations') // '-',
                     $file->recall('reviewed')   // '-',
                     $file->recall('edited')     // '-',
@@ -48,14 +48,16 @@ sub execute {
             }
         }
 
-        output(HR_DARK);
-        output('TOTAL: %d files', $num_files );
-        output('  (v)iolations : %d', $violations);
-        output('  (r)eviwed    : %d', $reviewed  );
-        output('  (e)dited     : %d', $edited    );
-        output(HR_LIGHT);
-        output('PATH: (%s)', $session->session_file_path);
-        output(HR_DARK);
+        info(HR_DARK);
+        info('TOTAL: %d files', $num_files );
+        info('  (v)iolations : %d', $violations);
+        info('  (r)eviwed    : %d', $reviewed  );
+        info('  (e)dited     : %d', $edited    );
+        if ( $opt->verbose ) {
+            info(HR_LIGHT);
+            info('PATH: (%s)', $session->session_file_path);
+        }
+        info(HR_DARK);
     }
     else {
         if ( $opt->verbose ) {
@@ -64,7 +66,7 @@ sub execute {
                 App::Critique::Session->locate_session_file // 'undef'
             );
         }
-        runtime_error('No session file found, perhaps you forgot to call `init`.');
+        error('No session file found, perhaps you forgot to call `init`.');
     }
 
 }

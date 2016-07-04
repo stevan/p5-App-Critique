@@ -22,14 +22,14 @@ sub execute {
     my $session_file = App::Critique::Session->locate_session_file;
 
     if (-e $session_file) {
-        output('Attempting to remove session file ...');
+        info('Attempting to remove session file ...');
 
         if ( $opt->dry_run ) {
-            output('[dry-run] Found session file (%s), not removing.', $session_file);
+            info('[dry-run] Found session file (%s), not removing.', $session_file);
         }
         else {
             if ( $session_file->remove ) {
-                output('Successfully removed session file (%s).', $session_file);
+                info('Successfully removed session file (%s).', $session_file);
             }
             else {
                 if ( $opt->verbose ) {
@@ -39,23 +39,23 @@ sub execute {
                         $!
                     );
                 }
-                runtime_error('Unable to remove session file.');
+                error('Unable to remove session file.');
             }
 
-            output('Attempting to clean up session directory ...');
+            info('Attempting to clean up session directory ...');
 
             my $branch = $session_file->parent;
             if ( my @children = $branch->children ) {
-                output('Branch directory (%s) is not empty, it will not be removed', $branch);
+                info('Branch directory (%s) is not empty, it will not be removed', $branch);
                 if ( $opt->verbose ) {
-                    output('Branch directory (%s) contains:', $branch);
-                    output('  %s', $_) foreach @children;
+                    info('Branch directory (%s) contains:', $branch);
+                    info('  %s', $_) foreach @children;
                 }
             }
             else {
-                output('Attempting to remove empty branch directory ...');
+                info('Attempting to remove empty branch directory ...');
                 if ( $branch->rmtree ) {
-                    output('Successfully removed empty branch directory (%s).', $branch);
+                    info('Successfully removed empty branch directory (%s).', $branch);
                 }
                 else {
                     if ( $opt->verbose ) {
@@ -65,22 +65,22 @@ sub execute {
                             $!
                         );
                     }
-                    runtime_error('Unable to remove empty branch directory file.');
+                    error('Unable to remove empty branch directory file.');
                 }
             }
 
             my $repo = $branch->parent;
             if ( my @children = $repo->children ) {
-                output('Branch directory (%s) is not empty, it will not be removed', $repo);
+                info('Branch directory (%s) is not empty, it will not be removed', $repo);
                 if ( $opt->verbose ) {
-                    output('Repo directory (%s) contains:', $repo);
-                    output('  %s', $_) foreach @children;
+                    info('Repo directory (%s) contains:', $repo);
+                    info('  %s', $_) foreach @children;
                 }
             }
             else {
-                output('Attempting to remove empty repo directory ...');
+                info('Attempting to remove empty repo directory ...');
                 if ( $repo->rmtree ) {
-                    output('Successfully removed empty repo directory (%s).', $repo);
+                    info('Successfully removed empty repo directory (%s).', $repo);
                 }
                 else {
                     if ( $opt->verbose ) {
@@ -90,7 +90,7 @@ sub execute {
                             $!
                         );
                     }
-                    runtime_error('Unable to remove empty repo directory file.');
+                    error('Unable to remove empty repo directory file.');
                 }
             }
         }
@@ -103,7 +103,7 @@ sub execute {
                 $session_file // 'undef'
             );
         }
-        runtime_error('No session file found, nothing removed.');
+        error('No session file found, nothing removed.');
     }
 }
 

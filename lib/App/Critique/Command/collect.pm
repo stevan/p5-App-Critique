@@ -34,7 +34,7 @@ sub execute {
 
     if ( $session ) {
 
-        output('Session file located.');
+        info('Session file located.');
 
         my $root = $opt->root
             ? Path::Class::Dir->new( $opt->root )
@@ -60,16 +60,16 @@ sub execute {
         );
 
         my $num_files = scalar @all;
-        output('Collected %d perl files for critique.', $num_files);
+        info('Collected %d perl files for critique.', $num_files);
 
         if ( $opt->shuffle ) {
-            output('Shuffling file list.');
+            info('Shuffling file list.');
             @all = List::Util::shuffle( @all );
         }
 
         if ( $opt->verbose ) {
             foreach my $file ( @all ) {
-                output(
+                info(
                     'Including %s',
                     Path::Class::File->new( $file )->relative( $session->git_work_tree )
                 );
@@ -77,13 +77,13 @@ sub execute {
         }
 
         if ( $opt->dry_run ) {
-            output('[dry run] %d files found, 0 files added.', $num_files);
+            info('[dry run] %d files found, 0 files added.', $num_files);
         }
         else {
             $session->set_files_to_track( @all );
-            output('Sucessfully added %d files.', $num_files);
+            info('Sucessfully added %d files.', $num_files);
             $session->store;
-            output('Session file stored successfully (%s).', $session->session_file_path);
+            info('Session file stored successfully (%s).', $session->session_file_path);
         }
     }
     else {
@@ -93,7 +93,7 @@ sub execute {
                 App::Critique::Session->locate_session_file // 'undef'
             );
         }
-        runtime_error('No session file found, perhaps you forgot to call `init`.');
+        error('No session file found, perhaps you forgot to call `init`.');
     }
 }
 

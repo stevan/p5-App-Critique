@@ -16,28 +16,41 @@ use App::Cmd::Setup -plugin => {
     exports => [qw[
         TERM_WIDTH
         HR_ERROR
+        HR_WARNING
         HR_DARK
         HR_LIGHT
 
-        output
+        info
         warning
-        runtime_error
+        error
     ]]
 };
 
-sub output {
+sub info {
     my ($plugin, $cmd, $msg, @args) = @_;
     print((sprintf $msg, @args), "\n");
 }
 
 sub warning {
     my ($plugin, $cmd, $msg, @args) = @_;
-    warn((sprintf $msg, @args), "\n");
+
+    # NOTE:
+    # I had a timestamp here, but it didn't
+    # really help any with the readability,
+    # so I took it out, just in case I want
+    # it back. I am leaving it here so I
+    # don't need to work this out again.
+    # - SL
+    # my @time = (localtime)[ 2, 1, 0, 4, 3, 5 ];
+    # $time[-1] += 1900;
+    # sprintf '%02d:%02d:%02d-%02d/%02d/%d', @time;
+
+    warn('[WARN] ',(sprintf $msg, @args),"\n");
 }
 
-sub runtime_error {
+sub error {
     my ($plugin, $cmd, $msg, @args) = @_;
-    die HR_ERROR, "\n", (sprintf $msg, @args), "\n", HR_DARK, "\n";
+    die HR_ERROR,"\n",(sprintf $msg, @args),"\n",HR_DARK,"\n";
 }
 
 1;
