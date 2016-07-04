@@ -34,15 +34,15 @@ sub execute {
     my ($self, $opt, $args) = @_;
 
     if ( $opt->verbose ) {
-        $self->output($self->HR_LIGHT);
-        $self->output('Attempting to initialize session file using the following options:');
-        $self->output($self->HR_LIGHT);
-        $self->output('  --perl-critic-profile = (%s)', $opt->perl_critic_profile // 'auto');
-        $self->output('  --perl-critic-theme   = (%s)', $opt->perl_critic_theme   // 'auto');
-        $self->output('  --perl-critic-policy  = (%s)', $opt->perl_critic_policy  // 'auto');
+        output(HR_LIGHT);
+        output('Attempting to initialize session file using the following options:');
+        output(HR_LIGHT);
+        output('  --perl-critic-profile = (%s)', $opt->perl_critic_profile // 'auto');
+        output('  --perl-critic-theme   = (%s)', $opt->perl_critic_theme   // 'auto');
+        output('  --perl-critic-policy  = (%s)', $opt->perl_critic_policy  // 'auto');
     }
     else {
-        $self->output('Attempting to initialize session file ...');
+        output('Attempting to initialize session file ...');
     }
 
     my $session = App::Critique::Session->new(
@@ -52,24 +52,24 @@ sub execute {
     );
 
     if ( $opt->verbose ) {
-        $self->output($self->HR_LIGHT);
-        $self->output('Successuflly created session with the following configuration:');
-        $self->output($self->HR_LIGHT);
-        $self->output('  perl_critic_profile = (%s)', $session->perl_critic_profile // 'auto');
-        $self->output('  perl_critic_theme   = (%s)', $session->perl_critic_theme   // 'auto');
-        $self->output('  perl_critic_policy  = (%s)', $session->perl_critic_policy  // 'auto');
-        $self->output('  git_work_tree       = (%s)', $session->git_work_tree       // 'auto');
-        $self->output('  git_branch          = (%s)', $session->git_branch          // 'auto');
-        $self->output($self->HR_LIGHT);
+        output(HR_LIGHT);
+        output('Successuflly created session with the following configuration:');
+        output(HR_LIGHT);
+        output('  perl_critic_profile = (%s)', $session->perl_critic_profile // 'auto');
+        output('  perl_critic_theme   = (%s)', $session->perl_critic_theme   // 'auto');
+        output('  perl_critic_policy  = (%s)', $session->perl_critic_policy  // 'auto');
+        output('  git_work_tree       = (%s)', $session->git_work_tree       // 'auto');
+        output('  git_branch          = (%s)', $session->git_branch          // 'auto');
+        output(HR_LIGHT);
     }
 
     if ( $session->session_file_exists ) {
         my $session_file_path = $session->session_file_path;
         if ( $opt->force ) {
-            $self->output('!! Overwriting session file (%s) with --force option.', $session_file_path);
+            output('!! Overwriting session file (%s) with --force option.', $session_file_path);
         }
         else {
-            $self->runtime_error(
+            runtime_error(
                 'Unable to overwrite session file (%s) without --force option.',
                 $session_file_path
             );
@@ -79,11 +79,11 @@ sub execute {
     eval {
         $session->store;
         1;
-    } or $self->handle_session_file_exception(
+    } or handle_session_file_exception(
         store => ($session->session_file_path, "$@", $opt->debug)
     );
 
-    $self->output('Session file (%s) initialized successfully.', $session->session_file_path);
+    output('Session file (%s) initialized successfully.', $session->session_file_path);
 }
 
 1;

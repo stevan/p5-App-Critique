@@ -21,7 +21,7 @@ sub execute {
     my ($self, $opt, $args) = @_;
 
     my $session = App::Critique::Session->locate_session(
-        sub { $self->handle_session_file_exception('load', @_, $opt->debug) }
+        sub { handle_session_file_exception('load', @_, $opt->debug) }
     );
 
     if ( $session ) {
@@ -32,19 +32,19 @@ sub execute {
         my @tracked_files = $session->tracked_files;
 
         if ( $session->current_file_idx == scalar @tracked_files ) {
-            $self->output($self->HR_DARK);
-            $self->output('All files have already been processed.');
-            $self->output($self->HR_LIGHT);
-            $self->output('- run `critique status` to see more information');
-            $self->output('- run `critique process --reset` to review all files again');
-            $self->output($self->HR_DARK);
+            output(HR_DARK);
+            output('All files have already been processed.');
+            output(HR_LIGHT);
+            output('- run `critique status` to see more information');
+            output('- run `critique process --reset` to review all files again');
+            output(HR_DARK);
         }
         else {
 
         MAIN:
             while (1) {
 
-                $self->output($self->HR_LIGHT);
+                output(HR_LIGHT);
 
                 my $idx  = $session->current_file_idx;
                 my $file = $tracked_files[ $idx ];
@@ -56,7 +56,7 @@ sub execute {
                         { default => 'y' }
                     );
 
-                    $self->output($self->HR_LIGHT);
+                    output(HR_LIGHT);
                     if ( $should_review_again ) {
                         $file->forget('violations');
                     }
@@ -65,16 +65,16 @@ sub execute {
                     }
                 }
 
-                $self->output('Running Perl::Critic against (%s)', $path);
-                $self->output($self->HR_LIGHT);
+                output('Running Perl::Critic against (%s)', $path);
+                output(HR_LIGHT);
 
                 my @violations = $self->discover_violations( $session, $file, $opt );
 
                 $file->remember('violations' => scalar @violations);
 
                 if ( @violations == 0 ) {
-                    $self->output('No violations found, proceeding to next file.');
-                    $self->output($self->HR_LIGHT);
+                    output('No violations found, proceeding to next file.');
+                    output(HR_LIGHT);
                     next MAIN;
                 }
                 else {
@@ -129,11 +129,11 @@ sub execute {
                     }
                 }
 
-                $self->output($self->HR_LIGHT);
+                output(HR_LIGHT);
             } continue {
 
                 if ( ($session->current_file_idx + 1) == scalar @tracked_files ) {
-                    $self->output('Processing complete, run `status` to see results.');
+                    output('Processing complete, run `status` to see results.');
                     $session->inc_file_idx;
                     $session->store;
                     last MAIN;
@@ -170,12 +170,12 @@ sub execute {
     }
     else {
         if ( $opt->verbose ) {
-            $self->warning(
+            warning(
                 'Unable to locate session file, looking for (%s)',
                 App::Critique::Session->locate_session_file // 'undef'
             );
         }
-        $self->runtime_error('No session file found, perhaps you forgot to call `init`.');
+        runtime_error('No session file found, perhaps you forgot to call `init`.');
     }
 
 }
@@ -191,23 +191,25 @@ sub discover_violations {
 
 sub display_violation {
     my ($self, $session, $file, $violation, $opt) = @_;
-    $self->output($self->HR_DARK);
-    $self->output('Violation: %s', $violation->description);
-    $self->output($self->HR_DARK);
-    $self->output('%s', $violation->explanation);
+    output(HR_DARK);
+    output('Violation: %s', $violation->description);
+    output(HR_DARK);
+    output('%s', $violation->explanation);
     if ( $opt->verbose ) {
-        $self->output($self->HR_LIGHT);
-        $self->output('%s', $violation->diagnostics);
+        output(HR_LIGHT);
+        output('%s', $violation->diagnostics);
     }
-    $self->output($self->HR_LIGHT);
-    $self->output('  policy   : %s'           => $violation->policy);
-    $self->output('  severity : %d'           => $violation->severity);
-    $self->output('  location : %s @ <%d:%d>' => Path::Class::File->new( $violation->filename )->relative( $session->git_work_tree ),
-                                                 $violation->line_number,
-                                                 $violation->column_number);
-    $self->output($self->HR_LIGHT);
-    $self->output('%s', $violation->source);
-    $self->output($self->HR_LIGHT);
+    output(HR_LIGHT);
+    output('  policy   : %s'           => $violation->policy);
+    output('  severity : %d'           => $violation->severity);
+    output('  location : %s @ <%d:%d>' => (
+        Path::Class::File->new( $violation->filename )->relative( $session->git_work_tree ),
+         $violation->line_number,
+         $violation->column_number
+    ));
+    output(HR_LIGHT);
+    output('%s', $violation->source);
+    output(HR_LIGHT);
 }
 
 

@@ -29,12 +29,12 @@ sub execute {
     my ($self, $opt, $args) = @_;
 
     my $session = App::Critique::Session->locate_session(
-        sub { $self->handle_session_file_exception('load', @_, $opt->debug) }
+        sub { handle_session_file_exception('load', @_, $opt->debug) }
     );
 
     if ( $session ) {
 
-        $self->output('Session file located.');
+        output('Session file located.');
 
         my $root = $opt->root
             ? Path::Class::Dir->new( $opt->root )
@@ -60,16 +60,16 @@ sub execute {
         );
 
         my $num_files = scalar @all;
-        $self->output('Collected %d perl files for critique.', $num_files);
+        output('Collected %d perl files for critique.', $num_files);
 
         if ( $opt->shuffle ) {
-            $self->output('Shuffling file list.');
+            output('Shuffling file list.');
             @all = List::Util::shuffle( @all );
         }
 
         if ( $opt->verbose ) {
             foreach my $file ( @all ) {
-                $self->output(
+                output(
                     'Including %s',
                     Path::Class::File->new( $file )->relative( $session->git_work_tree )
                 );
@@ -77,23 +77,23 @@ sub execute {
         }
 
         if ( $opt->dry_run ) {
-            $self->output('[dry run] %d files found, 0 files added.', $num_files);
+            output('[dry run] %d files found, 0 files added.', $num_files);
         }
         else {
             $session->set_files_to_track( @all );
-            $self->output('Sucessfully added %d files.', $num_files);
+            output('Sucessfully added %d files.', $num_files);
             $session->store;
-            $self->output('Session file stored successfully (%s).', $session->session_file_path);
+            output('Session file stored successfully (%s).', $session->session_file_path);
         }
     }
     else {
         if ( $opt->verbose ) {
-            $self->warning(
+            warning(
                 'Unable to locate session file, looking for (%s)',
                 App::Critique::Session->locate_session_file // 'undef'
             );
         }
-        $self->runtime_error('No session file found, perhaps you forgot to call `init`.');
+        runtime_error('No session file found, perhaps you forgot to call `init`.');
     }
 }
 

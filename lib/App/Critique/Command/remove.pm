@@ -22,75 +22,75 @@ sub execute {
     my $session_file = App::Critique::Session->locate_session_file;
 
     if (-e $session_file) {
-        $self->output('Attempting to remove session file ...');
+        output('Attempting to remove session file ...');
 
         if ( $opt->dry_run ) {
-            $self->output('[dry-run] Found session file (%s), not removing.', $session_file);
+            output('[dry-run] Found session file (%s), not removing.', $session_file);
         }
         else {
             if ( $session_file->remove ) {
-                $self->output('Successfully removed session file (%s).', $session_file);
+                output('Successfully removed session file (%s).', $session_file);
             }
             else {
                 if ( $opt->verbose ) {
-                    $self->warning(
+                    warning(
                         'Could not remove session file (%s) because: %s',
                         $session_file,
                         $!
                     );
                 }
-                $self->runtime_error('Unable to remove session file.');
+                runtime_error('Unable to remove session file.');
             }
 
-            $self->output('Attempting to clean up session directory ...');
+            output('Attempting to clean up session directory ...');
 
             my $branch = $session_file->parent;
             if ( my @children = $branch->children ) {
-                $self->output('Branch directory (%s) is not empty, it will not be removed', $branch);
+                output('Branch directory (%s) is not empty, it will not be removed', $branch);
                 if ( $opt->verbose ) {
-                    $self->output('Branch directory (%s) contains:', $branch);
-                    $self->output('  %s', $_) foreach @children;
+                    output('Branch directory (%s) contains:', $branch);
+                    output('  %s', $_) foreach @children;
                 }
             }
             else {
-                $self->output('Attempting to remove empty branch directory ...');
+                output('Attempting to remove empty branch directory ...');
                 if ( $branch->rmtree ) {
-                    $self->output('Successfully removed empty branch directory (%s).', $branch);
+                    output('Successfully removed empty branch directory (%s).', $branch);
                 }
                 else {
                     if ( $opt->verbose ) {
-                        $self->warning(
+                        warning(
                             'Could not remove empty branch directory (%s) because: %s',
                             $branch,
                             $!
                         );
                     }
-                    $self->runtime_error('Unable to remove empty branch directory file.');
+                    runtime_error('Unable to remove empty branch directory file.');
                 }
             }
 
             my $repo = $branch->parent;
             if ( my @children = $repo->children ) {
-                $self->output('Branch directory (%s) is not empty, it will not be removed', $repo);
+                output('Branch directory (%s) is not empty, it will not be removed', $repo);
                 if ( $opt->verbose ) {
-                    $self->output('Repo directory (%s) contains:', $repo);
-                    $self->output('  %s', $_) foreach @children;
+                    output('Repo directory (%s) contains:', $repo);
+                    output('  %s', $_) foreach @children;
                 }
             }
             else {
-                $self->output('Attempting to remove empty repo directory ...');
+                output('Attempting to remove empty repo directory ...');
                 if ( $repo->rmtree ) {
-                    $self->output('Successfully removed empty repo directory (%s).', $repo);
+                    output('Successfully removed empty repo directory (%s).', $repo);
                 }
                 else {
                     if ( $opt->verbose ) {
-                        $self->warning(
+                        warning(
                             'Could not remove empty repo directory (%s) because: %s',
                             $branch,
                             $!
                         );
                     }
-                    $self->runtime_error('Unable to remove empty repo directory file.');
+                    runtime_error('Unable to remove empty repo directory file.');
                 }
             }
         }
@@ -98,12 +98,12 @@ sub execute {
     }
     else {
         if ( $opt->verbose ) {
-            $self->warning(
+            warning(
                 'Unable to locate session file, looking for (%s)',
                 $session_file // 'undef'
             );
         }
-        $self->runtime_error('No session file found, nothing removed.');
+        runtime_error('No session file found, nothing removed.');
     }
 }
 
