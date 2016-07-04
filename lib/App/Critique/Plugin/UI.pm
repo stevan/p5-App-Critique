@@ -45,12 +45,12 @@ sub warning {
     # $time[-1] += 1900;
     # sprintf '%02d:%02d:%02d-%02d/%02d/%d', @time;
 
-    warn('[WARN] ',(sprintf $msg, @args),"\n");
+    warn('!! ',(sprintf $msg, @args),"\n");
 }
 
 sub error {
     my ($plugin, $cmd, $msg, @args) = @_;
-    die HR_ERROR,"\n",(sprintf $msg, @args),"\n",HR_DARK,"\n";
+    die(HR_ERROR,"\n",(sprintf $msg, @args),"\n",HR_DARK,"\n");
 }
 
 1;
