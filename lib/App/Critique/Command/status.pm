@@ -11,7 +11,7 @@ sub execute {
     my ($self, $opt, $args) = @_;
 
     my $session = App::Critique::Session->locate_session(
-        sub { handle_session_file_exception('load', @_, $opt->debug) }
+        sub { $self->handle_session_file_exception('load', @_, $opt->debug) }
     );
 
     if ( $session ) {

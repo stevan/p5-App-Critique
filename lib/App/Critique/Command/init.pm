@@ -79,7 +79,7 @@ sub execute {
     eval {
         $session->store;
         1;
-    } or handle_session_file_exception(
+    } or $self->handle_session_file_exception(
         store => ($session->session_file_path, "$@", $opt->debug)
     );
 

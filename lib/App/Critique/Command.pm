@@ -13,6 +13,17 @@ sub opt_spec {
     );
 }
 
+sub handle_session_file_exception {
+    my ($self, $operation, $session_file_path, $e, $debug) = @_;
+    if ( $debug ) {
+        chomp $e;
+        runtime_error("Unable to %s session file (%s), because:\n  %s", $operation, $session_file_path, $e);
+    }
+    else {
+        runtime_error('Unable to %s session file (%s), run with --debug|d for more information', $operation, $session_file_path);
+    }
+}
+
 1;
 
 __END__

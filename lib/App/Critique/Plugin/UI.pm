@@ -22,7 +22,6 @@ use App::Cmd::Setup -plugin => {
         output
         warning
         runtime_error
-        handle_session_file_exception
     ]]
 };
 
@@ -39,17 +38,6 @@ sub warning {
 sub runtime_error {
     my ($plugin, $cmd, $msg, @args) = @_;
     die HR_ERROR, "\n", (sprintf $msg, @args), "\n", HR_DARK, "\n";
-}
-
-sub handle_session_file_exception {
-    my ($plugin, $cmd, $operation, $session_file_path, $e, $debug) = @_;
-    if ( $debug ) {
-        chomp $e;
-        runtime_error($plugin, $cmd, "Unable to %s session file (%s), because:\n  %s", $operation, $session_file_path, $e);
-    }
-    else {
-        runtime_error($plugin, $cmd, 'Unable to %s session file (%s), run with --debug|d for more information', $operation, $session_file_path);
-    }
 }
 
 1;
