@@ -29,5 +29,5 @@ critique-debug-on () {
 }
 
 critique-list-policies () {
-    perl -MPerl::Critic -e 'print((join "\n" => Perl::Critic->new( -severity => 1 )->policies), "\n")'
+    perlcritic --brutal --list $@
 }
