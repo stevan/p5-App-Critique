@@ -95,31 +95,6 @@ sub locate_session_file {
     return $session_file;
 }
 
-sub locate_session {
-    my $class         = shift;  # take the first one
-    my $error_cb      = pop @_; # take the last one
-    my $git_work_tree = shift;  # if there are any left, they were in the middle
-
-    Carp::confess('Cannot call locate_session with an instance')
-        if Scalar::Util::blessed( $class );
-
-    Carp::confess('You must pass an error callback')
-        if ref $error_cb ne 'CODE';
-
-    my ($session, $session_file);
-    eval {
-        $session_file = $class->locate_session_file( $git_work_tree );
-        $session      = $class->load( $session_file );
-        1;
-    } or do {
-        my $e = "$@";
-        chomp $e;
-        $error_cb->( $session_file, $e );
-    };
-
-    return $session;
-}
-
 # accessors
 
 sub git_work_tree       { $_[0]->{git_work_tree}       }
