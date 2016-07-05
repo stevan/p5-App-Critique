@@ -20,141 +20,127 @@ sub opt_spec {
 sub execute {
     my ($self, $opt, $args) = @_;
 
-    my $session = App::Critique::Session->locate_session(
-        sub { $self->handle_session_file_exception('load', @_, $opt->debug) }
-    );
+    my $session = $self->cautiously_load_session( $opt, $args );
 
-    if ( $session ) {
+    info('Session file loaded.');
 
-        $session->reset_file_idx if $opt->reset;
-        $session->dec_file_idx   if $opt->prev;
+    $session->reset_file_idx if $opt->reset;
+    $session->dec_file_idx   if $opt->prev;
 
-        my @tracked_files = $session->tracked_files;
+    my @tracked_files = $session->tracked_files;
 
-        if ( $session->current_file_idx == scalar @tracked_files ) {
-            info(HR_DARK);
-            info('All files have already been processed.');
+    if ( $session->current_file_idx == scalar @tracked_files ) {
+        info(HR_DARK);
+        info('All files have already been processed.');
+        info(HR_LIGHT);
+        info('- run `critique status` to see more information');
+        info('- run `critique process --reset` to review all files again');
+        info(HR_DARK);
+        return;
+    }
+
+MAIN:
+    while (1) {
+
+        info(HR_LIGHT);
+
+        my $idx  = $session->current_file_idx;
+        my $file = $tracked_files[ $idx ];
+        my $path = $file->relative_path( $session->git_work_tree );
+
+        if ( defined $file->recall('violations') ) {
+            my $should_review_again = prompt_yn(
+                (sprintf 'File (%s) already checked, found %d violations, would you like to critique the file again?', $path, $file->recall('violations')),
+                { default => 'y' }
+            );
+
             info(HR_LIGHT);
-            info('- run `critique status` to see more information');
-            info('- run `critique process --reset` to review all files again');
-            info(HR_DARK);
-        }
-        else {
-
-        MAIN:
-            while (1) {
-
-                info(HR_LIGHT);
-
-                my $idx  = $session->current_file_idx;
-                my $file = $tracked_files[ $idx ];
-                my $path = $file->relative_path( $session->git_work_tree );
-
-                if ( defined $file->recall('violations') ) {
-                    my $should_review_again = prompt_yn(
-                        (sprintf 'File (%s) already checked, found %d violations, would you like to critique the file again?', $path, $file->recall('violations')),
-                        { default => 'y' }
-                    );
-
-                    info(HR_LIGHT);
-                    if ( $should_review_again ) {
-                        $file->forget('violations');
-                    }
-                    else {
-                        next MAIN;
-                    }
-                }
-
-                info('Running Perl::Critic against (%s)', $path);
-                info(HR_LIGHT);
-
-                my @violations = $self->discover_violations( $session, $file, $opt );
-
-                $file->remember('violations' => scalar @violations);
-
-                if ( @violations == 0 ) {
-                    info('No violations found, proceeding to next file.');
-                    info(HR_LIGHT);
-                    next MAIN;
-                }
-                else {
-                    my $should_review = prompt_yn(
-                        (sprintf 'Found %d violations, would you like to review them?', (scalar @violations)),
-                        { default => 'y' }
-                    );
-
-                    if ( $should_review ) {
-
-                        my ($reviewed, $edited) = (0, 0);
-
-                        foreach my $violation ( @violations ) {
-
-                            $self->display_violation( $session, $file, $violation, $opt );
-                            $reviewed++;
-
-                            my $should_edit = prompt_yn(
-                                'Would you like to fix this violation?',
-                                { default => 'y' }
-                            );
-
-                            if ( $should_edit ) {
-                                $edited++;
-                                $self->edit_violation( $violation );
-                            }
-                        }
-
-                        $file->remember('reviewed', $reviewed);
-                        $file->remember('edited',   $edited);
-                    }
-                }
-
-                info(HR_LIGHT);
-            } continue {
-
-                if ( ($session->current_file_idx + 1) == scalar @tracked_files ) {
-                    info('Processing complete, run `status` to see results.');
-                    $session->inc_file_idx;
-                    $session->store;
-                    last MAIN;
-                }
-
-                my $where_to = prompt_str(
-                    '>> (n)ext (p)rev (r)efresh (s)top',
-                    {
-                        valid   => sub { $_[0] =~ m/[nprs]{1}/ },
-                        default => 'n',
-                    }
-                );
-
-                if ( $where_to eq 'n' ) {
-                    $session->inc_file_idx;
-                    $session->store;
-                }
-                elsif ( $where_to eq 'p' ) {
-                    $session->dec_file_idx;
-                    $session->store;
-                }
-                elsif ( $where_to eq 'r' ) {
-                    redo MAIN;
-                }
-                elsif ( $where_to eq 's' ) {
-                    $session->inc_file_idx;
-                    $session->store;
-                    last MAIN;
-                }
-
+            if ( $should_review_again ) {
+                $file->forget('violations');
+            }
+            else {
+                next MAIN;
             }
         }
 
-    }
-    else {
-        if ( $opt->verbose ) {
-            warning(
-                'Unable to locate session file, looking for (%s)',
-                App::Critique::Session->locate_session_file // 'undef'
-            );
+        info('Running Perl::Critic against (%s)', $path);
+        info(HR_LIGHT);
+
+        my @violations = $self->discover_violations( $session, $file, $opt );
+
+        $file->remember('violations' => scalar @violations);
+
+        if ( @violations == 0 ) {
+            info('No violations found, proceeding to next file.');
+            info(HR_LIGHT);
+            next MAIN;
         }
-        error('No session file found, perhaps you forgot to call `init`.');
+        else {
+            my $should_review = prompt_yn(
+                (sprintf 'Found %d violations, would you like to review them?', (scalar @violations)),
+                { default => 'y' }
+            );
+
+            if ( $should_review ) {
+
+                my ($reviewed, $edited) = (0, 0);
+
+                foreach my $violation ( @violations ) {
+
+                    $self->display_violation( $session, $file, $violation, $opt );
+                    $reviewed++;
+
+                    my $should_edit = prompt_yn(
+                        'Would you like to fix this violation?',
+                        { default => 'y' }
+                    );
+
+                    if ( $should_edit ) {
+                        $edited++;
+                        $self->edit_violation( $violation );
+                    }
+                }
+
+                $file->remember('reviewed', $reviewed);
+                $file->remember('edited',   $edited);
+            }
+        }
+
+        info(HR_LIGHT);
+    } continue {
+
+        if ( ($session->current_file_idx + 1) == scalar @tracked_files ) {
+            info('Processing complete, run `status` to see results.');
+            $session->inc_file_idx;
+            $self->cautiously_store_session( $session, $opt, $args );
+            last MAIN;
+        }
+
+        my $where_to = prompt_str(
+            '>> (n)ext (p)rev (r)efresh (s)top',
+            {
+                valid   => sub { $_[0] =~ m/[nprs]{1}/ },
+                default => 'n',
+            }
+        );
+
+        if ( $where_to eq 'n' ) {
+            $session->inc_file_idx;
+            $self->cautiously_store_session( $session, $opt, $args );
+        }
+        elsif ( $where_to eq 'p' ) {
+            $session->dec_file_idx;
+            $self->cautiously_store_session( $session, $opt, $args );
+        }
+        elsif ( $where_to eq 'r' ) {
+            redo MAIN;
+        }
+        elsif ( $where_to eq 's' ) {
+            $session->inc_file_idx;
+            $self->cautiously_store_session( $session, $opt, $args );
+            last MAIN;
+        }
+
     }
 
 }

@@ -76,12 +76,7 @@ sub execute {
         }
     }
 
-    eval {
-        $session->store;
-        1;
-    } or $self->handle_session_file_exception(
-        store => ($session->session_file_path, "$@", $opt->debug)
-    );
+    $self->cautiously_store_session( $session, $opt, $args );
 
     info('Session file (%s) initialized successfully.', $session->session_file_path);
 }

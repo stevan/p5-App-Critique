@@ -28,72 +28,59 @@ sub opt_spec {
 sub execute {
     my ($self, $opt, $args) = @_;
 
-    my $session = App::Critique::Session->locate_session(
-        sub { $self->handle_session_file_exception('load', @_, $opt->debug) }
-    );
+    my $session = $self->cautiously_load_session( $opt, $args );
 
-    if ( $session ) {
+    info('Session file loaded.');
 
-        info('Session file located.');
+    my $root = $opt->root
+        ? Path::Class::Dir->new( $opt->root )
+        : $session->git_work_tree;
 
-        my $root = $opt->root
-            ? Path::Class::Dir->new( $opt->root )
-            : $session->git_work_tree;
-
-        my $filter;
-        if ( my $f = $opt->filter ) {
-            if ( ref $f eq 'CODE' ) {
-                $filter = $f;
-            }
-            else {
-                $filter = $opt->invert
-                    ? sub { $_[0]->stringify !~ /$f/ }
-                    : sub { $_[0]->stringify =~ /$f/ };
-            }
-        }
-
-        my @all;
-        traverse_filesystem(
-            $root,
-            $filter,
-            sub { push @all => $_[0] },
-        );
-
-        my $num_files = scalar @all;
-        info('Collected %d perl files for critique.', $num_files);
-
-        if ( $opt->shuffle ) {
-            info('Shuffling file list.');
-            @all = List::Util::shuffle( @all );
-        }
-
-        if ( $opt->verbose ) {
-            foreach my $file ( @all ) {
-                info(
-                    'Including %s',
-                    Path::Class::File->new( $file )->relative( $session->git_work_tree )
-                );
-            }
-        }
-
-        if ( $opt->dry_run ) {
-            info('[dry run] %d files found, 0 files added.', $num_files);
+    my $filter;
+    if ( my $f = $opt->filter ) {
+        if ( ref $f eq 'CODE' ) {
+            $filter = $f;
         }
         else {
-            $session->set_files_to_track( @all );
-            info('Sucessfully added %d files.', $num_files);
-            $session->store;
-            info('Session file stored successfully (%s).', $session->session_file_path);
+            $filter = $opt->invert
+                ? sub { $_[0]->stringify !~ /$f/ }
+                : sub { $_[0]->stringify =~ /$f/ };
         }
     }
-    else {
-        if ( $opt->verbose ) {
-            warning(
-                'Unable to locate session file, looking for (%s)',
-                App::Critique::Session->locate_session_file // 'undef'
+
+    my @all;
+    traverse_filesystem(
+        $root,
+        $filter,
+        sub { push @all => $_[0] },
+    );
+
+    my $num_files = scalar @all;
+    info('Collected %d perl files for critique.', $num_files);
+
+    if ( $opt->shuffle ) {
+        info('Shuffling file list.');
+        @all = List::Util::shuffle( @all );
+    }
+
+    if ( $opt->verbose ) {
+        foreach my $file ( @all ) {
+            info(
+                'Including %s',
+                Path::Class::File->new( $file )->relative( $session->git_work_tree )
             );
         }
-        error('No session file found, perhaps you forgot to call `init`.');
+    }
+
+    if ( $opt->dry_run ) {
+        info('[dry run] %d files found, 0 files added.', $num_files);
+    }
+    else {
+        $session->set_files_to_track( @all );
+        info('Sucessfully added %d files.', $num_files);
+
+        $self->cautiously_store_session( $session, $opt, $args );
+        info('Session file stored successfully (%s).', $session->session_file_path);
     }
 }
 
