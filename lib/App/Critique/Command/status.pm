@@ -14,8 +14,9 @@ sub execute {
 
     info('Session file loaded.');
 
-    my @tracked_files = sort { $a->path cmp $b->path } $session->tracked_files;
+    my @tracked_files = $session->tracked_files;
     my $num_files     = scalar @tracked_files;
+    my $curr_file_idx = $session->current_file_idx;
 
     my ($violations, $reviewed, $edited) = (0, 0, 0);
     foreach my $file ( @tracked_files ) {
