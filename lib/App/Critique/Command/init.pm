@@ -62,6 +62,9 @@ sub execute {
         info('  git_branch          = (%s)', $session->git_branch          // 'auto');
         info(HR_LIGHT);
     }
+    else {
+        info('Successuflly created session.');
+    }
 
     if ( $session->session_file_exists ) {
         my $session_file_path = $session->session_file_path;
