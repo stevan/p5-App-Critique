@@ -34,24 +34,31 @@ sub execute {
         info('  perl_critic_policy  : %s', $session->perl_critic_policy  // 'auto');
         info('  git_work_tree       : %s', $session->git_work_tree       // 'auto');
         info('  git_branch          : %s', $session->git_branch          // 'auto');
-        info(HR_DARK);
-        info('FILES: <legend: [v|r|e] path>');
-        info(HR_LIGHT);
-        foreach my $file ( @tracked_files ) {
-            info('[%s|%s|%s] %s',
-                $file->recall('violations') // '-',
-                $file->recall('reviewed')   // '-',
-                $file->recall('edited')     // '-',
-                $file->relative_path( $session->git_work_tree ),
-            );
-        }
     }
 
+    info(HR_DARK);
+    info('FILES: <legend: [v|r|e] path>');
+    if ( $opt->verbose ) {
+        info(HR_LIGHT);
+        info('CURRENT FILE INDEX: (%d)', $curr_file_idx);
+    }
+    info(HR_LIGHT);
+    foreach my $i ( 0 .. $#tracked_files ) {
+        my $file = $tracked_files[$i];
+        info('%s [%s|%s|%s] %s',
+            ($i == $curr_file_idx ? '>' : ' '),
+            $file->recall('violations') // '-',
+            $file->recall('reviewed')   // '-',
+            $file->recall('edited')     // '-',
+            $file->relative_path( $session->git_work_tree ),
+        );
+    }
     info(HR_DARK);
     info('TOTAL: %d files', $num_files );
     info('  (v)iolations : %d', $violations);
     info('  (r)eviwed    : %d', $reviewed  );
     info('  (e)dited     : %d', $edited    );
+
     if ( $opt->verbose ) {
         info(HR_LIGHT);
         info('PATH: (%s)', $session->session_file_path);
