@@ -197,7 +197,7 @@ sub edit_violation {
     ## -----------------------------------------------
 
 EDIT:
-    my $cmd = sprintf $ENV{CRITIQUE_EDITOR} => ($violation->filename, $violation->line_number, $violation->column_number);
+    my $cmd = sprintf $App::Critique::CONFIG{EDITOR} => ($violation->filename, $violation->line_number, $violation->column_number);
     system $cmd;
     prompt_yn('Are you finished editing?', { default => 'y' })
         || goto EDIT;

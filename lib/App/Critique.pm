@@ -3,6 +3,8 @@ package App::Critique;
 use strict;
 use warnings;
 
+our %CONFIG;
+
 use App::Cmd::Setup -app => {
     plugins => [
         'Prompt',

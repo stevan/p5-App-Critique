@@ -8,8 +8,8 @@ use App::Cmd::Setup -command;
 sub opt_spec {
     my ( $class, $app ) = @_;
     return (
-        [ 'verbose|v', 'display additional information', { default => $ENV{CRITIQUE_VERBOSE}                     } ],
-        [ 'debug|d',   'display debugging information',  { default => $ENV{CRITIQUE_DEBUG}, implies => 'verbose' } ],
+        [ 'verbose|v', 'display additional information', { default => $App::Critique::CONFIG{VERBOSE}                     } ],
+        [ 'debug|d',   'display debugging information',  { default => $App::Critique::CONFIG{DEBUG}, implies => 'verbose' } ],
     );
 }
 
