@@ -63,13 +63,11 @@ sub execute {
         @all = List::Util::shuffle( @all );
     }
 
-    if ( $opt->verbose ) {
-        foreach my $file ( @all ) {
-            info(
-                'Including %s',
-                Path::Class::File->new( $file )->relative( $session->git_work_tree )
-            );
-        }
+    foreach my $file ( @all ) {
+        info(
+            'Including %s',
+            Path::Class::File->new( $file )->relative( $session->git_work_tree )
+        );
     }
 
     if ( $opt->dry_run ) {
