@@ -97,7 +97,7 @@ MAIN:
 
                     if ( $should_edit ) {
                         $edited++;
-                        $self->edit_violation( $violation );
+                        $self->edit_violation( $session, $violation );
                     }
                 }
 
@@ -178,7 +178,14 @@ sub display_violation {
 }
 
 sub edit_violation {
-    my ($self, $violation) = @_;
+    my ($self, $session, $violation) = @_;
+
+    my $git      = $session->git_repository;
+    my $filename = $violation->filename;
+
+    my $cmd_fmt  = $App::Critique::CONFIG{EDITOR};
+    my @cmd_args = ($filename, $violation->line_number, $violation->column_number);
+    my $cmd      = sprintf $cmd_fmt => @cmd_args;
 
     ## Improve the edit loop:
     ## -----------------------------------------------
@@ -197,10 +204,58 @@ sub edit_violation {
     ## -----------------------------------------------
 
 EDIT:
-    my $cmd = sprintf $App::Critique::CONFIG{EDITOR} => ($violation->filename, $violation->line_number, $violation->column_number);
     system $cmd;
-    prompt_yn('Are you finished editing?', { default => 'y' })
-        || goto EDIT;
+
+    my @modified = $git->run('status', '--short');
+    my $did_edit = scalar grep /$filename/, @modified;
+
+    if ( $did_edit ) {
+        info(HR_LIGHT);
+        info('Changes detected.');
+        info(HR_LIGHT);
+    CHOOSE:
+        my $what_now = prompt_str(
+            'What would you like to do? (c)ommit (d)iff (e)dit (s)kip',
+            {
+                valid   => sub { $_[0] =~ m/[cdes]{1}/ },
+                default => 'c',
+            }
+        );
+
+        if ( $what_now eq 'c' ) {
+            info(HR_LIGHT);
+            my $policy_name = $violation->policy;
+            $policy_name =~ s/^Perl\:\:Critic\:\:Policy\:\://;
+
+            my $commit_msg = prompt_str(
+                'Please write a commit message or choose the default.',
+                {
+                    default => (sprintf 'critique(%s) - %s' => $policy_name, $violation->description)
+                }
+            );
+
+            # GIT ME!!!
+            die $commit_msg;
+        }
+        elsif ( $what_now eq 'd' ) {
+            info(HR_LIGHT);
+            info('%s', join "\n" => $git->run('diff'));
+            info(HR_LIGHT);
+            goto CHOOSE;
+        }
+        elsif ( $what_now eq 'e' ) {
+            goto EDIT;
+        }
+        elsif ( $what_now eq 'n' ) {
+            return;
+        }
+    }
+    else {
+        info(HR_LIGHT);
+        info('No edits found for file (%s), skipping to next violation or file', $filename);
+    }
+
+    return;
 }
 
 1;
