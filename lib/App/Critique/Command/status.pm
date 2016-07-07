@@ -18,7 +18,7 @@ sub execute {
     my $num_files     = scalar @tracked_files;
     my $curr_file_idx = $session->current_file_idx;
 
-    my ($violations, $reviewed, $edited, $commited) = (0, 0, 0);
+    my ($violations, $reviewed, $edited, $commited) = (0, 0, 0, 0);
     foreach my $file ( @tracked_files ) {
         $violations += $file->recall('violations') if defined $file->recall('violations');
         $reviewed   += $file->recall('reviewed')   if defined $file->recall('reviewed');
