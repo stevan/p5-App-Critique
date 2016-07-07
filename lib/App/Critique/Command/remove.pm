@@ -63,7 +63,7 @@ sub execute {
         }
         else {
             info('Attempting to remove empty branch directory ...');
-            if ( $branch->rmtree ) {
+            if ( $branch->remove_tree ) {
                 info('Successfully removed empty branch directory (%s).', $branch);
             }
             else {
@@ -88,7 +88,7 @@ sub execute {
         }
         else {
             info('Attempting to remove empty repo directory ...');
-            if ( $repo->rmtree ) {
+            if ( $repo->remove_tree ) {
                 info('Successfully removed empty repo directory (%s).', $repo);
             }
             else {

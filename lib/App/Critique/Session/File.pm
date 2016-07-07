@@ -7,7 +7,7 @@ use Scalar::Util        ();
 use Carp                ();
 
 use File::Spec          ();
-use Path::Class         ();
+use Path::Tiny          ();
 
 sub new {
     my ($class, %args) = @_;
@@ -20,9 +20,9 @@ sub new {
     (-e $path && -f $path)
         || Carp::confess('The `path` argument must be a valid file, not: ' . $path);
 
-    $path = Path::Class::File->new( $path )
+    $path = Path::Tiny::path( $path )
         unless Scalar::Util::blessed( $path )
-            && $path->isa('Path::Class::File');
+            && $path->isa('Path::Tiny');
 
     return bless {
         path => $path,
