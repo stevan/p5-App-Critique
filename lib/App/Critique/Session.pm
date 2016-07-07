@@ -25,6 +25,16 @@ sub new {
     my $perl_critic_profile = $args{perl_critic_profile};
     my $perl_critic_theme   = $args{perl_critic_theme};
     my $perl_critic_policy  = $args{perl_critic_policy};
+    
+    # NOTE:
+    # Sometimes you might do a `git pull --rebase` and 
+    # some files you were previously tracking are no
+    # longer in existence, this will prune those from 
+    # your tracked file list.
+    # - SL
+    @{ $args{tracked_files} } = grep {
+        (-e (ref $_ eq 'HASH' ? $_->{path} : $_)) 
+    } @{ $args{tracked_files} };
 
     my $critic;
     if ( $perl_critic_policy ) {
