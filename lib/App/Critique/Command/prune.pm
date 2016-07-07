@@ -15,7 +15,7 @@ sub opt_spec {
     return (
         [ 'no-violation', 'prune files that contain no Perl::Critic violations ' ],
         [],
-        [ 'filter|f=s',   'filter the files with this regular expression' ],
+        [ 'filter|f=s',   'filter the file list with this regular expression' ],
         [ 'invert|i',     'invert the results of the filter' ],
         [],
         [ 'dry-run',      'display pruned list of files, but do not store them' ],
@@ -78,7 +78,43 @@ sub execute {
     my @old_files = $session->tracked_files;
     my $old_count = scalar @old_files;
 
-    my @new_files = grep $filter->($_), @old_files;
+    my $STOP = 0;
+    local $SIG{INT} = sub { $STOP++ };
+
+    my @new_files;
+
+    while ( @old_files ) {
+        my $f = shift @old_files;
+        if ( $filter->( $f ) ) {
+            push @new_files => $f;
+        }
+        if ($STOP) {
+            warning('[processing paused]');
+
+            my $continue = prompt_str(
+                '>> (r)esume (h)alt (a)bort',
+                {
+                    valid   => sub { $_[0] =~ m/[rha]{1}/ },
+                    default => 'r',
+                }
+            );
+
+            if ( $continue eq 'r' ) {
+                warning('[resuming]');
+                $STOP = 0;
+            }
+            elsif ( $continue eq 'h' ) {
+                warning('[abort processing - partial pruning]');
+                push @new_files => @old_files;
+                last;
+            }
+            elsif ( $continue eq 'a' ) {
+                warning('[abort processing - results discarded]');
+                return;
+            }
+        }
+    }
+
     my $new_count = scalar @new_files;
 
     $session->set_tracked_files( @new_files );
