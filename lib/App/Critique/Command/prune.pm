@@ -66,7 +66,9 @@ sub execute {
     my ($old_count, $new_count) = $session->reduce_files_to_track( $filter );
     info('Reduced file count by %d, (old: %d, new: %d).', ($old_count - $new_count), $old_count, $new_count);
     
-
+    $session->reset_file_idx;
+    info('Resetting file index to 0');
+    
     $self->cautiously_store_session( $session, $opt, $args );
     info('Session file stored successfully (%s).', $session->session_file_path);    
 
