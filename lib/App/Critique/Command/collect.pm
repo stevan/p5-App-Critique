@@ -75,7 +75,7 @@ sub execute {
         info('[dry run] %d files found, 0 files added.', $num_files);
     }
     else {
-        $session->set_files_to_track( @all );
+        $session->set_tracked_files( @all );
         info('Sucessfully added %d files.', $num_files);
 
         $self->cautiously_store_session( $session, $opt, $args );

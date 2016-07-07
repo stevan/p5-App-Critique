@@ -24,15 +24,15 @@ sub new {
     my $perl_critic_profile = $args{perl_critic_profile};
     my $perl_critic_theme   = $args{perl_critic_theme};
     my $perl_critic_policy  = $args{perl_critic_policy};
-    
+
     # NOTE:
-    # Sometimes you might do a `git pull --rebase` and 
+    # Sometimes you might do a `git pull --rebase` and
     # some files you were previously tracking are no
-    # longer in existence, this will prune those from 
+    # longer in existence, this will prune those from
     # your tracked file list.
     # - SL
     @{ $args{tracked_files} } = grep {
-        (-e (ref $_ eq 'HASH' ? $_->{path} : $_)) 
+        (-e (ref $_ eq 'HASH' ? $_->{path} : $_))
     } @{ $args{tracked_files} };
 
     my $critic;
@@ -79,7 +79,7 @@ sub new {
     } => $class;
 
     # handle adding tracked files
-    $self->set_files_to_track( @{ $args{tracked_files} } )
+    $self->set_tracked_files( @{ $args{tracked_files} } )
         if exists $args{tracked_files};
 
     $self->{current_file_idx} += $args{current_file_idx}
@@ -130,7 +130,7 @@ sub session_file_exists {
     return !! -e $self->{_path};
 }
 
-sub set_files_to_track {
+sub set_tracked_files {
     my ($self, @files) = @_;
     @{ $self->{tracked_files} } = map {
         (Scalar::Util::blessed($_) && $_->isa('App::Critique::Session::File')
@@ -139,16 +139,6 @@ sub set_files_to_track {
                 ? App::Critique::Session::File->new( %$_ )
                 : App::Critique::Session::File->new( path => $_ )))
     } @files;
-}
-
-sub reduce_files_to_track {
-    my ($self, $filter) = @_;
-    my @files = @{ $self->{tracked_files} };
-    my $count = scalar @files;
-    
-    @{ $self->{tracked_files} } = grep $filter->($_), @files;
-    
-    return $count, scalar @{ $self->{tracked_files} };
 }
 
 # ...

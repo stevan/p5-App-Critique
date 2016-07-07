@@ -24,24 +24,36 @@ sub opt_spec {
     );
 }
 
+sub validate_args {
+    my ($self, $opt, $args) = @_;
+
+    if ( $opt->filter && $opt->no_violation ) {
+        error('You cannot pass both --filter and --no-violation.');
+    }
+    elsif ( not($opt->filter) && not($opt->no_violation) ) {
+        error('You must pass either --filter or --no-violation.');
+    }
+
+}
+
 sub execute {
     my ($self, $opt, $args) = @_;
 
     my $session = $self->cautiously_load_session( $opt, $args );
-    info('Session file loaded.');    
-    
+    info('Session file loaded.');
+
     my $filter;
 
     if ( my $f = $opt->filter ) {
-        $filter =  sub { 
+        $filter =  sub {
             my $path     = $_[0]->path->stringify;
             my $is_match = $opt->invert ? $path !~ /$f/ : $path =~ /$f/;
             if ( $opt->verbose ) {
                 if ( $is_match ) {
-                    info('Matched, keeping file (%s) ', $path);    
+                    info('Matched, keeping file (%s) ', $path);
                 }
                 else {
-                    info('Not matched, pruning file (%s) ', $path);    
+                    info('Not matched, pruning file (%s) ', $path);
                 }
             }
             return !! $is_match;
@@ -53,24 +65,30 @@ sub execute {
             my $num_violations = scalar $session->perl_critic->critique( $path );
             if ( $opt->verbose ) {
                 if ( $num_violations ) {
-                    info('Found %d violation(s), keeping file (%s) ', $num_violations, $path);    
+                    info('Found %d violation(s), keeping file (%s) ', $num_violations, $path);
                 }
                 else {
-                    info('Found no violation, pruning file (%s) ', $path);    
+                    info('Found no violation, pruning file (%s) ', $path);
                 }
             }
             return !! $num_violations;
         };
     }
-    
-    my ($old_count, $new_count) = $session->reduce_files_to_track( $filter );
+
+    my @old_files = $session->tracked_files;
+    my $old_count = scalar @old_files;
+
+    my @new_files = grep $filter->($_), @old_files;
+    my $new_count = scalar @new_files;
+
+    $session->set_tracked_files( @new_files );
     info('Reduced file count by %d, (old: %d, new: %d).', ($old_count - $new_count), $old_count, $new_count);
-    
+
     $session->reset_file_idx;
     info('Resetting file index to 0');
-    
+
     $self->cautiously_store_session( $session, $opt, $args );
-    info('Session file stored successfully (%s).', $session->session_file_path);    
+    info('Session file stored successfully (%s).', $session->session_file_path);
 
 }
 
@@ -89,8 +107,8 @@ App::Critique::Command::prune - Prune the set of files in current critique sessi
 =head1 DESCRIPTION
 
 This command will prune the set of files in the current critique session using
-either a regexp path filter or by checking to see if the file contains any 
-L<Perl::Critic> violations. 
+either a regexp path filter or by checking to see if the file contains any
+L<Perl::Critic> violations.
 
 It should be noted that this is a destructive command, meaning that if you have
 begun critiquing your files and you re-run this command it will overwrite that
