@@ -117,15 +117,19 @@ sub execute {
 
     my $new_count = scalar @new_files;
 
-    $session->set_tracked_files( @new_files );
-    info('Reduced file count by %d, (old: %d, new: %d).', ($old_count - $new_count), $old_count, $new_count);
+    if ( $opt->dry_run ) {
+        info('[dry-run] Reduced file count by %d, (old: %d, new: %d).', ($old_count - $new_count), $old_count, $new_count);
+    }
+    else {
+        $session->set_tracked_files( @new_files );
+        info('Reduced file count by %d, (old: %d, new: %d).', ($old_count - $new_count), $old_count, $new_count);
 
-    $session->reset_file_idx;
-    info('Resetting file index to 0');
+        $session->reset_file_idx;
+        info('Resetting file index to 0');
 
-    $self->cautiously_store_session( $session, $opt, $args );
-    info('Session file stored successfully (%s).', $session->session_file_path);
-
+        $self->cautiously_store_session( $session, $opt, $args );
+        info('Session file stored successfully (%s).', $session->session_file_path);
+    }
 }
 
 1;
