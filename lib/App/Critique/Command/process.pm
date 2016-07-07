@@ -252,7 +252,7 @@ EDIT:
             my $commit_msg = prompt_str(
                 'Please write a commit message, or choose the default',
                 {
-                    default => (sprintf "critique(%s) - %s" => $policy_name, $violation->description),
+                    default => (sprintf "%s - critique(%s)" => $violation->description, $policy_name),
                     output => sub {
                         my ($msg, $default) = @_;
                         my $length = (length $default) + 2;
