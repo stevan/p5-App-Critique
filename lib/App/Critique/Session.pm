@@ -141,6 +141,16 @@ sub set_files_to_track {
     } @files;
 }
 
+sub reduce_files_to_track {
+    my ($self, $filter) = @_;
+    my @files = @{ $self->{tracked_files} };
+    my $count = scalar @files;
+    
+    @{ $self->{tracked_files} } = grep $filter->($_), @files;
+    
+    return $count, scalar @{ $self->{tracked_files} };
+}
+
 # ...
 
 sub pack {
