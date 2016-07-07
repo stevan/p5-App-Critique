@@ -3,6 +3,9 @@ package App::Critique::Plugin::UI;
 use strict;
 use warnings;
 
+our $VERSION   = '0.01';
+our $AUTHORITY = 'cpan:STEVAN';
+
 use Term::ReadKey ();
 
 use constant TERM_WIDTH => (Term::ReadKey::GetTerminalSize())[0];

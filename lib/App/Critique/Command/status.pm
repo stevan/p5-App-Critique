@@ -3,6 +3,9 @@ package App::Critique::Command::status;
 use strict;
 use warnings;
 
+our $VERSION   = '0.01';
+our $AUTHORITY = 'cpan:STEVAN';
+
 use App::Critique::Session;
 
 use App::Critique -command;

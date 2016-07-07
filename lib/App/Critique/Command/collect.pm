@@ -3,6 +3,9 @@ package App::Critique::Command::collect;
 use strict;
 use warnings;
 
+our $VERSION   = '0.01';
+our $AUTHORITY = 'cpan:STEVAN';
+
 use Path::Tiny ();
 use List::Util ();
 

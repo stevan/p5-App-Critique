@@ -3,6 +3,9 @@ package App::Critique::Session;
 use strict;
 use warnings;
 
+our $VERSION   = '0.01';
+our $AUTHORITY = 'cpan:STEVAN';
+
 use Scalar::Util        ();
 use Carp                ();
 

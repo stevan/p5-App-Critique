@@ -3,6 +3,9 @@ package App::Critique::Command;
 use strict;
 use warnings;
 
+our $VERSION   = '0.01';
+our $AUTHORITY = 'cpan:STEVAN';
+
 use App::Cmd::Setup -command;
 
 sub opt_spec {
