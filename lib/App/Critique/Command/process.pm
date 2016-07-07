@@ -228,14 +228,29 @@ EDIT:
             $policy_name =~ s/^Perl\:\:Critic\:\:Policy\:\://;
 
             my $commit_msg = prompt_str(
-                'Please write a commit message or choose the default.',
+                'Please write a commit message, or choose the default',
                 {
-                    default => (sprintf 'critique(%s) - %s' => $policy_name, $violation->description)
+                    default => (sprintf "critique(%s) - %s" => $policy_name, $violation->description),
+                    output => sub {
+                        my ($msg, $default) = @_;
+                        my $length = (length $default) + 2;
+                        print $msg,"\n+",('-' x $length),"+\n| ",$default," |\n+",('-' x $length),"+\n> ";
+                    }
                 }
             );
 
-            # GIT ME!!!
-            die $commit_msg;
+            $commit_msg =~ s/^\s*//g;
+            $commit_msg =~ s/\s*$//g;
+
+            info(HR_DARK);
+            info('Adding file (%s) to git', $filename);
+            info(HR_LIGHT);
+            info('%s', join "\n" => $git->run( add => '-v' => $filename ));
+            info(HR_DARK);
+            info('Commiting file (%s) to git', $filename);
+            info(HR_LIGHT);
+            info('%s', join "\n" => $git->run( commit => '-v' => '-m' => $commit_msg));
+            return;
         }
         elsif ( $what_now eq 'd' ) {
             info(HR_LIGHT);
