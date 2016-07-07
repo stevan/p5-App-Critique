@@ -239,7 +239,7 @@ EDIT:
         }
         elsif ( $what_now eq 'd' ) {
             info(HR_LIGHT);
-            info('%s', join "\n" => $git->run('diff'));
+            info('%s', join "\n" => $git->run( diff => '-v' ));
             info(HR_LIGHT);
             goto CHOOSE;
         }
