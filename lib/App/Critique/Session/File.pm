@@ -6,7 +6,6 @@ use warnings;
 use Scalar::Util        ();
 use Carp                ();
 
-use File::Spec          ();
 use Path::Tiny          ();
 
 sub new {

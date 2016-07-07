@@ -7,7 +7,6 @@ use Scalar::Util        ();
 use Carp                ();
 
 use File::HomeDir       ();
-use File::Spec          ();
 use Path::Tiny          ();
 use JSON::XS            ();
 
@@ -223,7 +222,7 @@ sub _generate_critique_file_path {
 sub _initialize_git_repo {
     my ($class, %args) = @_;
 
-    my $git = Git::Repository->new( work_tree => $args{git_work_tree} || File::Spec->curdir );
+    my $git = Git::Repository->new( work_tree => $args{git_work_tree} || Path::Tiny->cwd );
 
     # auto-discover the current git branch
     my ($git_branch) = map /^\*\s(.*)$/, grep /^\*/, $git->run('branch');
