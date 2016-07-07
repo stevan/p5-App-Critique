@@ -18,11 +18,12 @@ sub execute {
     my $num_files     = scalar @tracked_files;
     my $curr_file_idx = $session->current_file_idx;
 
-    my ($violations, $reviewed, $edited) = (0, 0, 0);
+    my ($violations, $reviewed, $edited, $commited) = (0, 0, 0);
     foreach my $file ( @tracked_files ) {
         $violations += $file->recall('violations') if defined $file->recall('violations');
         $reviewed   += $file->recall('reviewed')   if defined $file->recall('reviewed');
         $edited     += $file->recall('edited')     if defined $file->recall('edited');
+        $commited   += $file->recall('commited')   if defined $file->recall('commited');
     }
 
     if ( $opt->verbose ) {
@@ -37,7 +38,7 @@ sub execute {
     }
 
     info(HR_DARK);
-    info('FILES: <legend: [v|r|e] path>');
+    info('FILES: <legend: [v|r|e|c] path>');
     if ( $opt->verbose ) {
         info(HR_LIGHT);
         info('CURRENT FILE INDEX: (%d)', $curr_file_idx);
@@ -45,11 +46,12 @@ sub execute {
     info(HR_LIGHT);
     foreach my $i ( 0 .. $#tracked_files ) {
         my $file = $tracked_files[$i];
-        info('%s [%s|%s|%s] %s',
+        info('%s [%s|%s|%s|%s] %s',
             ($i == $curr_file_idx ? '>' : ' '),
             $file->recall('violations') // '-',
             $file->recall('reviewed')   // '-',
             $file->recall('edited')     // '-',
+            $file->recall('commited')   // '-',
             $file->relative_path( $session->git_work_tree ),
         );
     }
@@ -58,6 +60,7 @@ sub execute {
     info('  (v)iolations : %d', $violations);
     info('  (r)eviwed    : %d', $reviewed  );
     info('  (e)dited     : %d', $edited    );
+    info('  (c)ommited   : %d', $commited  );
 
     if ( $opt->verbose ) {
         info(HR_LIGHT);
