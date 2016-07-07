@@ -15,8 +15,8 @@ use App::Critique -ignore;
 use App::Cmd::Setup -plugin => {
     exports => [qw[
         TERM_WIDTH
+
         HR_ERROR
-        HR_WARNING
         HR_DARK
         HR_LIGHT
 
