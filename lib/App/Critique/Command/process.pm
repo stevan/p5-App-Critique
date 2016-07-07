@@ -271,12 +271,9 @@ EDIT:
             $self->{_editor_line_offset}->{ $file->relative_path } += ($inserts + (-$deletes));
 
             info(HR_DARK);
-            info('Adding file (%s) to git', $filename);
+            info('Adding and commiting file (%s) to git', $filename);
             info(HR_LIGHT);
             info('%s', join "\n" => $git->run( add => '-v' => $filename ));
-            info(HR_DARK);
-            info('Commiting file (%s) to git', $filename);
-            info(HR_LIGHT);
             info('%s', join "\n" => $git->run( commit => '-v' => '-m' => $commit_msg));
 
             $file->remember('commited' => ($file->recall('commited') || 0) + 1);
