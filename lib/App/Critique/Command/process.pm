@@ -206,7 +206,7 @@ sub edit_violation {
 EDIT:
     system $cmd;
 
-    my @modified = $git->run('status', '--short');
+    my @modified = $git->run( status  => '--short' );
     my $did_edit = scalar grep /$filename/, @modified;
 
     if ( $did_edit ) {
