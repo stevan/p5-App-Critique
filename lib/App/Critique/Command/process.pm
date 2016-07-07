@@ -236,6 +236,9 @@ EDIT:
         info('Changes detected.');
         info(HR_LIGHT);
     CHOOSE:
+        # TODO:
+        # Pondering adding a revert here as well
+        # - SL
         my $what_now = prompt_str(
             'What would you like to do? (c)ommit (d)iff (e)dit (s)kip',
             {
