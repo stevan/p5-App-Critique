@@ -10,8 +10,9 @@ use App::Critique -command;
 sub opt_spec {
     my ($class) = @_;
     return (
-        [ 'reset|r', 'resets the file index to 0', { default => 0 } ],
-        [ 'prev|p',  'moves the file index back by one', { default => 0 } ],
+        [ 'reset', 'resets the file index to 0',       { default => 0 } ],
+        [ 'prev',  'moves the file index back by one', { default => 0 } ],
+        [ 'auto',  'advance to next file automatically if there are no violations', { default => 0 } ],
         [],
         $class->SUPER::opt_spec
     );
@@ -39,13 +40,16 @@ sub execute {
         return;
     }
 
+    my ($idx, $file);
+
 MAIN:
     while (1) {
 
         info(HR_LIGHT);
 
-        my $idx  = $session->current_file_idx;
-        my $file = $tracked_files[ $idx ];
+        $idx  = $session->current_file_idx;
+        $file = $tracked_files[ $idx ];
+
         my $path = $file->relative_path( $session->git_work_tree );
 
         if ( defined $file->recall('violations') ) {
@@ -72,7 +76,6 @@ MAIN:
 
         if ( @violations == 0 ) {
             info('No violations found, proceeding to next file.');
-            info(HR_LIGHT);
             next MAIN;
         }
         else {
@@ -110,23 +113,30 @@ MAIN:
             }
         }
 
-        info(HR_LIGHT);
     } continue {
 
-        if ( ($session->current_file_idx + 1) == scalar @tracked_files ) {
+        if ( ($idx + 1) == scalar @tracked_files ) {
+            info(HR_LIGHT);
             info('Processing complete, run `status` to see results.');
             $session->inc_file_idx;
             $self->cautiously_store_session( $session, $opt, $args );
             last MAIN;
         }
 
-        my $where_to = prompt_str(
-            '>> (n)ext (p)rev (r)efresh (s)top',
-            {
-                valid   => sub { $_[0] =~ m/[nprs]{1}/ },
-                default => 'n',
-            }
-        );
+        my $where_to;
+        if ( $opt->auto && !$file->recall('violations') ) {
+            $where_to = 'n';
+        }
+        else {
+            info(HR_LIGHT);
+            $where_to = prompt_str(
+                '>> (n)ext (p)rev (r)efresh (s)top',
+                {
+                    valid   => sub { $_[0] =~ m/[nprs]{1}/ },
+                    default => 'n',
+                }
+            );
+        }
 
         if ( $where_to eq 'n' ) {
             $session->inc_file_idx;
