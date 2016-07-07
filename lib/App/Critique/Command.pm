@@ -26,10 +26,10 @@ sub cautiously_load_session {
             my $e = "$@";
             chomp $e;
             if ( $opt->debug ) {
-                error("Unable to load session file (%s), because:\n  %s", $session_file_path, $e);
+                App::Critique::Plugin::UI::_error("Unable to load session file (%s), because:\n  %s", $session_file_path, $e);
             }
             else {
-                error('Unable to load session file (%s), run with --debug|d for more information', $session_file_path);
+                App::Critique::Plugin::UI::_error('Unable to load session file (%s), run with --debug|d for more information', $session_file_path);
             }
         };
 
@@ -51,10 +51,10 @@ sub cautiously_store_session {
         my $e = "$@";
         chomp $e;
         if ( $opt->debug ) {
-            error("Unable to store session file (%s), because:\n  %s", $session_file_path, $e);
+            App::Critique::Plugin::UI::_error("Unable to store session file (%s), because:\n  %s", $session_file_path, $e);
         }
         else {
-            error('Unable to store session file (%s), run with --debug|d for more information', $session_file_path);
+            App::Critique::Plugin::UI::_error('Unable to store session file (%s), run with --debug|d for more information', $session_file_path);
         }
     };
 

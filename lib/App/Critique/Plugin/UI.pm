@@ -26,13 +26,19 @@ use App::Cmd::Setup -plugin => {
     ]]
 };
 
-sub info {
-    my ($plugin, $cmd, $msg, @args) = @_;
+sub info    { my ($plugin, $cmd, @args) = @_;    _info( @args ) }
+sub warning { my ($plugin, $cmd, @args) = @_; _warning( @args ) }
+sub error   { my ($plugin, $cmd, @args) = @_;   _error( @args ) }
+
+# the real stuff
+
+sub _info {
+    my ($msg, @args) = @_;
     print((sprintf $msg, @args), "\n");
 }
 
-sub warning {
-    my ($plugin, $cmd, $msg, @args) = @_;
+sub _warning {
+    my ($msg, @args) = @_;
 
     # NOTE:
     # I had a timestamp here, but it didn't
@@ -48,8 +54,8 @@ sub warning {
     warn('!! ',(sprintf $msg, @args),"\n");
 }
 
-sub error {
-    my ($plugin, $cmd, $msg, @args) = @_;
+sub _error {
+    my ($msg, @args) = @_;
     die(HR_ERROR,"\n",(sprintf $msg, @args),"\n",HR_DARK,"\n");
 }
 
