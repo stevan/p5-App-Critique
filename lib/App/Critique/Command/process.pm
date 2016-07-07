@@ -85,6 +85,8 @@ MAIN:
 
                 my ($reviewed, $edited) = (0, 0);
 
+                $self->begin_editing_session( $file );
+
                 foreach my $violation ( @violations ) {
 
                     $self->display_violation( $session, $file, $violation, $opt );
@@ -97,9 +99,11 @@ MAIN:
 
                     if ( $should_edit ) {
                         $edited++;
-                        $self->edit_violation( $session, $violation );
+                        $self->edit_violation( $session, $file, $violation );
                     }
                 }
+
+                $self->end_editing_session( $file );
 
                 $file->remember('reviewed', $reviewed);
                 $file->remember('edited',   $edited);
@@ -177,31 +181,37 @@ sub display_violation {
     info(HR_LIGHT);
 }
 
+
+sub begin_editing_session {
+    my ($self, $file) = @_;
+    $self->{_editor_line_offset} //= {};
+    $self->{_editor_line_offset}->{ $file->relative_path } = 0;
+}
+
+sub end_editing_session {
+    my ($self, $file) = @_;
+    delete $self->{_editor_line_offset}->{ $file->relative_path };
+}
+
 sub edit_violation {
-    my ($self, $session, $violation) = @_;
+    my ($self, $session, $file, $violation) = @_;
 
     my $git      = $session->git_repository;
     my $filename = $violation->filename;
 
-    my $cmd_fmt  = $App::Critique::CONFIG{EDITOR};
-    my @cmd_args = ($filename, $violation->line_number, $violation->column_number);
-    my $cmd      = sprintf $cmd_fmt => @cmd_args;
+    #warning('!!!! do we have an editor offset (%d) for file (%s)' => $self->{_editor_line_offset}->{ $filename }, $filename);
 
-    ## Improve the edit loop:
-    ## -----------------------------------------------
-    ## - edit file
-    ##     - exit editor
-    ## - use git to see if there are any changes made
-    ##     - if not ask if they want to edit again
-    ## - if there is changes, check the following:
-    ##     > does the code compile still?
-    ##         - if not, prompt to re-edit
-    ##     > was there any whitespace changes made?
-    ##         - if so, suggest they prune that
-    ## - prompt user to commit changes
-    ##     - if yes, help make a git commit
-    ##     - if no, ask if editing is completed0
-    ## -----------------------------------------------
+    #use Data::Dumper;
+    #warn Dumper $self->{_editor_line_offset};
+
+    my $cmd_fmt  = $App::Critique::CONFIG{EDITOR};
+    my @cmd_args = (
+        $filename,
+        ($violation->line_number + $self->{_editor_line_offset}->{ $file->relative_path }),
+        $violation->column_number
+    );
+
+    my $cmd = sprintf $cmd_fmt => @cmd_args;
 
 EDIT:
     system $cmd;
@@ -241,6 +251,12 @@ EDIT:
 
             $commit_msg =~ s/^\s*//g;
             $commit_msg =~ s/\s*$//g;
+
+            my ($changes) = grep /$filename/, $git->run( diff => '--numstat' );
+            ($changes)
+                || error('Unable to find changes in diff for file (%s)', $file->relative_path);
+            my ($inserts, $deletes) = ($changes =~ /^(\d+)\s*(\d+)\s*.*$/);
+            $self->{_editor_line_offset}->{ $file->relative_path } += ($inserts + (-$deletes));
 
             info(HR_DARK);
             info('Adding file (%s) to git', $filename);
