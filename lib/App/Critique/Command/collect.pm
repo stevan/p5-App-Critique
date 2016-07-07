@@ -3,6 +3,7 @@ package App::Critique::Command::collect;
 use strict;
 use warnings;
 
+use Path::Tiny ();
 use List::Util ();
 
 use App::Critique::Session;
@@ -33,7 +34,7 @@ sub execute {
     info('Session file loaded.');
 
     my $root = $opt->root
-        ? Path::Class::Dir->new( $opt->root )
+        ? Path::Tiny::path( $opt->root )
         : $session->git_work_tree;
 
     my $filter;
@@ -66,7 +67,7 @@ sub execute {
     foreach my $file ( @all ) {
         info(
             'Including %s',
-            Path::Class::File->new( $file )->relative( $session->git_work_tree )
+            Path::Tiny::path( $file )->relative( $session->git_work_tree )
         );
     }
 
@@ -86,18 +87,18 @@ sub execute {
 my %SKIP = map { ($_ => 1) } qw[  CVS RCS .svn _darcs {arch} .bzr .cdv .git .hg .pc _build blib  ];
 
 sub traverse_filesystem {
-    my ($dir, $filter, $v) = @_;
+    my ($path, $filter, $v) = @_;
 
-    if ( -f $dir ) {
-        return unless is_perl_file( $dir );
-        return if defined $filter && $filter->( $dir );
-        $v->( $dir );
+    if ( $path->is_file ) {
+        return unless is_perl_file( $path );
+        return if defined $filter && $filter->( $path );
+        $v->( $path );
     }
-    elsif ( -l $dir ) {
+    elsif ( -l $path ) { # Path::Tiny does not have a test for symlinks
         ;
     }
     else {
-        my @children = $dir->children( no_hidden => 1 );
+        my @children = $path->children( qr/^[^.]/ );
         # prune the directories we really don't care about
         @children = grep !$SKIP{ $_->basename }, @children;
         # recurse ...

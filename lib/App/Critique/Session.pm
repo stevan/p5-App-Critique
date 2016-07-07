@@ -7,8 +7,7 @@ use Scalar::Util        ();
 use Carp                ();
 
 use File::HomeDir       ();
-use File::Spec          ();
-use Path::Class         ();
+use Path::Tiny          ();
 use JSON::XS            ();
 
 use Git::Repository     ();
@@ -47,7 +46,7 @@ sub new {
         );
 
         # inflate this as needed
-        $perl_critic_profile = Path::Class::Dir->new( $perl_critic_profile )
+        $perl_critic_profile = Path::Tiny::path( $perl_critic_profile )
             if $perl_critic_profile;
     }
 
@@ -66,7 +65,7 @@ sub new {
         perl_critic_policy  => $perl_critic_policy,
 
         # auto-discovered
-        git_work_tree       => Path::Class::Dir->new( $git->work_tree ),
+        git_work_tree       => Path::Tiny::path( $git->work_tree ),
         git_branch          => $git_branch,
 
         # local storage
@@ -98,7 +97,7 @@ sub locate_session_file {
     my ($git, $git_branch) = $class->_initialize_git_repo( git_work_tree => $git_work_tree );
 
     my $session_file = $class->_generate_critique_file_path(
-        Path::Class::Dir->new( $git->work_tree ),
+        Path::Tiny::path( $git->work_tree ),
         $git_branch
     );
 
@@ -169,10 +168,10 @@ sub unpack {
 sub load {
     my ($class, $path) = @_;
 
-    (-e $path && -f $path)
+    ($path->exists && $path->is_file)
         || Carp::confess('Invalid path: ' . $path);
 
-    my $file = Path::Class::File->new( $path );
+    my $file = Path::Tiny::path( $path );
     my $json = $file->slurp;
     my $data = $JSON->decode( $json );
 
@@ -210,14 +209,14 @@ sub store {
 sub _generate_critique_dir_path {
     my ($class, $git_work_tree, $git_branch) = @_;
 
-    my $root = Path::Class::Dir->new( File::HomeDir->my_home );
-    my $git  = Path::Class::Dir->new( $git_work_tree );
+    my $root = Path::Tiny::path( File::HomeDir->my_home );
+    my $git  = Path::Tiny::path( $git_work_tree );
 
     # ~/.critique/<git-repo-name>/<git-branch-name>/session.json
 
-    $root->subdir( '.critique' )
-         ->subdir( $git->basename )
-         ->subdir( $git_branch );
+    $root->child( '.critique' )
+         ->child( $git->basename )
+         ->child( $git_branch );
 }
 
 sub _generate_critique_file_path {
@@ -225,7 +224,7 @@ sub _generate_critique_file_path {
     $class->_generate_critique_dir_path(
         $git_work_tree,
         $git_branch
-    )->file(
+    )->child(
         'session.json'
     );
 }
@@ -233,7 +232,7 @@ sub _generate_critique_file_path {
 sub _initialize_git_repo {
     my ($class, %args) = @_;
 
-    my $git = Git::Repository->new( work_tree => $args{git_work_tree} || File::Spec->curdir );
+    my $git = Git::Repository->new( work_tree => $args{git_work_tree} || Path::Tiny->cwd );
 
     # auto-discover the current git branch
     my ($git_branch) = map /^\*\s(.*)$/, grep /^\*/, $git->run('branch');

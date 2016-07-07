@@ -3,6 +3,8 @@ package App::Critique::Command::process;
 use strict;
 use warnings;
 
+use Path::Tiny ();
+
 use App::Critique::Session;
 
 use App::Critique -command;
@@ -182,7 +184,7 @@ sub display_violation {
     info('  policy   : %s'           => $violation->policy);
     info('  severity : %d'           => $violation->severity);
     info('  location : %s @ <%d:%d>' => (
-        Path::Class::File->new( $violation->filename )->relative( $session->git_work_tree ),
+        Path::Tiny::path( $violation->filename )->relative( $session->git_work_tree ),
          $violation->line_number,
          $violation->column_number
     ));
