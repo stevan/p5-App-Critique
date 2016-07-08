@@ -113,13 +113,13 @@ sub execute {
 
 __END__
 
-# ABSTRACT: Display status of the current critique session.
+# ABSTRACT: Remove critique session files
 
 =pod
 
 =head1 NAME
 
-App::Critique::Command::status - Critique all the files.
+App::Critique::Command::remove - Remove critique session files
 
 =head1 DESCRIPTION
 
