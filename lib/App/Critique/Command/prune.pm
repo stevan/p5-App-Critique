@@ -10,7 +10,7 @@ use Path::Tiny ();
 use List::Util ();
 
 use App::Critique::Session;
-
+use App::Critique::Util::FileFilters;
 use App::Critique -command;
 
 sub opt_spec {
@@ -48,34 +48,10 @@ sub execute {
     my $filter;
 
     if ( my $f = $opt->filter ) {
-        $filter =  sub {
-            my $path     = $_[0]->path->stringify;
-            my $is_match = $opt->invert ? $path !~ /$f/ : $path =~ /$f/;
-            if ( $opt->verbose ) {
-                if ( $is_match ) {
-                    info('Matched, keeping file (%s) ', $path);
-                }
-                else {
-                    info('Not matched, pruning file (%s) ', $path);
-                }
-            }
-            return !! $is_match;
-        };
+        $filter =  App::Critique::Util::FileFilters::regex_filter($opt);
     }
     elsif ( $opt->no_violation ) {
-        $filter = sub {
-            my $path           = $_[0]->path->stringify;
-            my $num_violations = scalar $session->perl_critic->critique( $path );
-            if ( $opt->verbose ) {
-                if ( $num_violations ) {
-                    info('Found %d violation(s), keeping file (%s) ', $num_violations, $path);
-                }
-                else {
-                    info('Found no violation, pruning file (%s) ', $path);
-                }
-            }
-            return !! $num_violations;
-        };
+        $filter = App::Critique::Util::FileFilters::no_violation($opt,$session);
     }
 
     my @old_files = $session->tracked_files;

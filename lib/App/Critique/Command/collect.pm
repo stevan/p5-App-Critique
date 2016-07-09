@@ -10,6 +10,7 @@ use Path::Tiny ();
 use List::Util ();
 
 use App::Critique::Session;
+use App::Critique::Util::FileFilters;
 
 use App::Critique -command;
 
@@ -40,17 +41,7 @@ sub execute {
         ? Path::Tiny::path( $opt->root )
         : $session->git_work_tree;
 
-    my $filter;
-    if ( my $f = $opt->filter ) {
-        if ( ref $f eq 'CODE' ) {
-            $filter = $f;
-        }
-        else {
-            $filter = $opt->invert
-                ? sub { $_[0]->stringify !~ /$f/ }
-                : sub { $_[0]->stringify =~ /$f/ };
-        }
-    }
+    my $filter = App::Critique::Util::FileFilters::filter($opt,'regex_filter');
 
     my @all;
     traverse_filesystem(
