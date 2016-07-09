@@ -87,7 +87,7 @@ sub execute {
 }
 
 
-my %SKIP = map { ($_ => 1) } qw[  CVS RCS .svn _darcs {arch} .bzr .cdv .git .hg .pc _build blib  ];
+my %SKIP = map { ($_ => 1) } qw[  CVS RCS .svn _darcs {arch} .bzr .cdv .git .hg .pc _build blib local ];
 
 sub traverse_filesystem {
     my ($path, $filter, $v) = @_;
