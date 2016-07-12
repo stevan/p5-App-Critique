@@ -17,6 +17,9 @@ BEGIN {
     use_ok('App::Critique::Command::status');
     use_ok('App::Critique::Command::remove');
     use_ok('App::Critique::Command::process');
+    use_ok('App::Critique::Command::prune');
+
+    use_ok('App::Critique::Plugin::UI');
 }
 
 done_testing;
