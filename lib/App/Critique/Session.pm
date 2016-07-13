@@ -240,6 +240,9 @@ sub _initialize_git_repo {
     # auto-discover the current git branch
     my ($git_branch) = map /^\*\s(.*)$/, grep /^\*/, $git->run('branch');
 
+    Carp::confess('Unable to determine git branch, looks like your repository is bare')
+        unless $git_branch;
+
     # make sure the branch we are on is the
     # same one we are being asked to load,
     # this is very much unlikely to happen
