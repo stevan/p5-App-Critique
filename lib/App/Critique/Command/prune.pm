@@ -48,34 +48,10 @@ sub execute {
     my $filter;
 
     if ( my $f = $opt->filter ) {
-        $filter =  sub {
-            my $path     = $_[0]->path->stringify;
-            my $is_match = $opt->invert ? $path !~ /$f/ : $path =~ /$f/;
-            if ( $opt->verbose ) {
-                if ( $is_match ) {
-                    info('Matched, keeping file (%s) ', $path);
-                }
-                else {
-                    info('Not matched, pruning file (%s) ', $path);
-                }
-            }
-            return !! $is_match;
-        };
+        $filter = file_filter_regex($opt);
     }
     elsif ( $opt->no_violation ) {
-        $filter = sub {
-            my $path           = $_[0]->path->stringify;
-            my $num_violations = scalar $session->perl_critic->critique( $path );
-            if ( $opt->verbose ) {
-                if ( $num_violations ) {
-                    info('Found %d violation(s), keeping file (%s) ', $num_violations, $path);
-                }
-                else {
-                    info('Found no violation, pruning file (%s) ', $path);
-                }
-            }
-            return !! $num_violations;
-        };
+        $filter = file_filter_no_violations($opt,$session);
     }
 
     my @old_files = $session->tracked_files;

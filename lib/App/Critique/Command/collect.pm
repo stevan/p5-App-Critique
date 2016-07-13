@@ -42,14 +42,7 @@ sub execute {
 
     my $filter;
     if ( my $f = $opt->filter ) {
-        if ( ref $f eq 'CODE' ) {
-            $filter = $f;
-        }
-        else {
-            $filter = $opt->invert
-                ? sub { $_[0]->stringify !~ /$f/ }
-                : sub { $_[0]->stringify =~ /$f/ };
-        }
+        $filter = file_filter($opt,'file_filter_regex');
     }
 
     my @all;
