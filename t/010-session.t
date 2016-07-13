@@ -50,6 +50,8 @@ subtest '... testing session with a simple git repo' => sub {
 
     is($s->current_file_idx, 0, '... current file index is 0');
 
+    ok(!$s->session_file_exists, '... the session file does not yet exist');
+
     isa_ok($s->session_file_path, 'Path::Tiny');
     is(
         $s->session_file_path->stringify,
@@ -60,6 +62,20 @@ subtest '... testing session with a simple git repo' => sub {
             ->child( 'session.json' )
             ->stringify,
         '... got the expected session file path'
+    );
+
+    is_deeply(
+        $s->pack,
+        {
+            perl_critic_profile => undef,
+            perl_critic_theme   => undef,
+            perl_critic_policy  => undef,
+            git_work_tree       => $TEST_REPO_WORK_TREE->stringify,
+            git_branch          => 'master',
+            current_file_idx    => 0,
+            tracked_files       => [],
+        },
+        '... got the expected values from pack'
     );
 
 };
