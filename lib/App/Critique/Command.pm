@@ -19,7 +19,7 @@ sub opt_spec {
 sub cautiously_load_session {
     my ($self, $opt, $args) = @_;
 
-    if ( my $session_file_path = App::Critique::Session->locate_session_file ) {
+    if ( my $session_file_path = App::Critique::Session->locate_session_file( Path::Tiny->cwd ) ) {
 
         my $session;
         eval {

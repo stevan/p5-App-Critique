@@ -24,6 +24,9 @@ our $JSON = JSON::XS->new->utf8->pretty->canonical;
 sub new {
     my ($class, %args) = @_;
 
+    Carp::confess('You must specify a git-work-tree')
+        unless $args{git_work_tree} && -d $args{git_work_tree};
+
     my $perl_critic_profile = $args{perl_critic_profile};
     my $perl_critic_theme   = $args{perl_critic_theme};
     my $perl_critic_policy  = $args{perl_critic_policy};
@@ -96,6 +99,9 @@ sub locate_session_file {
 
     Carp::confess('Cannot call locate_session_file with an instance')
         if Scalar::Util::blessed( $class );
+
+    Carp::confess('You must specify a git-work-tree')
+        unless $git_work_tree && -d $git_work_tree;
 
     my ($git, $git_branch) = $class->_initialize_git_repo( git_work_tree => $git_work_tree );
 
@@ -235,7 +241,7 @@ sub _generate_critique_file_path {
 sub _initialize_git_repo {
     my ($class, %args) = @_;
 
-    my $git = Git::Repository->new( work_tree => $args{git_work_tree} || Path::Tiny->cwd );
+    my $git = Git::Repository->new( work_tree => $args{git_work_tree} );
 
     # auto-discover the current git branch
     my ($git_branch) = map /^\*\s(.*)$/, grep /^\*/, $git->run('branch');

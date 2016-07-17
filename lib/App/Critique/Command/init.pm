@@ -52,6 +52,7 @@ sub execute {
         perl_critic_profile => $opt->perl_critic_profile,
         perl_critic_theme   => $opt->perl_critic_theme,
         perl_critic_policy  => $opt->perl_critic_policy,
+        git_work_tree       => Path::Tiny->cwd,
     );
 
     if ( $opt->verbose ) {
