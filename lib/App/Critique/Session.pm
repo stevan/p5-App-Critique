@@ -24,7 +24,7 @@ our $JSON = JSON::XS->new->utf8->pretty->canonical;
 sub new {
     my ($class, %args) = @_;
 
-    Carp::confess('You must specify a git-work-tree')
+    Carp::confess('You must specify a git_work_tree')
         unless $args{git_work_tree} && -d $args{git_work_tree};
 
     my $perl_critic_profile = $args{perl_critic_profile};

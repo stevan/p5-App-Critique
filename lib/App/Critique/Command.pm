@@ -6,20 +6,32 @@ use warnings;
 our $VERSION   = '0.01';
 our $AUTHORITY = 'cpan:STEVAN';
 
+use Path::Tiny ();
+
 use App::Cmd::Setup -command;
 
 sub opt_spec {
     my ( $class, $app ) = @_;
     return (
-        [ 'verbose|v', 'display additional information', { default => $App::Critique::CONFIG{VERBOSE}                     } ],
-        [ 'debug|d',   'display debugging information',  { default => $App::Critique::CONFIG{DEBUG}, implies => 'verbose' } ],
+        [ 'git-work-tree=s', 'git working tree, defaults to current working directory', { default => Path::Tiny->cwd } ],
+        [],
+        [ 'verbose|v',       'display additional information', { default => $App::Critique::CONFIG{VERBOSE}                     } ],
+        [ 'debug|d',         'display debugging information',  { default => $App::Critique::CONFIG{DEBUG}, implies => 'verbose' } ],
     );
+}
+
+sub validate_args {
+    my ($self, $opt, $args) = @_;
+
+    (-d $opt->git_work_tree)
+        || $self->usage_error('The git-work-tree does not exist (' . $opt->git_work_tree . ')');
+
 }
 
 sub cautiously_load_session {
     my ($self, $opt, $args) = @_;
 
-    if ( my $session_file_path = App::Critique::Session->locate_session_file( Path::Tiny->cwd ) ) {
+    if ( my $session_file_path = App::Critique::Session->locate_session_file( $opt->git_work_tree ) ) {
 
         my $session;
         eval {

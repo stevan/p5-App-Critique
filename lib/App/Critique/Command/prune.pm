@@ -30,6 +30,8 @@ sub opt_spec {
 sub validate_args {
     my ($self, $opt, $args) = @_;
 
+    $self->SUPER::validate_args( $opt, $args );
+
     if ( $opt->filter && $opt->no_violation ) {
         error('You cannot pass both --filter and --no-violation.');
     }

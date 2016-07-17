@@ -26,6 +26,8 @@ sub opt_spec {
 sub validate_args {
     my ($self, $opt, $args) = @_;
 
+    $self->SUPER::validate_args( $opt, $args );
+
     if ( my $profile = $opt->perl_critic_profile ) {
         (-f $profile)
             || $self->usage_error('Unable to locate perl-critic-profile (' . $profile . ')');
@@ -52,7 +54,7 @@ sub execute {
         perl_critic_profile => $opt->perl_critic_profile,
         perl_critic_theme   => $opt->perl_critic_theme,
         perl_critic_policy  => $opt->perl_critic_policy,
-        git_work_tree       => Path::Tiny->cwd,
+        git_work_tree       => $opt->git_work_tree,
     );
 
     if ( $opt->verbose ) {

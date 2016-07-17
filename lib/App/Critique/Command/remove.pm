@@ -22,7 +22,7 @@ sub opt_spec {
 sub execute {
     my ($self, $opt, $args) = @_;
 
-    my $session_file = App::Critique::Session->locate_session_file( Path::Tiny->cwd );
+    my $session_file = App::Critique::Session->locate_session_file( $opt->git_work_tree );
 
     if (not -e $session_file) {
         if ( $opt->verbose ) {
