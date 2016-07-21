@@ -11,80 +11,95 @@ use App::Critique -ignore;
 use App::Cmd::Setup -plugin => {
     exports => [
         qw[
+          file_filter
           file_filter_no_violations
           file_filter_regex
-          file_filter
           ]
     ]
 };
 
+sub file_filter {
+    my ( $plugin, $cmd, @args ) = @_;
+    return _file_filter(@args);
+}
+
 sub file_filter_no_violations {
     my ( $plugin, $cmd, @args ) = @_;
-    _no_violations(@args);
-}
-sub file_filter_regex { my ( $plugin, $cmd, @args ) = @_; _regex(@args) }
-sub file_filter       { my ( $plugin, $cmd, @args ) = @_; _filter(@args) }
-
-sub _no_violations {
-    my ( $opt, $session ) = @_;
-    die 'no_violation requires a options' unless $opt;
-    die 'no_violation requires a App::Critique::Session'
-      unless ref($session) eq 'App::Critique::Session';
-    return sub {
-        my $path           = $_[0]->path->stringify;
-        my $num_violations = scalar $session->perl_critic->critique($path);
-        if ( $opt->verbose ) {
-            if ($num_violations) {
-                App::Critique::Plugin::UI::info( 'FileFilters', 'no_violation',
-                    'Found %d violation(s), keeping file (%s) ',
-                    $num_violations, $path );
-            }
-            else {
-                App::Critique::Plugin::UI::info( 'FileFilters', 'no_violation',
-                    'Found no violation, pruning file (%s) ', $path );
-            }
-        }
-        return !!$num_violations;
-    };
+    return _no_violations(@args);
 }
 
-sub _regex {
-    my ($opt) = @_;
-    die 'regex_filter requires a options' unless $opt;
-    my $f = $opt->filter;
+sub file_filter_regex {
+    my ( $plugin, $cmd, @args ) = @_;
+    return _path_regex(@args);
+}
+
+sub _file_filter {
+    my (%args) = @_;
     return sub {
-        return unless $f;
-        my $path = $_[0]->path->stringify;
-        my $is_match = $opt->invert ? $path !~ /$f/ : $path =~ /$f/;
-        if ( $opt->verbose ) {
+        my $predicate = $args{predicate} || return;
+        my $success   = $args{success}   || sub {
+            App::Critique::Plugin::UI::_info('Filter Match: Pass');
+        };
+        my $failure = $args{failure} || sub {
+            App::Critique::Plugin::UI::_info('Filter Matched: Fail');
+        };
+        my ($file)   = @_;
+        my $path     = $file->path->stringify;
+        my $is_match = $predicate->($path);
+        if ( $args{verbose} ) {
             if ($is_match) {
-                App::Critique::Plugin::UI::info( 'FileFilters', 'regex',
-                    'Matched, keeping file (%s) ', $path );
+                $args{success}->( $is_match, $path );
             }
             else {
-                App::Critique::Plugin::UI::info( 'FileFilters', 'regex',
-                    'Not matched, pruning file (%s) ', $path );
+                $args{failure}->( $is_match, $path );
             }
         }
         return !!$is_match;
     };
 }
 
-sub _filter {
-    my ( $opt, $default, @args ) = @_;
-    die 'filter requires a options'                unless $opt;
-    die 'filter requires default fall back filter' unless $default;
-    my $filter;
-    if ( my $f = $opt->filter ) {
-        if ( ref $f eq 'CODE' ) {
-            $filter = $f;
-        }
-        else {
-            no strict 'refs';
-            $filter = &{$default}( $opt, @args );
-        }
-    }
-    return $filter;
+sub _no_violations {
+    my (%args) = @_;
+    die 'A session is needed for filtering files with no violations.'
+      unless $args{session};
+    return file_filter(
+        %args,
+        predicate =>
+          sub { return scalar $args{session}->perl_critic->critique( $_[0] ) },
+        success => $args{success} // sub {
+            my ( $match, $path ) = @_;
+            App::Critique::Plugin::UI::_info(
+                'Found %d violation(s), keeping file (%s) ', $path );
+        },
+        failure => $args{failure} // sub {
+            my ( $match, $path ) = @_;
+            App::Critique::Plugin::UI::_info(
+                'Found no violation, pruning file (%s)', $path );
+        },
+    );
+}
+
+sub _path_regex {
+    my (%args) = @_;
+    return _file_filter(
+        %args,
+        predicate => sub {
+            my ($path) = @_;
+            my $f = $args{filter};
+            return unless $f;
+            return $args{invert} ? $path !~ /$f/ : $path =~ /$f/;
+        },
+        success => $args{success} // sub {
+            my ( $match, $path ) = @_;
+            App::Critique::Plugin::UI::_info( 'Matched: keeping file (%s) ',
+                $path );
+        },
+        failure => $args{failure} // sub {
+            my ( $match, $path ) = @_;
+            App::Critique::Plugin::UI::_info( 'Not matched: pruning file (%s) ',
+                $path );
+        },
+    );
 }
 
 1;
@@ -105,35 +120,37 @@ This utility module defines some filters to enable code reuse.
 
 =head1 Subroutines
 
-=head2 no_violation
+=head2 file_filter_no_violations
 
-    no_violation($opt, $session)
+    file_filter_no_violations(%$opt, seassion => $session)
 
 $session must be a App::Critique::Session.
 
 
 
-=head2 regex_filter
+=head2 file_filter_regex
 
-    regex_filter($opt)
+    file_filter_regex(%$opt)
 
 Uses the $opt->filter to build a regex to filter the files.
 
 If $opt->invert is present the filter is inverted.
 
-=head2 filter
+=head2 file_filter
 
-    filter($opt, $default)
+    my $predicate = sub {
+        my ($path) = @_;
+        return -f $path;
+    }
+    file_filter(%$opt, predicate => $predicate)
 
-if $opt contains a filter, and is not a coderef, then fall back to the specified
-default, which could be any subroutine within this module.
+file_filer requires a predicate coderef that will be used to test against
+a file.
+
+Other options are:
+success: a coderef called if in verbose and predicate coderef makes a match
+faulure: a coderef called if in verbose and predicate coderef fails to match
+
 =cut
 
 
-1;
-
-__END__
-
-=pod
-
-=cut

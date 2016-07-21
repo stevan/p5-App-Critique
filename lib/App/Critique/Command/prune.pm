@@ -47,11 +47,11 @@ sub execute {
 
     my $filter;
 
-    if ( my $f = $opt->filter ) {
-        $filter = file_filter_regex($opt);
+    if ( $opt->filter ) {
+        $filter = file_filter_regex(%$opt)
     }
     elsif ( $opt->no_violation ) {
-        $filter = file_filter_no_violations($opt,$session);
+        $filter = file_filter_no_violations( %$opt, session => $session )
     }
 
     my @old_files = $session->tracked_files;
