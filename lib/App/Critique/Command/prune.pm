@@ -26,8 +26,15 @@ sub opt_spec {
 
 sub validate_args {
     my ($self, $opt, $args) = @_;
+    
     $self->SUPER::validate_args( $opt, $args );
-    file_filter_validate_args( $opt, $args );
+    
+    if ( $opt->filter && $opt->no_violation ) {
+        $self->usage_error('You cannot pass both --filter and --no-violation.');
+    }
+    elsif ( not($opt->filter) && not($opt->no_violation) ) {
+        $self->usage_error('You must pass either --filter or --no-violation.');
+    }
 }
 
 sub execute {
