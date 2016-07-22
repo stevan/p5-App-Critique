@@ -48,12 +48,18 @@ sub execute {
     info('Session file loaded.');
 
     my $filter;
-
     if ( $opt->filter ) {
-        $filter = file_filter_regex(%$opt)
+        $filter = file_filter_regex(
+            filter  => $opt->filter, 
+            invert  => $opt->invert,
+            verbose => $opt->verbose,           
+        );
     }
     elsif ( $opt->no_violation ) {
-        $filter = file_filter_no_violations( %$opt, session => $session )
+        $filter = file_filter_no_violations( 
+            session => $session,
+            verbose => $opt->verbose,
+        );
     }
 
     my @old_files = $session->tracked_files;

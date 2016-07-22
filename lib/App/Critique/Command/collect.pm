@@ -41,7 +41,13 @@ sub execute {
         : $session->git_work_tree;
 
     my $filter;
-    if ( $opt->filter ) { $filter = file_filter_regex(%$opt) }
+    if ( $opt->filter ) { 
+        $filter = file_filter_regex( 
+            filter  => $opt->filter, 
+            invert  => $opt->invert,
+            verbose => $opt->verbose,
+        ); 
+    }
 
     my @all;
     traverse_filesystem(
