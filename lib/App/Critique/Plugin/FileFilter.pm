@@ -50,8 +50,7 @@ sub _file_filter {
     my $failure   = $args{failure} || sub { App::Critique::Plugin::UI::_info('File did not match') };    
     
     return sub {
-        my $file     = $_[0];
-        my $path     = $file->path->stringify;
+        my $path     = $_[0]->path->stringify;
         my $is_match = $predicate->( $path );
         ($verbose && $is_match)
             ? $success->( $is_match, $path )
