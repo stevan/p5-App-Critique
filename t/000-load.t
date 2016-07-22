@@ -20,6 +20,7 @@ BEGIN {
     use_ok('App::Critique::Command::prune');
 
     use_ok('App::Critique::Plugin::UI');
+    use_ok('App::Critique::Plugin::FileFilter');
 }
 
 done_testing;
