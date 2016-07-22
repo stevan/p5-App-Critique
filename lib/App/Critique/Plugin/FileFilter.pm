@@ -34,7 +34,8 @@ sub file_filter_regex {
 }
 
 sub _file_filter {
-    my (%args) = @_;
+    my %args = @_;
+    
     Carp::confess('You must specify a `predicate` value')
         unless $args{predicate};
         
@@ -42,73 +43,62 @@ sub _file_filter {
         Carp::confess('If you specify a `'.$field.'` value, it must be a CODE ref')
             if $args{$field} && ref $args{$field} ne 'CODE';            
     }    
+    
+    my $predicate = $args{predicate};
+    my $verbose   = !!$args{verbose};
+    my $success   = $args{success} || sub { App::Critique::Plugin::UI::_info('File matched')       };
+    my $failure   = $args{failure} || sub { App::Critique::Plugin::UI::_info('File did not match') };    
+    
     return sub {
-        my $predicate = $args{predicate} || return;
-        my $success   = $args{success}   || sub {
-            App::Critique::Plugin::UI::_info('Filter Match: Pass');
-        };
-        my $failure = $args{failure} || sub {
-            App::Critique::Plugin::UI::_info('Filter Matched: Fail');
-        };
-        my ($file)   = @_;
+        my $file     = $_[0];
         my $path     = $file->path->stringify;
-        my $is_match = $predicate->($path);
-        if ( $args{verbose} ) {
-            if ($is_match) {
-                $args{success}->( $is_match, $path );
-            }
-            else {
-                $args{failure}->( $is_match, $path );
-            }
-        }
+        my $is_match = $predicate->( $path );
+        ($verbose && $is_match)
+            ? $success->( $is_match, $path )
+            : $failure->( $is_match, $path );
         return !!$is_match;
     };
 }
 
 sub _file_filter_no_violations {
-    my (%args) = @_;
+    my %args = @_;
     
-    Carp::confess('A session is needed for filtering files with no violations.')
-        unless $args{session};
+    Carp::confess('A session is needed for filtering files without violations.')
+        unless Scalar::Util::blessed( $args{session} ) 
+            && $args{session}->isa('App::Critique::Session');
+    
+    Carp::confess('You cannot pass a predicate when filtering on violations.')
+        if $args{predicate};
+        
+    my $session = delete $args{session};
+    $args{predicate} = sub { scalar $session->perl_critic->critique( $_[0] ) };
+    
+    # some defaults ...
+    $args{success} ||= sub { App::Critique::Plugin::UI::_info('Found %d violation(s), keeping file (%s) ', $_[1] ) };
+    $args{failure} ||= sub { App::Critique::Plugin::UI::_info('Found no violation, pruning file (%s)',     $_[1] ) };
       
-    return file_filter(
-        %args,
-        predicate =>
-          sub { return scalar $args{session}->perl_critic->critique( $_[0] ) },
-        success => $args{success} // sub {
-            my ( $match, $path ) = @_;
-            App::Critique::Plugin::UI::_info(
-                'Found %d violation(s), keeping file (%s) ', $path );
-        },
-        failure => $args{failure} // sub {
-            my ( $match, $path ) = @_;
-            App::Critique::Plugin::UI::_info(
-                'Found no violation, pruning file (%s)', $path );
-        },
-    );
+    return _file_filter( %args );
 }
 
 sub _file_filter_regex {
-    my (%args) = @_;
-    return _file_filter(
-        %args,
-        predicate => sub {
-            my ($path) = @_;
-            my $f = $args{filter};
-            return unless $f;
-            return $args{invert} ? $path !~ /$f/ : $path =~ /$f/;
-        },
-        success => $args{success} // sub {
-            my ( $match, $path ) = @_;
-            App::Critique::Plugin::UI::_info( 'Matched: keeping file (%s) ',
-                $path );
-        },
-        failure => $args{failure} // sub {
-            my ( $match, $path ) = @_;
-            App::Critique::Plugin::UI::_info( 'Not matched: pruning file (%s) ',
-                $path );
-        },
-    );
+    my %args = @_;
+     
+    Carp::confess('A `filter` is required ')
+        unless $args{filter};
+    
+    Carp::confess('You cannot pass a predicate when filtering with a regex.')
+        if $args{predicate};
+    
+    my $filter = delete $args{filter};
+    my $invert = !! delete $args{invert};
+    
+    $args{predicate} = sub { $invert ? $_[0] !~ /$filter/ : $_[0] =~ /$filter/ };
+    
+    # some defaults ...
+    $args{success} ||= sub { App::Critique::Plugin::UI::_info( 'Matched: keeping file (%s) ',     $_[1] ) };
+    $args{failure} ||= sub { App::Critique::Plugin::UI::_info( 'Not matched: pruning file (%s) ', $_[1] ) };
+    
+    return _file_filter( %args );
 }
 
 1;
