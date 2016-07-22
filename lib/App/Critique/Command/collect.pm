@@ -94,9 +94,6 @@ sub execute {
     }
 }
 
-
-my %SKIP = map { ($_ => 1) } qw[  CVS RCS .svn _darcs {arch} .bzr .cdv .git .hg .pc _build blib local ];
-
 sub traverse_filesystem {
     my ($path, $filter, $v) = @_;
 
@@ -110,8 +107,12 @@ sub traverse_filesystem {
     }
     else {
         my @children = $path->children( qr/^[^.]/ );
+        
         # prune the directories we really don't care about
-        @children = grep !$SKIP{ $_->basename }, @children;
+        if ( my $ignore = $App::Critique::CONFIG{'IGNORE'} ) {
+            @children = grep !$ignore->{ $_->basename }, @children;
+        }
+        
         # recurse ...
         map traverse_filesystem( $_, $filter, $v ), @children;
     }
