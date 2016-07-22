@@ -3,12 +3,15 @@ package App::Critique;
 use strict;
 use warnings;
 
+use File::HomeDir ();
+
 our $VERSION   = '0.01';
 our $AUTHORITY = 'cpan:STEVAN';
 
 our %CONFIG;
 
 BEGIN {
+    $App::Critique::CONFIG{'HOME'}    = $ENV{'CRITIQUE_HOME'}    || File::HomeDir->my_home;
     $App::Critique::CONFIG{'COLOR'}   = $ENV{'CRITIQUE_COLOR'}   || 0;
     $App::Critique::CONFIG{'DEBUG'}   = $ENV{'CRITIQUE_DEBUG'}   || 0;
     $App::Critique::CONFIG{'VERBOSE'} = $ENV{'CRITIQUE_VERBOSE'} || 0;

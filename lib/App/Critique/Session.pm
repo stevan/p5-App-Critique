@@ -9,7 +9,6 @@ our $AUTHORITY = 'cpan:STEVAN';
 use Scalar::Util        ();
 use Carp                ();
 
-use File::HomeDir       ();
 use Path::Tiny          ();
 use JSON::XS            ();
 
@@ -17,6 +16,7 @@ use Git::Repository     ();
 use Perl::Critic        ();
 use Perl::Critic::Utils ();
 
+use App::Critique;
 use App::Critique::Session::File;
 
 our $JSON = JSON::XS->new->utf8->pretty->canonical;
@@ -218,7 +218,7 @@ sub store {
 sub _generate_critique_dir_path {
     my ($class, $git_work_tree, $git_branch) = @_;
 
-    my $root = Path::Tiny::path( File::HomeDir->my_home );
+    my $root = Path::Tiny::path( $App::Critique::CONFIG{'HOME'} );
     my $git  = Path::Tiny::path( $git_work_tree );
 
     # ~/.critique/<git-repo-name>/<git-branch-name>/session.json
