@@ -16,12 +16,9 @@ use App::Critique -command;
 sub opt_spec {
     my ($class) = @_;
     return (
-        [ 'no-violation', 'prune files that contain no Perl::Critic violations ' ],
+        file_filter_opt_spec(),
         [],
-        [ 'filter|f=s',   'filter the file list with this regular expression' ],
-        [ 'invert|i',     'invert the results of the filter' ],
-        [],
-        [ 'dry-run',      'display pruned list of files, but do not store them' ],
+        [ 'dry-run', 'display pruned list of files, but do not store them' ],
         [],
         $class->SUPER::opt_spec,
     );
@@ -29,16 +26,8 @@ sub opt_spec {
 
 sub validate_args {
     my ($self, $opt, $args) = @_;
-
     $self->SUPER::validate_args( $opt, $args );
-
-    if ( $opt->filter && $opt->no_violation ) {
-        $self->usage_error('You cannot pass both --filter and --no-violation.');
-    }
-    elsif ( not($opt->filter) && not($opt->no_violation) ) {
-        $self->usage_error('You must pass either --filter or --no-violation.');
-    }
-
+    file_filter_validate_args( $opt, $args );
 }
 
 sub execute {

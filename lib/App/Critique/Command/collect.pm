@@ -18,10 +18,7 @@ sub opt_spec {
     return (
         [ 'root=s',       'directory to start traversal from (default is root of git work tree)' ],
         [],
-        [ 'no-violation', 'prune files that contain no Perl::Critic violations ' ],
-        [],
-        [ 'filter|f=s',   'filter the files with this regular expression' ],
-        [ 'invert|i',     'invert the results of the filter' ],
+        file_filter_opt_spec(),
         [],
         [ 'shuffle',      'shuffle the file list' ],
         [],
@@ -33,16 +30,8 @@ sub opt_spec {
 
 sub validate_args {
     my ($self, $opt, $args) = @_;
-
     $self->SUPER::validate_args( $opt, $args );
-
-    if ( $opt->filter && $opt->no_violation ) {
-        $self->usage_error('You cannot pass both --filter and --no-violation.');
-    }
-    elsif ( not($opt->filter) && not($opt->no_violation) ) {
-        $self->usage_error('You must pass either --filter or --no-violation.');
-    }
-
+    file_filter_validate_args( $opt, $args );
 }
 
 sub execute {

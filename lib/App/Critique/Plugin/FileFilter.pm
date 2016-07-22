@@ -9,14 +9,34 @@ our $AUTHORITY = 'cpan:STEVAN';
 use App::Critique -ignore;
 
 use App::Cmd::Setup -plugin => {
-    exports => [
-        qw[
+    exports => [qw[
           file_filter
           file_filter_no_violations
           file_filter_regex
-          ]
-    ]
+          
+          file_filter_opt_spec
+          file_filter_validate_args
+    ]]
 };
+
+sub file_filter_opt_spec {
+    return (
+        [ 'no-violation', 'prune files that contain no Perl::Critic violations ' ],
+        [ 'filter|f=s',   'filter the files with this regular expression' ],
+        [ 'invert|i',     'invert the results of the filter' ],
+    );
+}
+
+sub file_filter_validate_args {
+    my ($plugin, $cmd, $opt, $args) = @_;
+    
+    if ( $opt->filter && $opt->no_violation ) {
+        $cmd->usage_error('You cannot pass both --filter and --no-violation.');
+    }
+    elsif ( not($opt->filter) && not($opt->no_violation) ) {
+        $cmd->usage_error('You must pass either --filter or --no-violation.');
+    }
+}
 
 sub file_filter {
     my ( $plugin, $cmd, @args ) = @_;
@@ -32,6 +52,8 @@ sub file_filter_regex {
     my ( $plugin, $cmd, @args ) = @_;
     return _file_filter_regex(@args);
 }
+
+## ...
 
 sub _file_filter {
     my %args = @_;
