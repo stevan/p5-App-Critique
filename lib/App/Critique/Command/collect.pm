@@ -41,16 +41,7 @@ sub execute {
         : $session->git_work_tree;
 
     my $filter;
-    if ( my $f = $opt->filter ) {
-        if ( ref $f eq 'CODE' ) {
-            $filter = $f;
-        }
-        else {
-            $filter = $opt->invert
-                ? sub { $_[0]->stringify !~ /$f/ }
-                : sub { $_[0]->stringify =~ /$f/ };
-        }
-    }
+    if ( $opt->filter ) { $filter = file_filter_regex(%$opt) }
 
     my @all;
     traverse_filesystem(
