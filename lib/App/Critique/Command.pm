@@ -23,9 +23,8 @@ sub opt_spec {
 sub validate_args {
     my ($self, $opt, $args) = @_;
 
-    (-d $opt->git_work_tree)
-        || $self->usage_error('The git-work-tree does not exist (' . $opt->git_work_tree . ')');
-
+    $self->usage_error('The git-work-tree does not exist (' . $opt->git_work_tree . ')')
+        unless -d $opt->git_work_tree;
 }
 
 sub cautiously_load_session {

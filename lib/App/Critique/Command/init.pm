@@ -29,8 +29,8 @@ sub validate_args {
     $self->SUPER::validate_args( $opt, $args );
 
     if ( my $profile = $opt->perl_critic_profile ) {
-        (-f $profile)
-            || $self->usage_error('Unable to locate perl-critic-profile (' . $profile . ')');
+        $self->usage_error('Unable to locate perl-critic-profile (' . $profile . ')')
+            unless -f $profile;
     }
 
 }

@@ -33,10 +33,10 @@ sub validate_args {
     $self->SUPER::validate_args( $opt, $args );
 
     if ( $opt->filter && $opt->no_violation ) {
-        error('You cannot pass both --filter and --no-violation.');
+        $self->usage_error('You cannot pass both --filter and --no-violation.');
     }
     elsif ( not($opt->filter) && not($opt->no_violation) ) {
-        error('You must pass either --filter or --no-violation.');
+        $self->usage_error('You must pass either --filter or --no-violation.');
     }
 
 }
