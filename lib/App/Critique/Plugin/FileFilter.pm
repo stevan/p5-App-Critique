@@ -25,12 +25,12 @@ sub file_filter {
 
 sub file_filter_no_violations {
     my ( $plugin, $cmd, @args ) = @_;
-    return _no_violations(@args);
+    return _file_filter_no_violations(@args);
 }
 
 sub file_filter_regex {
     my ( $plugin, $cmd, @args ) = @_;
-    return _path_regex(@args);
+    return _file_filter_regex(@args);
 }
 
 sub _file_filter {
@@ -58,7 +58,7 @@ sub _file_filter {
     };
 }
 
-sub _no_violations {
+sub _file_filter_no_violations {
     my (%args) = @_;
     die 'A session is needed for filtering files with no violations.'
       unless $args{session};
@@ -79,7 +79,7 @@ sub _no_violations {
     );
 }
 
-sub _path_regex {
+sub _file_filter_regex {
     my (%args) = @_;
     return _file_filter(
         %args,
