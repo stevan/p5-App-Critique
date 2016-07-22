@@ -28,53 +28,86 @@ sub validate_args {
 
 }
 
+
 sub cautiously_load_session {
-    my ($self, $opt, $args) = @_;
+    my ( $self, $opt, $args ) = @_;
 
-    if ( my $session_file_path = App::Critique::Session->locate_session_file( $opt->git_work_tree ) ) {
-
-        my $session;
-        eval {
-            $session = App::Critique::Session->load( $session_file_path );
-            1;
-        } or do {
-            my $e = "$@";
-            chomp $e;
-            if ( $opt->debug ) {
-                App::Critique::Plugin::UI::_error("Unable to load session file (%s), because:\n  %s", $session_file_path, $e);
+    return _cautiously_do_stuff(
+        %$opt,
+        dangerous_code => sub {
+            my (%opt) = @_;
+            if (
+                my $session_file_path =
+                App::Critique::Session->locate_session_file(
+                    $opt{git_work_tree}
+                )
+              )
+            {
+                return App::Critique::Session->load($session_file_path);
             }
             else {
-                App::Critique::Plugin::UI::_error('Unable to load session file (%s), run with --debug|d for more information', $session_file_path);
+                error(
+                    'No session file found, perhaps you forgot to call `init`.'
+                );
             }
-        };
-
-        return $session;
-    }
-
-    error('No session file found, perhaps you forgot to call `init`.');
+        },
+        debug_error_message => sub {
+            App::Critique::Plugin::UI::_error(
+                "Unable to load the session file, because:\n  %s", $_[0] );
+        },
+        error_message => sub {
+            App::Critique::Plugin::UI::_error(
+'Unable to load the session file, run with --debug|d for more information'
+            );
+        },
+    );
 }
 
 sub cautiously_store_session {
     my ($self, $session, $opt, $args) = @_;
 
-    my $session_file_path = $session->session_file_path;
+    return _cautiously_do_stuff(
+        %$opt,
+        session => $session,
+        dangerous_code => sub {
+            my (%opt) = @_;
+            $opt{session}->store;
+            return $session->session_file_path;
+        },
+        debug_error_message => sub {
+            App::Critique::Plugin::UI::_error("Unable to store the session file, because:\n  %s", $_[0]);
 
-    eval {
-        $session->store;
-        1;
-    } or do {
+        },
+        error_message => sub {
+            App::Critique::Plugin::UI::_error(
+'Unable to save the session file, run with --debug|d for more information'
+            );
+        },
+    );
+}
+
+sub _cautiously_do_stuff {
+    my (%args) = @_;
+    my $evaled_return = eval { $args{dangerous_code}->(%args); } or do {
         my $e = "$@";
         chomp $e;
-        if ( $opt->debug ) {
-            App::Critique::Plugin::UI::_error("Unable to store session file (%s), because:\n  %s", $session_file_path, $e);
+        if ( $args{debug} ) {
+            $args{debug_error_message}->($e)
+              // App::Critique::Plugin::UI::_error( "%s", $e );
         }
         else {
-            App::Critique::Plugin::UI::_error('Unable to store session file (%s), run with --debug|d for more information', $session_file_path);
+            $args{error_message}->(%args)
+              // App::Critique::Plugin::UI::_error(
+                'Dangerous code failed, run with --debug|d for more information'
+              );
         }
     };
 
-    return $session_file_path;
+    return $evaled_return;
 }
+
+
+
 
 1;
 
