@@ -6,10 +6,10 @@ use warnings;
 our $VERSION   = '0.01';
 our $AUTHORITY = 'cpan:STEVAN';
 
-use Scalar::Util        ();
-use Carp                ();
+use Scalar::Util ();
+use Carp         ();
 
-use Path::Tiny          ();
+use Path::Tiny   ();
 
 sub new {
     my ($class, %args) = @_;
