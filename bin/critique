@@ -8,11 +8,6 @@ use lib "$FindBin::Bin/../lib";
 
 use App::Critique;
 
-$App::Critique::CONFIG{'COLOR'}   = $ENV{'CRITIQUE_COLOR'}   if $ENV{'CRITIQUE_COLOR'};
-$App::Critique::CONFIG{'DEBUG'}   = $ENV{'CRITIQUE_DEBUG'}   if $ENV{'CRITIQUE_DEBUG'};
-$App::Critique::CONFIG{'VERBOSE'} = $ENV{'CRITIQUE_VERBOSE'} if $ENV{'CRITIQUE_VERBOSE'};
-$App::Critique::CONFIG{'EDITOR'}  = $ENV{'CRITIQUE_EDITOR'}  if $ENV{'CRITIQUE_EDITOR'};
-
 App::Critique->new({ show_version_cmd => 1 })->run;
 
 1;
