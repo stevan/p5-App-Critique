@@ -177,8 +177,8 @@ sub unpack {
 sub load {
     my ($class, $path) = @_;
 
-    ($path->exists && $path->is_file)
-        || Carp::confess('Invalid path: ' . $path);
+    Carp::confess('Invalid path: ' . $path)
+        unless $path->exists && $path->is_file;
 
     my $file = Path::Tiny::path( $path );
     my $json = $file->slurp;

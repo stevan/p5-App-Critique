@@ -16,11 +16,11 @@ sub new {
 
     my $path = $args{path};
 
-    (defined $path)
-        || Carp::confess('You must supply a `path` argument');
+    Carp::confess('You must supply a `path` argument')
+        unless defined $path;
 
-    (-e $path && -f $path)
-        || Carp::confess('The `path` argument must be a valid file, not: ' . $path);
+    Carp::confess('The `path` argument must be a valid file, not: ' . $path)
+        unless -e $path && -f $path;
 
     $path = Path::Tiny::path( $path )
         unless Scalar::Util::blessed( $path )
