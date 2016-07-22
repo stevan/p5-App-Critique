@@ -35,6 +35,13 @@ sub file_filter_regex {
 
 sub _file_filter {
     my (%args) = @_;
+    Carp::confess('You must specify a `predicate` value')
+        unless $args{predicate};
+        
+    foreach my $field (qw[ predicate success failure ]) {
+        Carp::confess('If you specify a `'.$field.'` value, it must be a CODE ref')
+            if $args{$field} && ref $args{$field} ne 'CODE';            
+    }    
     return sub {
         my $predicate = $args{predicate} || return;
         my $success   = $args{success}   || sub {
@@ -60,8 +67,10 @@ sub _file_filter {
 
 sub _file_filter_no_violations {
     my (%args) = @_;
-    die 'A session is needed for filtering files with no violations.'
-      unless $args{session};
+    
+    Carp::confess('A session is needed for filtering files with no violations.')
+        unless $args{session};
+      
     return file_filter(
         %args,
         predicate =>
