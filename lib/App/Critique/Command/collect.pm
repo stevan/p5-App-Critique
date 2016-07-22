@@ -16,17 +16,33 @@ use App::Critique -command;
 sub opt_spec {
     my ($class) = @_;
     return (
-        [ 'root=s',     'directory to start traversal from (default is root of git work tree)' ],
+        [ 'root=s',       'directory to start traversal from (default is root of git work tree)' ],
         [],
-        [ 'filter|f=s', 'filter the files with this regular expression' ],
-        [ 'invert|i',   'invert the results of the filter' ],
+        [ 'no-violation', 'prune files that contain no Perl::Critic violations ' ],
         [],
-        [ 'shuffle',    'shuffle the file list' ],
+        [ 'filter|f=s',   'filter the files with this regular expression' ],
+        [ 'invert|i',     'invert the results of the filter' ],
         [],
-        [ 'dry-run',    'display list of files, but do not store them' ],
+        [ 'shuffle',      'shuffle the file list' ],
+        [],
+        [ 'dry-run',      'display list of files, but do not store them' ],
         [],
         $class->SUPER::opt_spec,
     );
+}
+
+sub validate_args {
+    my ($self, $opt, $args) = @_;
+
+    $self->SUPER::validate_args( $opt, $args );
+
+    if ( $opt->filter && $opt->no_violation ) {
+        $self->usage_error('You cannot pass both --filter and --no-violation.');
+    }
+    elsif ( not($opt->filter) && not($opt->no_violation) ) {
+        $self->usage_error('You must pass either --filter or --no-violation.');
+    }
+
 }
 
 sub execute {
@@ -41,12 +57,18 @@ sub execute {
         : $session->git_work_tree;
 
     my $filter;
-    if ( $opt->filter ) { 
-        $filter = file_filter_regex( 
+    if ( $opt->filter ) {
+        $filter = file_filter_regex(
             filter  => $opt->filter, 
             invert  => $opt->invert,
+            verbose => $opt->verbose,           
+        );
+    }
+    elsif ( $opt->no_violation ) {
+        $filter = file_filter_no_violations( 
+            session => $session,
             verbose => $opt->verbose,
-        ); 
+        );
     }
 
     my @all;
