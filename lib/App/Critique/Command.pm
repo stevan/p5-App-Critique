@@ -15,8 +15,8 @@ sub opt_spec {
     return (
         [ 'git-work-tree=s', 'git working tree, defaults to current working directory', { default => Path::Tiny->cwd } ],
         [],
-        [ 'verbose|v',       'display additional information', { default => $App::Critique::CONFIG{VERBOSE}                     } ],
-        [ 'debug|d',         'display debugging information',  { default => $App::Critique::CONFIG{DEBUG}, implies => 'verbose' } ],
+        [ 'verbose|v',       'display additional information', { default => $App::Critique::CONFIG{'VERBOSE'}                     } ],
+        [ 'debug|d',         'display debugging information',  { default => $App::Critique::CONFIG{'DEBUG'}, implies => 'verbose' } ],
     );
 }
 
