@@ -4,12 +4,14 @@ use strict;
 use warnings;
 
 use File::HomeDir ();
+use JSON::XS      ();
 
 our $VERSION   = '0.01';
 our $AUTHORITY = 'cpan:STEVAN';
 
-our %CONFIG;
+# load our CONFIG first, ...
 
+our %CONFIG;
 BEGIN {
     $CONFIG{'HOME'}    = $ENV{'CRITIQUE_HOME'}    || File::HomeDir->my_home;
     $CONFIG{'COLOR'}   = $ENV{'CRITIQUE_COLOR'}   || 0;
@@ -31,6 +33,12 @@ BEGIN {
             foreach split /\:/ => $ignore;
     }
 }
+
+# ... then gloablly used stuff, ....
+
+our $JSON = JSON::XS->new->utf8->pretty->canonical;
+
+# ... then load the app and plugins
 
 use App::Cmd::Setup -app => {
     plugins => [

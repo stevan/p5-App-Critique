@@ -10,7 +10,6 @@ use Scalar::Util        ();
 use Carp                ();
 
 use Path::Tiny          ();
-use JSON::XS            ();
 
 use Git::Repository     ();
 use Perl::Critic        ();
@@ -18,8 +17,6 @@ use Perl::Critic::Utils ();
 
 use App::Critique;
 use App::Critique::Session::File;
-
-our $JSON = JSON::XS->new->utf8->pretty->canonical;
 
 sub new {
     my ($class, %args) = @_;
@@ -182,7 +179,7 @@ sub load {
 
     my $file = Path::Tiny::path( $path );
     my $json = $file->slurp;
-    my $data = $JSON->decode( $json );
+    my $data = $App::Critique::JSON->decode( $json );
 
     return $class->unpack( $data );
 }
@@ -195,7 +192,7 @@ sub store {
 
     eval {
         # JSON might die here ...
-        my $json = $JSON->encode( $data );
+        my $json = $App::Critique::JSON->encode( $data );
 
         # if the file does not exist
         # then we should try and make
