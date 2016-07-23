@@ -28,7 +28,7 @@ sub new {
 
     return bless {
         path => $path,
-        meta => $args{meta} // {},
+        meta => $args{meta} || {},
     } => $class;
 }
 
