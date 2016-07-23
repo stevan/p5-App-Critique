@@ -16,7 +16,10 @@ use App::Critique -command;
 sub opt_spec {
     my ($class) = @_;
     return (
-        file_filter_opt_spec(),
+        [ 'no-violation', 'prune files that contain no Perl::Critic violations ' ],
+        [],
+        [ 'filter|f=s',   'filter the files with this regular expression' ],
+        [ 'invert|i',     'invert the results of the filter' ],
         [],
         [ 'dry-run', 'display pruned list of files, but do not store them' ],
         [],

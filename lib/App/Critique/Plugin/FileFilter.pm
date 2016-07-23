@@ -13,18 +13,8 @@ use App::Cmd::Setup -plugin => {
         file_filter
         file_filter_no_violations
         file_filter_regex
-
-        file_filter_opt_spec
     ]]
 };
-
-sub file_filter_opt_spec {
-    return (
-        [ 'no-violation', 'prune files that contain no Perl::Critic violations ' ],
-        [ 'filter|f=s',   'filter the files with this regular expression' ],
-        [ 'invert|i',     'invert the results of the filter' ],
-    );
-}
 
 sub file_filter {
     my ( $plugin, $cmd, @args ) = @_;

@@ -18,7 +18,10 @@ sub opt_spec {
     return (
         [ 'root=s',       'directory to start traversal from (default is root of git work tree)' ],
         [],
-        file_filter_opt_spec(),
+        [ 'no-violation', 'prune files that contain no Perl::Critic violations ' ],
+        [],
+        [ 'filter|f=s',   'filter the files with this regular expression' ],
+        [ 'invert|i',     'invert the results of the filter' ],
         [],
         [ 'shuffle',      'shuffle the file list' ],
         [],
