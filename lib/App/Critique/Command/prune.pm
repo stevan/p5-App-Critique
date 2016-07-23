@@ -29,14 +29,11 @@ sub opt_spec {
 
 sub validate_args {
     my ($self, $opt, $args) = @_;
-    
+
     $self->SUPER::validate_args( $opt, $args );
-    
-    if ( $opt->filter && $opt->no_violation ) {
-        $self->usage_error('You cannot pass both --filter and --no-violation.');
-    }
-    elsif ( not($opt->filter) && not($opt->no_violation) ) {
-        $self->usage_error('You must pass either --filter or --no-violation.');
+
+    if ( not($opt->filter) && not($opt->no_violation) ) {
+        $self->usage_error('You must pass at least one of --filter or --no-violation.');
     }
 }
 
@@ -47,15 +44,24 @@ sub execute {
     info('Session file loaded.');
 
     my $filter;
-    if ( $opt->filter ) {
-        $filter = file_filter_regex(
-            filter  => $opt->filter, 
+    if ( $opt->filter && $opt->no_violation ) {
+        $filter = file_filter_regex_then_no_violations(
+            session => $session,
+            filter  => $opt->filter,
             invert  => $opt->invert,
-            verbose => $opt->verbose,           
+            verbose => $opt->verbose,
+        );
+
+    }
+    elsif ( $opt->filter && not($opt->no_violation) ) {
+        $filter = file_filter_regex(
+            filter  => $opt->filter,
+            invert  => $opt->invert,
+            verbose => $opt->verbose,
         );
     }
-    elsif ( $opt->no_violation ) {
-        $filter = file_filter_no_violations( 
+    elsif ( $opt->no_violation && not($opt->filter)) {
+        $filter = file_filter_no_violations(
             session => $session,
             verbose => $opt->verbose,
         );

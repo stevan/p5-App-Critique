@@ -31,16 +31,6 @@ sub opt_spec {
     );
 }
 
-sub validate_args {
-    my ($self, $opt, $args) = @_;
-    
-    $self->SUPER::validate_args( $opt, $args );
-    
-    if ( $opt->filter && $opt->no_violation ) {
-        $self->usage_error('You cannot pass both --filter and --no-violation.');
-    }
-}
-
 sub execute {
     my ($self, $opt, $args) = @_;
 
@@ -53,15 +43,24 @@ sub execute {
         : $session->git_work_tree;
 
     my $filter;
-    if ( $opt->filter ) {
-        $filter = file_filter_regex(
-            filter  => $opt->filter, 
+    if ( $opt->filter && $opt->no_violation ) {
+        $filter = file_filter_regex_then_no_violations(
+            filter  => $opt->filter,
             invert  => $opt->invert,
-            verbose => $opt->verbose,           
+            session => $session,
+            verbose => $opt->verbose,
+        );
+
+    }
+    elsif ( $opt->filter && not($opt->no_violation) ) {
+        $filter = file_filter_regex(
+            filter  => $opt->filter,
+            invert  => $opt->invert,
+            verbose => $opt->verbose,
         );
     }
-    elsif ( $opt->no_violation ) {
-        $filter = file_filter_no_violations( 
+    elsif ( $opt->no_violation && not($opt->filter)) {
+        $filter = file_filter_no_violations(
             session => $session,
             verbose => $opt->verbose,
         );
@@ -114,12 +113,12 @@ sub traverse_filesystem {
     }
     else {
         my @children = $path->children( qr/^[^.]/ );
-        
+
         # prune the directories we really don't care about
         if ( my $ignore = $App::Critique::CONFIG{'IGNORE'} ) {
             @children = grep !$ignore->{ $_->basename }, @children;
         }
-        
+
         # recurse ...
         map traverse_filesystem( $_, $filter, $v ), @children;
     }
