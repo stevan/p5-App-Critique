@@ -23,18 +23,6 @@ sub opt_spec {
     )
 }
 
-sub validate_args {
-    my ($self, $opt, $args) = @_;
-
-    $self->SUPER::validate_args( $opt, $args );
-
-    if ( my $profile = $opt->perl_critic_profile ) {
-        $self->usage_error('Unable to locate perl-critic-profile (' . $profile . ')')
-            unless -f $profile;
-    }
-
-}
-
 sub execute {
     my ($self, $opt, $args) = @_;
 
