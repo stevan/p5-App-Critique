@@ -9,10 +9,11 @@ use Test::Git;
 use Path::Tiny;
 
 BEGIN {
+    use_ok('App::Critique');
     use_ok('App::Critique::Session');
 }
 
-my $TEST_REPO            = test_repository( temp => [ CLEANUP => 1 ] );
+my $TEST_REPO           = test_repository( temp => [ CLEANUP => 1 ] );
 my $TEST_REPO_WORK_TREE = Path::Tiny::path( $TEST_REPO->work_tree );
 
 # Setup a basic repo, likely will want to
@@ -55,7 +56,7 @@ subtest '... testing session with a simple git repo' => sub {
     isa_ok($s->session_file_path, 'Path::Tiny');
     is(
         $s->session_file_path->stringify,
-        Path::Tiny::path( File::HomeDir->my_home )
+        Path::Tiny::path( $App::Critique::CONFIG{'HOME'} )
             ->child( '.critique' )
             ->child( $TEST_REPO_WORK_TREE->basename )
             ->child( 'master' )
