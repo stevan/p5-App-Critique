@@ -21,7 +21,7 @@ sub opt_spec {
         [ 'no-violation', 'prune files that contain no Perl::Critic violations ' ],
         [],
         [ 'filter|f=s',   'filter the files with this regular expression' ],
-        [ 'invert|i',     'invert the results of the filter' ],
+        [ 'invert|i',     'invert the results of the filter', { default => 0 } ],
         [],
         [ 'shuffle',      'shuffle the file list' ],
         [],
