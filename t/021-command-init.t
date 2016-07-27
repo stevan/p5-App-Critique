@@ -3,9 +3,13 @@
 use strict;
 use warnings;
 
-use lib 't/lib';
+use FindBin;
+
+use lib "$FindBin::Bin/lib";
 
 use Test::More;
+
+use IPC::Run ();
 
 use App::Cmd::Tester;
 use App::Critique::Tester;
@@ -15,41 +19,26 @@ BEGIN {
 }
 
 my $TEST_REPO = App::Critique::Tester::init_test_repo();
+my $WORK_TREE = $TEST_REPO->dir;
+my $CRITIQUE  = "$FindBin::Bin/../bin/critique";
 
-chdir($TEST_REPO->work_tree);
+my ($in, $out, $err);
 
-my $repo = Git::Repository->new( work_tree => $TEST_REPO->work_tree );
-
-warn "REV-PARSE: " . $repo->run(qw( rev-parse --git-dir ));
-warn "BRANCH: " . $repo->run('branch');
-
-warn "PATH: " . Path::Tiny->cwd;
-warn "PATH: " . $repo->work_tree;
-
-use Data::Dumper;
-warn '-' x 80;
-warn Dumper $repo;
-warn Dumper $repo->options;
-warn '-' x 80;
-warn Dumper $TEST_REPO;
-warn Dumper $TEST_REPO->options;
-warn '-' x 80;
-
-my $result = test_app(
-    'App::Critique' => [
-        init => (
-            '--git-work-tree'      => $repo->work_tree,
-            '--perl-critic-policy' => 'Variables::ProhibitUnusedVariables',
-            '--verbose'            => 1
-        )
-    ]
-);
+my @lines = IPC::Run::run(
+    [
+        'perl', $CRITIQUE,
+            'init', '-v',
+            '--git-work-tree', $WORK_TREE,
+            '--perl-critic-policy', 'Variables::ProhibitUnusedVariables'
+    ],
+    \$in, \$out, \$err
+) or die "critique: $?";
 
 warn '#' x 80;
-warn $result->output;
+warn join '' => $out;
 warn '#' x 80;
-warn $result->error;
-warn '#' x 80;
+
+App::Critique::Tester::teardown_test_repo( $TEST_REPO );
 
 done_testing;
 

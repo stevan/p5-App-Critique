@@ -211,7 +211,7 @@ sub end_editing_session {
 sub edit_violation {
     my ($self, $session, $file, $violation) = @_;
 
-    my $git      = $session->git_repository;
+    my $git      = $session->git_wrapper;
     my $filename = $violation->filename;
 
     #warning('!!!! do we have an editor offset (%d) for file (%s)' => $self->{_editor_line_offset}->{ $filename }, $filename);
@@ -231,7 +231,7 @@ sub edit_violation {
 EDIT:
     system $cmd;
 
-    my @modified = $git->run( status  => '--short' );
+    my @modified = $git->status({ short => 1 });
     my $did_edit = scalar grep /$filename/, @modified;
 
     if ( $did_edit ) {
@@ -270,7 +270,7 @@ EDIT:
             $commit_msg =~ s/^\s*//g;
             $commit_msg =~ s/\s*$//g;
 
-            my ($changes) = grep /$filename/, $git->run( diff => '--numstat' );
+            my ($changes) = grep /$filename/, $git->diff({ numstat => 1 });
             ($changes)
                 || error('Unable to find changes in diff for file (%s)', $file->relative_path);
             my ($inserts, $deletes) = ($changes =~ /^(\d+)\s*(\d+)\s*.*$/);
@@ -279,8 +279,8 @@ EDIT:
             info(HR_DARK);
             info('Adding and commiting file (%s) to git', $filename);
             info(HR_LIGHT);
-            info('%s', join "\n" => $git->run( add => '-v' => $filename ));
-            info('%s', join "\n" => $git->run( commit => '-v' => '-m' => $commit_msg));
+            info('%s', join "\n" => $git->add($filename, { v => 1 }));
+            info('%s', join "\n" => $git->commit({ v => 1, message => $commit_msg }));
 
             $file->remember('commited' => ($file->recall('commited') || 0) + 1);
 
@@ -288,7 +288,7 @@ EDIT:
         }
         elsif ( $what_now eq 'd' ) {
             info(HR_LIGHT);
-            info('%s', join "\n" => $git->run( diff => '-v' ));
+            info('%s', join "\n" => $git->diff({ v => }));
             info(HR_LIGHT);
             goto CHOOSE;
         }

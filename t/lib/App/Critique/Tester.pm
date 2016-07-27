@@ -4,22 +4,35 @@ use strict;
 use warnings;
 
 use Path::Tiny ();
-use Test::Git  ();
+
+use Git::Wrapper;
+
+my %TEMP_WORK_TREES;
 
 sub init_test_repo {
-    my $test_repo  = Test::Git::test_repository( temp => [ CLEANUP => 1 ] );
-    my $work_tree  = Path::Tiny::path( $test_repo->work_tree );
 
     # grab the test files for the repo
+    my $work_tree = Path::Tiny::tempdir( CLEANUP => 1 );
     _copy_full_tree(
         from => Path::Tiny->cwd->child('devel/git/test_repo'),
         to   => $work_tree
     );
 
-    $test_repo->run( add    => '*' );
-    $test_repo->run( commit => '-m', 'initial commit' );
+    # and then create, add and commit
+    my $test_repo = Git::Wrapper->new( $work_tree );
+    $test_repo->init;
+    $test_repo->add( '*' );
+    $test_repo->commit({ message => 'initial commit' });
+
+    $TEMP_WORK_TREES{ $test_repo } = $work_tree;
 
     return $test_repo;
+}
+
+sub teardown_test_repo {
+    my $test_repo = $_[0];
+    my $work_tree = delete $TEMP_WORK_TREES{ $test_repo };
+    undef $work_tree;
 }
 
 # ...

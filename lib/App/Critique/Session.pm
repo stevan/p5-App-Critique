@@ -11,7 +11,7 @@ use Carp                ();
 
 use Path::Tiny          ();
 
-use Git::Repository     ();
+use Git::Wrapper        ();
 use Perl::Critic        ();
 use Perl::Critic::Utils ();
 
@@ -59,7 +59,7 @@ sub new {
     # now that we have worked out all the details,
     # we need to determine the path to the actual
     # critique file.
-    my $path = $class->_generate_critique_file_path( $git->work_tree, $git_branch );
+    my $path = $class->_generate_critique_file_path( $git->dir, $git_branch );
 
     my $self = bless {
         # user supplied ...
@@ -68,7 +68,7 @@ sub new {
         perl_critic_policy  => $perl_critic_policy,
 
         # auto-discovered
-        git_work_tree       => Path::Tiny::path( $git->work_tree ),
+        git_work_tree       => Path::Tiny::path( $git->dir ),
         git_branch          => $git_branch,
 
         # local storage
@@ -103,7 +103,7 @@ sub locate_session_file {
     my ($git, $git_branch) = $class->_initialize_git_repo( git_work_tree => $git_work_tree );
 
     my $session_file = $class->_generate_critique_file_path(
-        Path::Tiny::path( $git->work_tree ),
+        Path::Tiny::path( $git->dir ),
         $git_branch
     );
 
@@ -126,7 +126,7 @@ sub dec_file_idx     { $_[0]->{current_file_idx}-- }
 sub reset_file_idx   { $_[0]->{current_file_idx}=0 }
 
 sub session_file_path { $_[0]->{_path} }
-sub git_repository    { $_[0]->{_git}  }
+sub git_wrapper       { $_[0]->{_git}  }
 sub perl_critic       { $_[0]->{_critic} }
 
 # Instance Methods
@@ -238,10 +238,10 @@ sub _generate_critique_file_path {
 sub _initialize_git_repo {
     my ($class, %args) = @_;
 
-    my $git = Git::Repository->new( work_tree => $args{git_work_tree} );
+    my $git = Git::Wrapper->new( $args{git_work_tree} );
 
     # auto-discover the current git branch
-    my ($git_branch) = map /^\*\s(.*)$/, grep /^\*/, $git->run('branch');
+    my ($git_branch) = map /^\*\s(.*)$/, grep /^\*/, $git->branch;
 
     Carp::confess('Unable to determine git branch, looks like your repository is bare')
         unless $git_branch;

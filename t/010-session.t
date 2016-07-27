@@ -3,43 +3,29 @@
 use strict;
 use warnings;
 
+use lib 't/lib';
+
 use Test::More;
-use Test::Git;
 
 use Path::Tiny;
+use App::Critique::Tester;
 
 BEGIN {
     use_ok('App::Critique');
     use_ok('App::Critique::Session');
 }
 
-my $TEST_REPO           = test_repository( temp => [ CLEANUP => 1 ] );
-my $TEST_REPO_WORK_TREE = Path::Tiny::path( $TEST_REPO->work_tree );
-
-# Setup a basic repo, likely will want to
-# move this to a test utility module soon
-{
-    $TEST_REPO_WORK_TREE->child('Foo.pm')->spew(q[
-package Foo;
-use strict;
-use warnings;
-sub bar { print "HELLO WORLD" }
-1;
-]);
-
-    $TEST_REPO->run( add    => 'Foo.pm' );
-    $TEST_REPO->run( commit => '-m', 'adding a test file' );
-}
+my $TEST_REPO = App::Critique::Tester::init_test_repo();
 
 subtest '... testing session with a simple git repo' => sub {
 
     my $s = App::Critique::Session->new(
-        git_work_tree => $TEST_REPO->work_tree
+        git_work_tree => $TEST_REPO->dir
     );
     isa_ok($s, 'App::Critique::Session');
 
     isa_ok($s->git_work_tree, 'Path::Tiny');
-    is($s->git_work_tree->stringify, $TEST_REPO->work_tree, '... got the git work tree we expected');
+    is($s->git_work_tree->stringify, $TEST_REPO->dir, '... got the git work tree we expected');
 
     is($s->git_branch, 'master', '... got the git branch we expected');
 
@@ -58,7 +44,7 @@ subtest '... testing session with a simple git repo' => sub {
         $s->session_file_path->stringify,
         Path::Tiny::path( $App::Critique::CONFIG{'HOME'} )
             ->child( '.critique' )
-            ->child( $TEST_REPO_WORK_TREE->basename )
+            ->child( Path::Tiny::path( $TEST_REPO->dir )->basename )
             ->child( 'master' )
             ->child( 'session.json' )
             ->stringify,
@@ -71,7 +57,7 @@ subtest '... testing session with a simple git repo' => sub {
             perl_critic_profile => undef,
             perl_critic_theme   => undef,
             perl_critic_policy  => undef,
-            git_work_tree       => $TEST_REPO_WORK_TREE->stringify,
+            git_work_tree       => $TEST_REPO->dir,
             git_branch          => 'master',
             current_file_idx    => 0,
             tracked_files       => [],
@@ -81,7 +67,7 @@ subtest '... testing session with a simple git repo' => sub {
 
 };
 
-
+App::Critique::Tester::teardown_test_repo( $TEST_REPO );
 
 done_testing;
 
