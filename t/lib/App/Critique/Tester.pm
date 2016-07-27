@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Path::Tiny ();
+use IPC::Run   ();
 
 use Git::Wrapper;
 
@@ -15,7 +16,7 @@ sub init_test_repo {
     my $work_tree = Path::Tiny::tempdir( CLEANUP => 1 );
     _copy_full_tree(
         from => Path::Tiny->cwd->child('devel/git/test_repo'),
-        to   => $work_tree
+        to   => $work_tree,
     );
 
     # and then create, add and commit
@@ -27,6 +28,19 @@ sub init_test_repo {
     $TEMP_WORK_TREES{ $test_repo } = $work_tree;
 
     return $test_repo;
+}
+
+sub run {
+    my ($cmd, @args) = @_;
+
+    my ($in, $out, $err);
+
+    my @lines = IPC::Run::run(
+        [ 'perl', "$FindBin::Bin/../bin/critique", $cmd, @args ],
+        \$in, \$out, \$err
+    ) or die "critique: $?";
+
+    return ($out, $err);
 }
 
 sub teardown_test_repo {

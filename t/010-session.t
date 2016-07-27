@@ -2,12 +2,14 @@
 
 use strict;
 use warnings;
+use FindBin;
 
-use lib 't/lib';
+use lib "$FindBin::Bin/lib";
 
 use Test::More;
 
-use Path::Tiny;
+use Path::Tiny ();
+
 use App::Critique::Tester;
 
 BEGIN {
