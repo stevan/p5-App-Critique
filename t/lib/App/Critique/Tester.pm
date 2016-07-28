@@ -43,6 +43,23 @@ sub run {
     return ($out, $err);
 }
 
+sub test {
+    my ($cmd_and_args, $good, $bad) = @_;
+
+    my ($out, $err) = App::Critique::Tester::run( @$cmd_and_args );
+
+    # warn '-' x 80;
+    # warn $out;
+    # warn '-' x 80;
+    # warn $err;
+    # warn '-' x 80;
+
+    Test::More::like(   $out, $_, '... matched '.$_.' correctly'      ) foreach @$good;
+    Test::More::unlike( $out, $_, '... failed match '.$_.' correctly' ) foreach @$bad;
+
+    return ($out, $err);
+}
+
 sub teardown_test_repo {
     my $test_repo = $_[0];
     my $work_tree = delete $TEMP_WORK_TREES{ $test_repo };
