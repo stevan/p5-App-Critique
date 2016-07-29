@@ -48,12 +48,6 @@ sub test {
 
     my ($out, $err) = App::Critique::Tester::run( @$cmd_and_args );
 
-    # warn '-' x 80;
-    # warn $out;
-    # warn '-' x 80;
-    # warn $err;
-    # warn '-' x 80;
-
     Test::More::like(   $out, $_, '... matched '.$_.' correctly'      ) foreach @$good;
     Test::More::unlike( $out, $_, '... failed match '.$_.' correctly' ) foreach @$bad;
 
