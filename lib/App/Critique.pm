@@ -44,7 +44,6 @@ use App::Cmd::Setup -app => {
     plugins => [
         'Prompt',
         '=App::Critique::Plugin::UI',
-        '=App::Critique::Plugin::FileFilter'
     ]
 };
 
