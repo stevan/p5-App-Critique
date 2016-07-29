@@ -62,8 +62,10 @@ sub execute {
     if ( $opt->filter && not($opt->match) && not($opt->no_violation) ) {
         my $f = $opt->filter;
         $predicate = sub {
-            my $path = $_[0];
-            return $path !~ /$f/;
+            my $root = $_[0];
+            my $path = $_[1];
+            my $rel  = $path->relative( $root );
+            return $rel !~ /$f/;
         };
     }
     # filter and match
@@ -71,9 +73,11 @@ sub execute {
         my $m = $opt->match;
         my $f = $opt->filter;
         $predicate = sub {
-            my $path = $_[0];
-            return $path =~ /$m/
-                && $path !~ /$f/;
+            my $root = $_[0];
+            my $path = $_[1];
+            my $rel  = $path->relative( $root );
+            return $rel =~ /$m/
+                && $rel !~ /$f/;
         };
     }
     # filter and match and check violations
@@ -82,10 +86,12 @@ sub execute {
         my $f = $opt->filter;
         my $c = $session->perl_critic;
         $predicate = sub {
-            my $path = $_[0];
-            return $path =~ /$m/
-                && $path !~ /$f/
-                && (0 == scalar $c->critique( $path ));
+            my $root = $_[0];
+            my $path = $_[1];
+            my $rel  = $path->relative( $root );
+            return $rel =~ /$m/
+                && $rel !~ /$f/
+                && (0 == scalar $c->critique( $path->stringify ));
         };
     }
     # match and check violations
@@ -93,25 +99,29 @@ sub execute {
         my $m = $opt->match;
         my $c = $session->perl_critic;
         $predicate = sub {
-            my $path = $_[0];
-            return $path =~ /$m/
-                && (0 == scalar $c->critique( $path ));
+            my $root = $_[0];
+            my $path = $_[1];
+            my $rel  = $path->relative( $root );
+            return $rel =~ /$m/
+                && (0 == scalar $c->critique( $path->stringify ));
         };
     }
     # match only
     elsif ( not($opt->filter) && $opt->match && not($opt->no_violation) ) {
         my $m = $opt->match;
         $predicate = sub {
-            my $path = $_[0];
-            return $path =~ /$m/;
+            my $root = $_[0];
+            my $path = $_[1];
+            my $rel  = $path->relative( $root );
+            return $rel =~ /$m/;
         };
     }
     # check violations only
     elsif ( not($opt->filter) && not($opt->match) && $opt->no_violation ) {
         my $c = $session->perl_critic;
         $predicate = sub {
-            my $path = $_[0];
-            return 0 == scalar $c->critique( $path );
+            my $path = $_[1];
+            return 0 == scalar $c->critique( $path->stringify );
         };
     }
     # none of the above
@@ -167,15 +177,13 @@ sub traverse_filesystem {
         # ignore anything but perl files ...
         return unless is_perl_file( $path->stringify );
 
-        # only accept things that match the
-        # predicate on the relative root
-        my $rel_path = $path->relative( $root );
-        if ( $predicate->( $rel_path ) ) {
-            info('Matched: keeping file (%s)', $rel_path) if $verbose;
+        # only accept things that match the path
+        if ( $predicate->( $root, $path ) ) {
+            info('Matched: keeping file (%s)', $path->relative( $root )) if $verbose;
             push @$acc => $path;
         }
         else {
-            info('Not Matched: skipping file (%s)', $rel_path) if $verbose;
+            info('Not Matched: skipping file (%s)', $path->relative( $root )) if $verbose;
         }
     }
     elsif ( -l $path ) { # Path::Tiny does not have a test for symlinks
