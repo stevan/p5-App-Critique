@@ -167,6 +167,11 @@ sub execute {
     }
     else {
         $session->set_tracked_files( @all );
+        $session->set_file_filters_used({
+            filter       => $opt->filter,
+            match        => $opt->match,
+            no_violation => $opt->no_violation
+        });
         info('Sucessfully added %d file(s).', $num_files);
 
         $self->cautiously_store_session( $session, $opt, $args );
