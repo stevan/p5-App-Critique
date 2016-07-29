@@ -24,19 +24,6 @@ sub new {
     Carp::confess('You must specify a git_work_tree')
         unless $args{git_work_tree} && -d $args{git_work_tree};
 
-    # FIXME:
-    # Sometimes you might do a `git pull --rebase` and
-    # some files you were previously tracking are no
-    # longer in existence, this will prune those from
-    # your tracked file list.
-    # This should actually be a manual task done via
-    # the `collect` command, telling it to replay the
-    # set of files and re-apply the filtering.
-    # - SL
-    @{ $args{tracked_files} } = grep {
-        (-e (ref $_ eq 'HASH' ? $_->{path} : $_))
-    } @{ $args{tracked_files} };
-
     # setup the perl critic instance
     my $critic = $class->_initialize_perl_critic( %args );
 
@@ -61,7 +48,7 @@ sub new {
         # local storage
         current_file_idx    => 0,
         tracked_files       => [],
-        file_criteria   => undef,
+        file_criteria       => undef,
 
         # Do Not Serialize
         _path   => $path,
