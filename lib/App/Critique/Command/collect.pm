@@ -7,7 +7,6 @@ our $VERSION   = '0.01';
 our $AUTHORITY = 'cpan:STEVAN';
 
 use Path::Tiny ();
-use List::Util ();
 
 use App::Critique::Session;
 
@@ -22,8 +21,6 @@ sub opt_spec {
         [],
         [ 'filter|f=s',   'filter files to remove with this regular expression' ],
         [ 'match|m=s',    'match files to keep with this regular expression' ],
-        [],
-        [ 'shuffle',      'shuffle the file list' ],
         [],
         [ 'dry-run',      'display list of files, but do not store them' ],
         [],
@@ -157,11 +154,6 @@ sub execute {
 
     my $num_files = scalar @all;
     info('Collected %d perl file(s) for critique.', $num_files);
-
-    if ( $opt->shuffle ) {
-        info('Shuffling file list.');
-        @all = List::Util::shuffle( @all );
-    }
 
     foreach my $file ( @all ) {
         info(
