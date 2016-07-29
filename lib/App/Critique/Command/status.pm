@@ -59,7 +59,7 @@ sub execute {
         );
     }
     info(HR_DARK);
-    info('TOTAL: %d files', $num_files );
+    info('TOTAL: %d file(s)', $num_files );
     info('  (v)iolations : %d', $violations);
     info('  (r)eviwed    : %d', $reviewed  );
     info('  (e)dited     : %d', $edited    );

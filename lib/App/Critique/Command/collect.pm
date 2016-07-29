@@ -129,7 +129,7 @@ sub execute {
     );
 
     my $num_files = scalar @all;
-    info('Collected %d perl files for critique.', $num_files);
+    info('Collected %d perl file(s) for critique.', $num_files);
 
     if ( $opt->shuffle ) {
         info('Shuffling file list.');
@@ -144,11 +144,11 @@ sub execute {
     }
 
     if ( $opt->dry_run ) {
-        info('[dry run] %d files found, 0 files added.', $num_files);
+        info('[dry run] %d file(s) found, 0 files added.', $num_files);
     }
     else {
         $session->set_tracked_files( @all );
-        info('Sucessfully added %d files.', $num_files);
+        info('Sucessfully added %d file(s).', $num_files);
 
         $self->cautiously_store_session( $session, $opt, $args );
         info('Session file stored successfully (%s).', $session->session_file_path);
