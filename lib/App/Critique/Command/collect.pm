@@ -85,8 +85,13 @@ sub traverse_filesystem {
     my $verbose   = $args{verbose};
 
     if ( $path->is_file ) {
+        
+        #warn "GOT A FILE: $path";
+        
         # ignore anything but perl files ...
         return unless is_perl_file( $path->stringify );
+
+        #warn "NOT PERL FILE: $path";
 
         # only accept things that match the path
         if ( $predicate->( $root, $path ) ) {
@@ -101,6 +106,9 @@ sub traverse_filesystem {
         ;
     }
     else {
+        
+        #warn "GOT A DIR: $path";
+        
         my @children = $path->children( qr/^[^.]/ );
 
         # prune the directories we really don't care about
@@ -109,13 +117,15 @@ sub traverse_filesystem {
         }
 
         # recurse ...
-        traverse_filesystem(
-            root        => $root,
-            path        => $_,
-            predicate   => $predicate,
-            accumulator => $acc,
-            verbose     => $verbose,
-        ) foreach @children;
+         foreach my $child ( @children ) {
+            traverse_filesystem(
+                root        => $root,
+                path        => $child,
+                predicate   => $predicate,
+                accumulator => $acc,
+                verbose     => $verbose,
+            );
+        }
     }
 
     return;
@@ -174,7 +184,7 @@ sub generate_file_predicate {
             my $rel  = $path->relative( $root );
             return $rel =~ /$match/
                 && $rel !~ /$filter/
-                && (0 == scalar $c->critique( $path->stringify ));
+                && scalar $c->critique( $path->stringify );
         };
     }
     # filter and check violations
@@ -185,7 +195,7 @@ sub generate_file_predicate {
             my $path = $_[1];
             my $rel  = $path->relative( $root );
             return $rel !~ /$filter/
-                && (0 == scalar $c->critique( $path->stringify ));
+                && scalar $c->critique( $path->stringify );
         };
     }
     # match only
@@ -205,7 +215,7 @@ sub generate_file_predicate {
             my $path = $_[1];
             my $rel  = $path->relative( $root );
             return $rel =~ /$match/
-                && (0 == scalar $c->critique( $path->stringify ));
+                && scalar $c->critique( $path->stringify );
         };
     }
     # check violations only
@@ -213,7 +223,7 @@ sub generate_file_predicate {
         my $c = $session->perl_critic;
         $predicate = sub {
             my $path = $_[1];
-            return 0 == scalar $c->critique( $path->stringify );
+            return scalar $c->critique( $path->stringify );
         };
     }
     # none of the above
@@ -247,6 +257,8 @@ sub is_perl_file {
     return 1 if $file =~ m{ [.] PL    \z}xms;
     return 1 if $file =~ m{ [.] p[lm] \z}xms;
     return 1 if $file =~ m{ [.] t     \z}xms;
+    return 1 if $file =~ m{ [.] psgi  \z}xms;
+    return 1 if $file =~ m{ [.] cgi   \z}xms;
 
     # if we have to, check for shebang
     my $first;

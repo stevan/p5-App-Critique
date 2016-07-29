@@ -68,6 +68,7 @@ subtest '... testing collect' => sub {
             qr/Not Matched\: skipping file \(lib\/My\/Test\/WithoutViolations\.pm\)/,
             qr/Not Matched\: skipping file \(lib\/My\/Test\/WithViolations\.pm\)/,
             qr/Not Matched\: skipping file \(share\/debug.pl\)/,
+            qr/Not Matched\: skipping file \(root\/app\.psgi\)/,
             qr/Matched\: keeping file \(t\/000\-test\-with\-violations\.t\)/,
             qr/Not Matched\: skipping file \(t\/001\-test\-without-violations\.t\)/,
             qr/Collected 1 perl file\(s\) for critique/,
