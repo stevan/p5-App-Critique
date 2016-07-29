@@ -3,10 +3,11 @@ package My::Test::WithViolations;
 use strict;
 use warnings;
 
-our $FOO;
+my $FOO;
 
 sub test {
     my $x;
+    return [];
 }
 
 1;
