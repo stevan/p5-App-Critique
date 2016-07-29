@@ -77,7 +77,7 @@ sub new {
         # local storage
         current_file_idx    => 0,
         tracked_files       => [],
-        file_filters_used   => undef,
+        file_criteria   => undef,
 
         # Do Not Serialize
         _path   => $path,
@@ -89,8 +89,8 @@ sub new {
     $self->set_tracked_files( @{ $args{tracked_files} } )
         if exists $args{tracked_files};
 
-    $self->set_file_filters_used( $args{file_filters_used} )
-        if exists $args{file_filters_used};
+    $self->set_file_criteria( $args{file_criteria} )
+        if exists $args{file_criteria};
 
     $self->{current_file_idx} += $args{current_file_idx}
         if exists $args{current_file_idx};
@@ -126,7 +126,7 @@ sub perl_critic_theme   { $_[0]->{perl_critic_theme}   }
 sub perl_critic_policy  { $_[0]->{perl_critic_policy}  }
 
 sub tracked_files     { @{ $_[0]->{tracked_files} } }
-sub file_filters_used { $_[0]->{file_filters_used} }
+sub file_criteria { $_[0]->{file_criteria} }
 
 sub current_file_idx { $_[0]->{current_file_idx}   }
 sub inc_file_idx     { $_[0]->{current_file_idx}++ }
@@ -155,9 +155,9 @@ sub set_tracked_files {
     } @files;
 }
 
-sub set_file_filters_used {
+sub set_file_criteria {
     my ($self, $filters_used) = @_;
-    $self->{file_filters_used} = $filters_used;
+    $self->{file_criteria} = $filters_used;
 }
 
 # ...
@@ -174,7 +174,7 @@ sub pack {
 
         current_file_idx    => $self->{current_file_idx},
         tracked_files       => [ map $_->pack, @{ $self->{tracked_files} } ],
-        file_filters_used   => $self->{file_filters_used}
+        file_criteria   => $self->{file_criteria}
     };
 }
 
