@@ -28,11 +28,14 @@ sub new {
     my $perl_critic_theme   = $args{perl_critic_theme};
     my $perl_critic_policy  = $args{perl_critic_policy};
 
-    # NOTE:
+    # FIXME:
     # Sometimes you might do a `git pull --rebase` and
     # some files you were previously tracking are no
     # longer in existence, this will prune those from
     # your tracked file list.
+    # This should actually be a manual task done via
+    # the `collect` command, telling it to replay the
+    # set of files and re-apply the filtering.
     # - SL
     @{ $args{tracked_files} } = grep {
         (-e (ref $_ eq 'HASH' ? $_->{path} : $_))
