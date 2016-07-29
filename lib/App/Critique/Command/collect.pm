@@ -39,117 +39,19 @@ sub execute {
         ? Path::Tiny::path( $opt->root )
         : $session->git_work_tree;
 
-    # this is a match predicate, it
-    # should return true if we want
-    # to kepe the file
-    my $predicate;
-
-    # ------------------------------#
-    # filter | match | no-violation #
-    # ------------------------------#
-    #    0   |   0   |      0       # collect
-    # ------------------------------#
-    #    1   |   0   |      0       # collect with filter
-    #    1   |   1   |      0       # collect with filter and match
-    #    1   |   1   |      1       # collect with filter match and no violations
-    #    1   |   0   |      1       # collect with filter and no violations
-    # ------------------------------#
-    #    0   |   1   |      0       # collect with match
-    #    0   |   1   |      1       # collect with match and no violations
-    # ------------------------------#
-    #    0   |   0   |      1       # collect with no violations
-    # ------------------------------#
-
-    # filter only
-    if ( $opt->filter && not($opt->match) && not($opt->no_violation) ) {
-        my $f = $opt->filter;
-        $predicate = sub {
-            my $root = $_[0];
-            my $path = $_[1];
-            my $rel  = $path->relative( $root );
-            return $rel !~ /$f/;
-        };
-    }
-    # filter and match
-    elsif ( $opt->filter && $opt->match && not($opt->no_violation) ) {
-        my $m = $opt->match;
-        my $f = $opt->filter;
-        $predicate = sub {
-            my $root = $_[0];
-            my $path = $_[1];
-            my $rel  = $path->relative( $root );
-            return $rel =~ /$m/
-                && $rel !~ /$f/;
-        };
-    }
-    # filter and match and check violations
-    elsif ( $opt->filter && $opt->match && $opt->no_violation ) {
-        my $m = $opt->match;
-        my $f = $opt->filter;
-        my $c = $session->perl_critic;
-        $predicate = sub {
-            my $root = $_[0];
-            my $path = $_[1];
-            my $rel  = $path->relative( $root );
-            return $rel =~ /$m/
-                && $rel !~ /$f/
-                && (0 == scalar $c->critique( $path->stringify ));
-        };
-    }
-    # filter and check violations
-    elsif ( $opt->filter && not($opt->match) && $opt->no_violation ) {
-        my $f = $opt->filter;
-        my $c = $session->perl_critic;
-        $predicate = sub {
-            my $root = $_[0];
-            my $path = $_[1];
-            my $rel  = $path->relative( $root );
-            return $rel !~ /$f/
-                && (0 == scalar $c->critique( $path->stringify ));
-        };
-    }
-    # match only
-    elsif ( not($opt->filter) && $opt->match && not($opt->no_violation) ) {
-        my $m = $opt->match;
-        $predicate = sub {
-            my $root = $_[0];
-            my $path = $_[1];
-            my $rel  = $path->relative( $root );
-            return $rel =~ /$m/;
-        };
-    }
-    # match and check violations
-    elsif ( not($opt->filter) && $opt->match && $opt->no_violation ) {
-        my $m = $opt->match;
-        my $c = $session->perl_critic;
-        $predicate = sub {
-            my $root = $_[0];
-            my $path = $_[1];
-            my $rel  = $path->relative( $root );
-            return $rel =~ /$m/
-                && (0 == scalar $c->critique( $path->stringify ));
-        };
-    }
-    # check violations only
-    elsif ( not($opt->filter) && not($opt->match) && $opt->no_violation ) {
-        my $c = $session->perl_critic;
-        $predicate = sub {
-            my $path = $_[1];
-            return 0 == scalar $c->critique( $path->stringify );
-        };
-    }
-    # none of the above
-    else {
-        $predicate = sub () { 1 };
-    }
-
     my @all;
     traverse_filesystem(
         root        => $root,
         path        => $root,
-        predicate   => $predicate,
+        predicate   => generate_file_predicate(
+            $session => (
+                filter       => $opt->filter,
+                match        => $opt->match,
+                no_violation => $opt->no_violation
+            )
+        ),
         accumulator => \@all,
-        verbose     => 1,
+        verbose     => $opt->verbose,
     );
 
     my $num_files = scalar @all;
@@ -158,7 +60,7 @@ sub execute {
     foreach my $file ( @all ) {
         info(
             'Including %s',
-            Path::Tiny::path( $file )->relative( $session->git_work_tree )
+            Path::Tiny::path( $file )->relative( $root )
         );
     }
 
@@ -167,11 +69,6 @@ sub execute {
     }
     else {
         $session->set_tracked_files( @all );
-        $session->set_file_filters_used({
-            filter       => $opt->filter,
-            match        => $opt->match,
-            no_violation => $opt->no_violation
-        });
         info('Sucessfully added %d file(s).', $num_files);
 
         $self->cautiously_store_session( $session, $opt, $args );
@@ -222,6 +119,115 @@ sub traverse_filesystem {
     }
 
     return;
+}
+
+sub generate_file_predicate {
+    my ($session, %args) = @_;
+
+    my $filter       = $args{filter};
+    my $match        = $args{match};
+    my $no_violation = $args{no_violation};
+
+    my $predicate;
+
+    # ------------------------------#
+    # filter | match | no-violation #
+    # ------------------------------#
+    #    0   |   0   |      0       # collect
+    # ------------------------------#
+    #    1   |   0   |      0       # collect with filter
+    #    1   |   1   |      0       # collect with filter and match
+    #    1   |   1   |      1       # collect with filter match and no violations
+    #    1   |   0   |      1       # collect with filter and no violations
+    # ------------------------------#
+    #    0   |   1   |      0       # collect with match
+    #    0   |   1   |      1       # collect with match and no violations
+    # ------------------------------#
+    #    0   |   0   |      1       # collect with no violations
+    # ------------------------------#
+
+    # filter only
+    if ( $filter && not($match) && not($no_violation) ) {
+        $predicate = sub {
+            my $root = $_[0];
+            my $path = $_[1];
+            my $rel  = $path->relative( $root );
+            return $rel !~ /$filter/;
+        };
+    }
+    # filter and match
+    elsif ( $filter && $match && not($no_violation) ) {
+        $predicate = sub {
+            my $root = $_[0];
+            my $path = $_[1];
+            my $rel  = $path->relative( $root );
+            return $rel =~ /$match/
+                && $rel !~ /$filter/;
+        };
+    }
+    # filter and match and check violations
+    elsif ( $filter && $match && $no_violation ) {
+        my $c = $session->perl_critic;
+        $predicate = sub {
+            my $root = $_[0];
+            my $path = $_[1];
+            my $rel  = $path->relative( $root );
+            return $rel =~ /$match/
+                && $rel !~ /$filter/
+                && (0 == scalar $c->critique( $path->stringify ));
+        };
+    }
+    # filter and check violations
+    elsif ( $filter && not($match) && $no_violation ) {
+        my $c = $session->perl_critic;
+        $predicate = sub {
+            my $root = $_[0];
+            my $path = $_[1];
+            my $rel  = $path->relative( $root );
+            return $rel !~ /$filter/
+                && (0 == scalar $c->critique( $path->stringify ));
+        };
+    }
+    # match only
+    elsif ( not($filter) && $match && not($no_violation) ) {
+        $predicate = sub {
+            my $root = $_[0];
+            my $path = $_[1];
+            my $rel  = $path->relative( $root );
+            return $rel =~ /$match/;
+        };
+    }
+    # match and check violations
+    elsif ( not($filter) && $match && $no_violation ) {
+        my $c = $session->perl_critic;
+        $predicate = sub {
+            my $root = $_[0];
+            my $path = $_[1];
+            my $rel  = $path->relative( $root );
+            return $rel =~ /$match/
+                && (0 == scalar $c->critique( $path->stringify ));
+        };
+    }
+    # check violations only
+    elsif ( not($filter) && not($match) && $no_violation ) {
+        my $c = $session->perl_critic;
+        $predicate = sub {
+            my $path = $_[1];
+            return 0 == scalar $c->critique( $path->stringify );
+        };
+    }
+    # none of the above
+    else {
+        $predicate = sub () { 1 };
+    }
+
+    $session->set_file_criteria({
+        filter       => $filter,
+        match        => $match,
+        no_violation => $no_violation
+    });
+
+    return $predicate;
 }
 
 # NOTE:
