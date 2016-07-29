@@ -24,10 +24,6 @@ sub new {
     Carp::confess('You must specify a git_work_tree')
         unless $args{git_work_tree} && -d $args{git_work_tree};
 
-    my $perl_critic_profile = $args{perl_critic_profile};
-    my $perl_critic_theme   = $args{perl_critic_theme};
-    my $perl_critic_policy  = $args{perl_critic_policy};
-
     # FIXME:
     # Sometimes you might do a `git pull --rebase` and
     # some files you were previously tracking are no
@@ -41,20 +37,8 @@ sub new {
         (-e (ref $_ eq 'HASH' ? $_->{path} : $_))
     } @{ $args{tracked_files} };
 
-    my $critic;
-    if ( $perl_critic_policy ) {
-        $critic = Perl::Critic->new( '-single-policy' => $perl_critic_policy );
-    }
-    else {
-        $critic = Perl::Critic->new(
-            ($perl_critic_profile ? ('-profile' => $perl_critic_profile) : ()),
-            ($perl_critic_theme   ? ('-theme'   => $perl_critic_theme)   : ()),
-        );
-
-        # inflate this as needed
-        $perl_critic_profile = Path::Tiny::path( $perl_critic_profile )
-            if $perl_critic_profile;
-    }
+    # setup the perl critic instance
+    my $critic = $class->_initialize_perl_critic( %args );
 
     # auto-discover the current git repo and branch
     my ($git, $git_branch) = $class->_initialize_git_repo( %args );
@@ -66,9 +50,9 @@ sub new {
 
     my $self = bless {
         # user supplied ...
-        perl_critic_profile => $perl_critic_profile,
-        perl_critic_theme   => $perl_critic_theme,
-        perl_critic_policy  => $perl_critic_policy,
+        perl_critic_profile => $args{perl_critic_profile},
+        perl_critic_theme   => $args{perl_critic_theme},
+        perl_critic_policy  => $args{perl_critic_policy},
 
         # auto-discovered
         git_work_tree       => Path::Tiny::path( $git->dir ),
@@ -270,6 +254,27 @@ sub _initialize_git_repo {
 
     # if all is well, return ...
     return ($git, $git_branch);
+}
+
+sub _initialize_perl_critic {
+    my ($class, %args) = @_;
+
+    my $critic;
+    if ( $args{perl_critic_policy} ) {
+        $critic = Perl::Critic->new( '-single-policy' => $args{perl_critic_policy} );
+    }
+    else {
+        $critic = Perl::Critic->new(
+            ($args{perl_critic_profile} ? ('-profile' => $args{perl_critic_profile}) : ()),
+            ($args{perl_critic_theme}   ? ('-theme'   => $args{perl_critic_theme})   : ()),
+        );
+
+        # inflate this as needed
+        $args{perl_critic_profile} = Path::Tiny::path( $args{perl_critic_profile} )
+            if $args{perl_critic_profile};
+    }
+
+    return $critic;
 }
 
 1;
