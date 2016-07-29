@@ -51,6 +51,46 @@ subtest '... testing init' => sub {
     # warn '-' x 80;
 };
 
+subtest '... testing collect' => sub {
+
+    my ($out, $err) = App::Critique::Tester::test(
+        [
+            collect => (
+                '-v',
+                '--git-work-tree', $work_tree,
+                '--match', '^t\/',
+            )
+        ],
+        [
+            qr/Session file loaded/,
+            qr/Not Matched\: skipping file \(bin\/my-app\)/,
+            qr/Not Matched\: skipping file \(lib\/My\/Test\/WithoutViolations\.pm\)/,
+            qr/Not Matched\: skipping file \(lib\/My\/Test\/WithViolations\.pm\)/,
+            qr/Not Matched\: skipping file \(share\/debug.pl\)/,
+            qr/Matched\: keeping file \(t\/000\-test\-with\-violations\.t\)/,
+            qr/Matched\: keeping file \(t\/001\-test\-without-violations\.t\)/,
+            qr/Collected 2 perl file\(s\) for critique/,
+            qr/Including t\/000\-test\-with\-violations\.t/,
+            qr/Including t\/001\-test\-without-violations\.t/,
+            qr/Sucessfully added 2 file\(s\)/,
+            qr/Session file stored successfully/,
+            qr/\.critique\/$work_base\/master\/session\.json/,
+        ],
+        [
+            qr/Unable to load session file/,
+            qr/Unable to store session file/,
+            qr/Shuffling file list/,
+            qr/\[dry run\]/,
+        ]
+    );
+
+    # warn '-' x 80;
+    # warn $out;
+    # warn '-' x 80;
+    # warn $err;
+    # warn '-' x 80;
+};
+
 subtest '... testing status' => sub {
 
     my ($out, $err) = App::Critique::Tester::test(
@@ -64,7 +104,9 @@ subtest '... testing status' => sub {
             qr/Session file loaded/,
             qr/perl_critic_policy\s+\: Variables\:\:ProhibitUnusedVariables/,
             qr/git_work_tree\s*\: $work_tree/,
-            qr/TOTAL\: 0 files/,
+                qr/t\/000\-test\-with\-violations\.t/,
+                qr/t\/001\-test\-without-violations\.t/,
+            qr/TOTAL\: 2 file\(s\)/,
             qr/\.critique\/$work_base\/master\/session\.json/,
         ],
         [
@@ -78,6 +120,7 @@ subtest '... testing status' => sub {
     # warn '-' x 80;
     # warn $err;
     # warn '-' x 80;
+
 };
 
 App::Critique::Tester::teardown_test_repo( $test_repo );
