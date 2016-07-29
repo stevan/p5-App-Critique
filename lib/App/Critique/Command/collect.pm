@@ -18,10 +18,10 @@ sub opt_spec {
     return (
         [ 'root=s',       'directory to start traversal from (default is root of git work tree)' ],
         [],
-        [ 'no-violation', 'prune files that contain no Perl::Critic violations ' ],
+        [ 'no-violation', 'filter files that contain no Perl::Critic violations ' ],
         [],
-        [ 'filter|f=s',   'filter the files with this regular expression' ],
-        [ 'invert|i',     'invert the results of the filter', { default => 0 } ],
+        [ 'filter|f=s',   'filter files to remove with this regular expression' ],
+        [ 'match|m=s',    'match files to keep with this regular expression' ],
         [],
         [ 'shuffle',      'shuffle the file list' ],
         [],
@@ -42,35 +42,90 @@ sub execute {
         ? Path::Tiny::path( $opt->root )
         : $session->git_work_tree;
 
-    my $filter;
-    if ( $opt->filter && $opt->no_violation ) {
-        $filter = file_filter_regex_then_no_violations(
-            filter  => $opt->filter,
-            invert  => $opt->invert,
-            session => $session,
-            verbose => $opt->verbose,
-        );
+    # this is a match predicate, it
+    # should return true if we want
+    # to kepe the file
+    my $predicate;
 
+    # ------------------------------#
+    # filter | match | no-violation #
+    # ------------------------------#
+    #    1   |   0   |      0       |
+    #    1   |   1   |      0       |
+    #    1   |   1   |      1       |
+    #    0   |   1   |      1       |
+    #    0   |   0   |      1       |
+    #    0   |   0   |      0       |
+    # ------------------------------#
+
+    # filter only
+    if ( $opt->filter && not($opt->match) && not($opt->no_violation) ) {
+        my $f = $opt->filter;
+        $predicate = sub {
+            my $path = $_[0];
+            return $path !~ /$f/;
+        };
     }
-    elsif ( $opt->filter && not($opt->no_violation) ) {
-        $filter = file_filter_regex(
-            filter  => $opt->filter,
-            invert  => $opt->invert,
-            verbose => $opt->verbose,
-        );
+    # filter and match
+    elsif ( $opt->filter && $opt->match && not($opt->no_violation) ) {
+        my $m = $opt->match;
+        my $f = $opt->filter;
+        $predicate = sub {
+            my $path = $_[0];
+            return $path =~ /$m/
+                && $path !~ /$f/;
+        };
     }
-    elsif ( $opt->no_violation && not($opt->filter)) {
-        $filter = file_filter_no_violations(
-            session => $session,
-            verbose => $opt->verbose,
-        );
+    # filter and match and check violations
+    elsif ( $opt->filter && $opt->match && $opt->no_violation ) {
+        my $m = $opt->match;
+        my $f = $opt->filter;
+        my $c = $session->perl_critic;
+        $predicate = sub {
+            my $path = $_[0];
+            return $path =~ /$m/
+                && $path !~ /$f/
+                && (0 == scalar $c->critique( $path ));
+        };
+    }
+    # match and check violations
+    elsif ( not($opt->filter) && $opt->match && $opt->no_violation ) {
+        my $m = $opt->match;
+        my $c = $session->perl_critic;
+        $predicate = sub {
+            my $path = $_[0];
+            return $path =~ /$m/
+                && (0 == scalar $c->critique( $path ));
+        };
+    }
+    # match only
+    elsif ( not($opt->filter) && $opt->match && not($opt->no_violation) ) {
+        my $m = $opt->match;
+        $predicate = sub {
+            my $path = $_[0];
+            return $path =~ /$m/;
+        };
+    }
+    # check violations only
+    elsif ( not($opt->filter) && not($opt->match) && $opt->no_violation ) {
+        my $c = $session->perl_critic;
+        $predicate = sub {
+            my $path = $_[0];
+            return 0 == scalar $c->critique( $path );
+        };
+    }
+    # none of the above
+    else {
+        $predicate = sub () { 1 };
     }
 
     my @all;
     traverse_filesystem(
-        $root,
-        $filter,
-        sub { push @all => $_[0] },
+        root        => $root,
+        path        => $root,
+        predicate   => $predicate,
+        accumulator => \@all,
+        verbose     => 1,
     );
 
     my $num_files = scalar @all;
@@ -101,12 +156,27 @@ sub execute {
 }
 
 sub traverse_filesystem {
-    my ($path, $filter, $v) = @_;
+    my %args      = @_;
+    my $root      = $args{root};
+    my $path      = $args{path};
+    my $predicate = $args{predicate};
+    my $acc       = $args{accumulator};
+    my $verbose   = $args{verbose};
 
     if ( $path->is_file ) {
-        return unless is_perl_file( $path );
-        return if defined $filter && $filter->( $path );
-        $v->( $path );
+        # ignore anything but perl files ...
+        return unless is_perl_file( $path->stringify );
+
+        # only accept things that match the
+        # predicate on the relative root
+        my $rel_path = $path->relative( $root );
+        if ( $predicate->( $rel_path ) ) {
+            info('Matched: keeping file (%s)', $rel_path) if $verbose;
+            push @$acc => $path;
+        }
+        else {
+            info('Not Matched: skipping file (%s)', $rel_path) if $verbose;
+        }
     }
     elsif ( -l $path ) { # Path::Tiny does not have a test for symlinks
         ;
@@ -120,7 +190,13 @@ sub traverse_filesystem {
         }
 
         # recurse ...
-        map traverse_filesystem( $_, $filter, $v ), @children;
+        traverse_filesystem(
+            root        => $root,
+            path        => $_,
+            predicate   => $predicate,
+            accumulator => $acc,
+            verbose     => $verbose,
+        ) foreach @children;
     }
 
     return;
