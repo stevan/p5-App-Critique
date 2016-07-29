@@ -50,12 +50,17 @@ sub execute {
     # ------------------------------#
     # filter | match | no-violation #
     # ------------------------------#
-    #    1   |   0   |      0       |
-    #    1   |   1   |      0       |
-    #    1   |   1   |      1       |
-    #    0   |   1   |      1       |
-    #    0   |   0   |      1       |
-    #    0   |   0   |      0       |
+    #    0   |   0   |      0       # collect
+    # ------------------------------#
+    #    1   |   0   |      0       # collect with filter
+    #    1   |   1   |      0       # collect with filter and match
+    #    1   |   1   |      1       # collect with filter match and no violations
+    #    1   |   0   |      1       # collect with filter and no violations
+    # ------------------------------#
+    #    0   |   1   |      0       # collect with match
+    #    0   |   1   |      1       # collect with match and no violations
+    # ------------------------------#
+    #    0   |   0   |      1       # collect with no violations
     # ------------------------------#
 
     # filter only
@@ -94,15 +99,15 @@ sub execute {
                 && (0 == scalar $c->critique( $path->stringify ));
         };
     }
-    # match and check violations
-    elsif ( not($opt->filter) && $opt->match && $opt->no_violation ) {
-        my $m = $opt->match;
+    # filter and check violations
+    elsif ( $opt->filter && not($opt->match) && $opt->no_violation ) {
+        my $f = $opt->filter;
         my $c = $session->perl_critic;
         $predicate = sub {
             my $root = $_[0];
             my $path = $_[1];
             my $rel  = $path->relative( $root );
-            return $rel =~ /$m/
+            return $rel !~ /$f/
                 && (0 == scalar $c->critique( $path->stringify ));
         };
     }
@@ -114,6 +119,18 @@ sub execute {
             my $path = $_[1];
             my $rel  = $path->relative( $root );
             return $rel =~ /$m/;
+        };
+    }
+    # match and check violations
+    elsif ( not($opt->filter) && $opt->match && $opt->no_violation ) {
+        my $m = $opt->match;
+        my $c = $session->perl_critic;
+        $predicate = sub {
+            my $root = $_[0];
+            my $path = $_[1];
+            my $rel  = $path->relative( $root );
+            return $rel =~ /$m/
+                && (0 == scalar $c->critique( $path->stringify ));
         };
     }
     # check violations only
