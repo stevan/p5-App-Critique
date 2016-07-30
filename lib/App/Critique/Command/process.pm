@@ -98,16 +98,24 @@ MAIN:
                         'Would you like to fix this violation?',
                         { default => 'y' }
                     );
+                    
+                    my $did_commit = 0;
 
                     if ( $should_edit ) {
                         $edited++;
-                        $self->edit_violation( $session, $file, $violation );
+                        $did_commit = $self->edit_violation( $session, $file, $violation );
                     }
                     
                     # keep state on disc ...
                     $file->remember('reviewed', $reviewed);
                     $file->remember('edited',   $edited);
                     $self->cautiously_store_session( $session, $opt, $args );
+                    
+                    if ( $did_commit ) {
+                        info(HR_LIGHT);
+                        info('File was edited, re-processing is required');
+                        redo MAIN;
+                    }
                 }
             }
         }
@@ -224,7 +232,7 @@ EDIT:
 
             $file->remember('commited' => ($file->recall('commited') || 0) + 1);
 
-            return;
+            return 1;
         }
         elsif ( $what_now eq 'd' ) {
             info(HR_LIGHT);
@@ -236,7 +244,7 @@ EDIT:
             goto EDIT;
         }
         elsif ( $what_now eq 'n' ) {
-            return;
+            return 0;
         }
     }
     else {
@@ -244,7 +252,7 @@ EDIT:
         info('No edits found for file (%s), skipping to next violation or file', $filename);
     }
 
-    return;
+    return 0;
 }
 
 1;
