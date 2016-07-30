@@ -6,7 +6,8 @@ use warnings;
 our $VERSION   = '0.01';
 our $AUTHORITY = 'cpan:STEVAN';
 
-use Path::Tiny ();
+use Path::Tiny      ();
+use Term::ANSIColor ':constants';
 
 use App::Critique::Session;
 
@@ -25,6 +26,8 @@ sub opt_spec {
 
 sub execute {
     my ($self, $opt, $args) = @_;
+
+    local $Term::ANSIColor::AUTORESET = 1;
 
     my $session = $self->cautiously_load_session( $opt, $args );
 
@@ -81,7 +84,7 @@ MAIN:
         }
         else {
             my $should_review = prompt_yn(
-                (sprintf 'Found %d violations, would you like to review them?', (scalar @violations)),
+                BOLD(sprintf 'Found %d violations, would you like to review them?', (scalar @violations)),
                 { default => 'y' }
             );
 
@@ -95,7 +98,7 @@ MAIN:
                     $reviewed++;
 
                     my $should_edit = prompt_yn(
-                        'Would you like to fix this violation?',
+                        BOLD('Would you like to fix this violation?'),
                         { default => 'y' }
                     );
                     
@@ -147,7 +150,7 @@ sub discover_violations {
 sub display_violation {
     my ($self, $session, $file, $violation, $opt) = @_;
     info(HR_DARK);
-    info('Violation: %s', $violation->description);
+    info(BOLD('Violation: %s'), $violation->description);
     info(HR_DARK);
     info('%s', $violation->explanation);
     if ( $opt->verbose ) {
@@ -163,7 +166,7 @@ sub display_violation {
         $violation->column_number
     ));
     info(HR_LIGHT);
-    info('%s', $violation->source);
+    info(ITALIC('%s'), $violation->source);
     info(HR_LIGHT);
 }
 
