@@ -200,7 +200,7 @@ EDIT:
         # Pondering adding a revert here as well
         # - SL
         my $what_now = prompt_str(
-            'What would you like to do? (c)ommit (d)iff (e)dit (s)kip',
+            BOLD('What would you like to do? (c)ommit (d)iff (e)dit (s)kip'),
             {
                 valid   => sub { $_[0] =~ m/[cdes]{1}/ },
                 default => 'c',
@@ -213,7 +213,7 @@ EDIT:
             $policy_name =~ s/^Perl\:\:Critic\:\:Policy\:\://;
 
             my $commit_msg = prompt_str(
-                'Please write a commit message, or choose the default',
+                BOLD('Please write a commit message, or choose the default'),
                 {
                     default => (sprintf "%s - critique(%s)" => $violation->description, $policy_name),
                     output => sub {
