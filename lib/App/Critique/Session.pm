@@ -145,7 +145,7 @@ sub pack {
 
         current_file_idx    => $self->{current_file_idx},
         tracked_files       => [ map $_->pack, @{ $self->{tracked_files} } ],
-        file_criteria   => $self->{file_criteria}
+        file_criteria       => $self->{file_criteria}
     };
 }
 
