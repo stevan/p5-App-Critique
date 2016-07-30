@@ -69,6 +69,7 @@ sub execute {
     }
     else {
         $session->set_tracked_files( @all );
+        $session->reset_file_idx;        
         info('Sucessfully added %d file(s).', $num_files);
 
         $self->cautiously_store_session( $session, $opt, $args );
