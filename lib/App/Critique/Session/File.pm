@@ -50,6 +50,11 @@ sub forget {
     return delete $self->{meta}->{ $key };
 }
 
+sub forget_all {
+    my ($self) = @_;
+    $self->{meta} = {}
+}   
+
 # ...
 
 sub relative_path {
