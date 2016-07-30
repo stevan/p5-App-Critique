@@ -15,9 +15,9 @@ use App::Critique -command;
 sub opt_spec {
     my ($class) = @_;
     return (
-        [ 'reset', 'resets the file index to 0',       { default => 0 } ],
-        [ 'prev',  'moves the file index back by one', { default => 0 } ],
-        [ 'auto',  'advance to next file automatically if there are no violations', { default => 0 } ],
+        [ 'reset', 'resets the file index to 0',             { default => 0 } ],
+        [ 'back',  'back up and re-process the last file',   { default => 0 } ],
+        [ 'next',  'skip over processing the current file ', { default => 0 } ],
         [],
         $class->SUPER::opt_spec
     );
@@ -31,7 +31,8 @@ sub execute {
     info('Session file loaded.');
 
     $session->reset_file_idx if $opt->reset;
-    $session->dec_file_idx   if $opt->prev;
+    $session->dec_file_idx   if $opt->back;  
+    $session->inc_file_idx   if $opt->next;    
 
     my @tracked_files = $session->tracked_files;
 
@@ -63,8 +64,8 @@ MAIN:
                 { default => 'y' }
             );
 
-            info(HR_LIGHT);
             if ( $should_review_again ) {
+                info(HR_LIGHT);        
                 $file->forget('violations');
             }
             else {
@@ -93,8 +94,6 @@ MAIN:
 
                 my ($reviewed, $edited) = (0, 0);
 
-                $self->begin_editing_session( $file );
-
                 foreach my $violation ( @violations ) {
 
                     $self->display_violation( $session, $file, $violation, $opt );
@@ -109,54 +108,23 @@ MAIN:
                         $edited++;
                         $self->edit_violation( $session, $file, $violation );
                     }
+                    
+                    # keep state on disc ...
+                    $file->remember('reviewed', $reviewed);
+                    $file->remember('edited',   $edited);
+                    $self->cautiously_store_session( $session, $opt, $args );
                 }
-
-                $self->end_editing_session( $file );
-
-                $file->remember('reviewed', $reviewed);
-                $file->remember('edited',   $edited);
             }
         }
 
     } continue {
 
+        $session->inc_file_idx;
+        $self->cautiously_store_session( $session, $opt, $args );            
+
         if ( ($idx + 1) == scalar @tracked_files ) {
             info(HR_LIGHT);
             info('Processing complete, run `status` to see results.');
-            $session->inc_file_idx;
-            $self->cautiously_store_session( $session, $opt, $args );
-            last MAIN;
-        }
-
-        my $where_to;
-        if ( $opt->auto && !$file->recall('violations') ) {
-            $where_to = 'n';
-        }
-        else {
-            info(HR_LIGHT);
-            $where_to = prompt_str(
-                '>> (n)ext (p)rev (r)efresh (s)top',
-                {
-                    valid   => sub { $_[0] =~ m/[nprs]{1}/ },
-                    default => 'n',
-                }
-            );
-        }
-
-        if ( $where_to eq 'n' ) {
-            $session->inc_file_idx;
-            $self->cautiously_store_session( $session, $opt, $args );
-        }
-        elsif ( $where_to eq 'p' ) {
-            $session->dec_file_idx;
-            $self->cautiously_store_session( $session, $opt, $args );
-        }
-        elsif ( $where_to eq 'r' ) {
-            redo MAIN;
-        }
-        elsif ( $where_to eq 's' ) {
-            $session->inc_file_idx;
-            $self->cautiously_store_session( $session, $opt, $args );
             last MAIN;
         }
 
@@ -196,33 +164,16 @@ sub display_violation {
     info(HR_LIGHT);
 }
 
-
-sub begin_editing_session {
-    my ($self, $file) = @_;
-    $self->{_editor_line_offset} //= {};
-    $self->{_editor_line_offset}->{ $file->relative_path } = 0;
-}
-
-sub end_editing_session {
-    my ($self, $file) = @_;
-    delete $self->{_editor_line_offset}->{ $file->relative_path };
-}
-
 sub edit_violation {
     my ($self, $session, $file, $violation) = @_;
 
     my $git      = $session->git_wrapper;
     my $filename = $violation->filename;
 
-    #warning('!!!! do we have an editor offset (%d) for file (%s)' => $self->{_editor_line_offset}->{ $filename }, $filename);
-
-    #use Data::Dumper;
-    #warn Dumper $self->{_editor_line_offset};
-
     my $cmd_fmt  = $App::Critique::CONFIG{EDITOR};
     my @cmd_args = (
         $filename,
-        ($violation->line_number + $self->{_editor_line_offset}->{ $file->relative_path }),
+        $violation->line_number,
         $violation->column_number
     );
 
@@ -231,8 +182,8 @@ sub edit_violation {
 EDIT:
     system $cmd;
 
-    my @modified = $git->status({ short => 1 });
-    my $did_edit = scalar grep /$filename/, @modified;
+    my $statuses = $git->status;
+    my $did_edit = scalar grep $_->from =~ /$filename/, $statuses->get('changed');
 
     if ( $did_edit ) {
         info(HR_LIGHT);
@@ -270,12 +221,6 @@ EDIT:
             $commit_msg =~ s/^\s*//g;
             $commit_msg =~ s/\s*$//g;
 
-            my ($changes) = grep /$filename/, $git->diff({ numstat => 1 });
-            ($changes)
-                || error('Unable to find changes in diff for file (%s)', $file->relative_path);
-            my ($inserts, $deletes) = ($changes =~ /^(\d+)\s*(\d+)\s*.*$/);
-            $self->{_editor_line_offset}->{ $file->relative_path } += ($inserts + (-$deletes));
-
             info(HR_DARK);
             info('Adding and commiting file (%s) to git', $filename);
             info(HR_LIGHT);
@@ -288,7 +233,7 @@ EDIT:
         }
         elsif ( $what_now eq 'd' ) {
             info(HR_LIGHT);
-            info('%s', join "\n" => $git->diff({ v => }));
+            info('%s', join "\n" => $git->diff);
             info(HR_LIGHT);
             goto CHOOSE;
         }
