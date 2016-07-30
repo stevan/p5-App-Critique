@@ -54,7 +54,7 @@ sub _warning {
     # $time[-1] += 1900;
     # sprintf '%02d:%02d:%02d-%02d/%02d/%d', @time;
 
-    warn('!! ',(sprintf $msg, @args),"\n");
+    warn((sprintf $msg, @args),"\n");
 }
 
 sub _error {
