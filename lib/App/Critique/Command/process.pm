@@ -58,21 +58,6 @@ MAIN:
 
         my $path = $file->relative_path( $session->git_work_tree );
 
-        if ( defined $file->recall('violations') ) {
-            my $should_review_again = prompt_yn(
-                (sprintf 'File (%s) already checked, found %d violations, would you like to critique the file again?', $path, $file->recall('violations')),
-                { default => 'y' }
-            );
-
-            if ( $should_review_again ) {
-                info(HR_LIGHT);        
-                $file->forget('violations');
-            }
-            else {
-                next MAIN;
-            }
-        }
-
         info('Running Perl::Critic against (%s)', $path);
         info(HR_LIGHT);
 
