@@ -29,12 +29,22 @@ sub execute {
     my $session = $self->cautiously_load_session( $opt, $args );
 
     info('Session file loaded.');
-
-    $session->reset_file_idx if $opt->reset;
-    $session->dec_file_idx   if $opt->back;  
-    $session->inc_file_idx   if $opt->next;    
-
+    
     my @tracked_files = $session->tracked_files;
+
+    if ( $opt->back ) {
+        $session->dec_file_idx; 
+        $tracked_files[ $session->current_file_idx ]->forget_all;   
+    }
+    
+    if ( $opt->next ) {
+        $session->inc_file_idx;  
+    }
+
+    if ( $opt->reset ) {
+        $session->reset_file_idx;
+        $_->forget_all foreach @tracked_files;
+    }
 
     if ( $session->current_file_idx == scalar @tracked_files ) {
         info(HR_DARK);
