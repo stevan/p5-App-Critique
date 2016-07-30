@@ -63,7 +63,7 @@ sub new {
     $self->set_file_criteria( $args{file_criteria} )
         if exists $args{file_criteria};
 
-    $self->{current_file_idx} += $args{current_file_idx}
+    $self->{current_file_idx} = $args{current_file_idx}
         if exists $args{current_file_idx};
 
     return $self;
