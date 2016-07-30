@@ -141,8 +141,8 @@ sub display_violation {
     info('  severity : %d'           => $violation->severity);
     info('  location : %s @ <%d:%d>' => (
         Path::Tiny::path( $violation->filename )->relative( $session->git_work_tree ),
-         $violation->line_number,
-         $violation->column_number
+        $violation->line_number,
+        $violation->column_number
     ));
     info(HR_LIGHT);
     info('%s', $violation->source);
