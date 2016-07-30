@@ -14,9 +14,9 @@ our $AUTHORITY = 'cpan:STEVAN';
 our %CONFIG;
 BEGIN {
     $CONFIG{'HOME'}    = $ENV{'CRITIQUE_HOME'}    || File::HomeDir->my_home;
-    $CONFIG{'COLOR'}   = $ENV{'CRITIQUE_COLOR'}   || 0;
-    $CONFIG{'DEBUG'}   = $ENV{'CRITIQUE_DEBUG'}   || 0;
-    $CONFIG{'VERBOSE'} = $ENV{'CRITIQUE_VERBOSE'} || 0;
+    $CONFIG{'COLOR'}   = $ENV{'CRITIQUE_COLOR'}   // 1;
+    $CONFIG{'DEBUG'}   = $ENV{'CRITIQUE_DEBUG'}   // 0;
+    $CONFIG{'VERBOSE'} = $ENV{'CRITIQUE_VERBOSE'} // 0;
     $CONFIG{'EDITOR'}  = $ENV{'CRITIQUE_EDITOR'}  || $ENV{'EDITOR'} || $ENV{'VISUAL'};
 
     # okay, we give you sensible Perl & Git defaults
@@ -32,6 +32,8 @@ BEGIN {
         $CONFIG{'IGNORE'}->{ $_ } = 1
             foreach split /\:/ => $ignore;
     }
+    
+    $ENV{'ANSI_COLORS_DISABLED'} = ! $CONFIG{'COLOR'};
 }
 
 # ... then gloablly used stuff, ....
