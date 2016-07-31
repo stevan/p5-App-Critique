@@ -32,16 +32,16 @@ sub execute {
     my $session = $self->cautiously_load_session( $opt, $args );
 
     info('Session file loaded.');
-    
+
     my @tracked_files = $session->tracked_files;
 
     if ( $opt->back ) {
-        $session->dec_file_idx; 
-        $tracked_files[ $session->current_file_idx ]->forget_all;   
+        $session->dec_file_idx;
+        $tracked_files[ $session->current_file_idx ]->forget_all;
     }
-    
+
     if ( $opt->next ) {
-        $session->inc_file_idx;  
+        $session->inc_file_idx;
     }
 
     if ( $opt->reset ) {
@@ -101,19 +101,19 @@ MAIN:
                         BOLD('Would you like to fix this violation?'),
                         { default => 'y' }
                     );
-                    
+
                     my $did_commit = 0;
 
                     if ( $should_edit ) {
                         $edited++;
                         $did_commit = $self->edit_violation( $session, $file, $violation );
                     }
-                    
+
                     # keep state on disc ...
                     $file->remember('reviewed', $reviewed);
                     $file->remember('edited',   $edited);
                     $self->cautiously_store_session( $session, $opt, $args );
-                    
+
                     if ( $did_commit ) {
                         info(HR_LIGHT);
                         info('File was edited, re-processing is required');
@@ -126,7 +126,7 @@ MAIN:
     } continue {
 
         $session->inc_file_idx;
-        $self->cautiously_store_session( $session, $opt, $args );            
+        $self->cautiously_store_session( $session, $opt, $args );
 
         if ( ($idx + 1) == scalar @tracked_files ) {
             info(HR_LIGHT);
