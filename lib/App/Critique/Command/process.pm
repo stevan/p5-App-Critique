@@ -189,7 +189,8 @@ EDIT:
     system $cmd;
 
     my $statuses = $git->status;
-    my $did_edit = scalar grep $_->from =~ /$filename/, $statuses->get('changed');
+    my @changed  = $statuses->get('changed');
+    my $did_edit = scalar grep { my $from = $_->from; $filename =~ /$from/ } @changed;
 
     if ( $did_edit ) {
         info(HR_LIGHT);
