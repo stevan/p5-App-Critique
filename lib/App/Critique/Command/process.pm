@@ -234,6 +234,9 @@ EDIT:
             info('%s', join "\n" => $git->add($filename, { v => 1 }));
             info('%s', join "\n" => $git->commit({ v => 1, message => $commit_msg }));
 
+            my ($sha) = $git->rev_parse('HEAD');
+
+            $file->remember('shas'     => [ @{ $file->recall('shas') || [] }, $sha ]);
             $file->remember('commited' => ($file->recall('commited') || 0) + 1);
 
             return 1;

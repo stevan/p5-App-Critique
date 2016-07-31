@@ -57,6 +57,7 @@ sub execute {
             $file->recall('commited')   // '-',
             $file->relative_path( $session->git_work_tree ),
         );
+        info('          : %s', $_) foreach @{ $file->recall('shas') || [] };
     }
     info(HR_DARK);
     info('TOTAL: %d file(s)', $num_files );
