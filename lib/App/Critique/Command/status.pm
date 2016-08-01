@@ -20,6 +20,7 @@ sub execute {
     my @tracked_files = $session->tracked_files;
     my $num_files     = scalar @tracked_files;
     my $curr_file_idx = $session->current_file_idx;
+    my $git           = $session->git_wrapper;
 
     my ($violations, $reviewed, $edited, $commited) = (0, 0, 0, 0);
     foreach my $file ( @tracked_files ) {
@@ -57,7 +58,11 @@ sub execute {
             $file->recall('commited')   // '-',
             $file->relative_path( $session->git_work_tree ),
         );
-        info('          : %s', $_) foreach @{ $file->recall('shas') || [] };
+        if ( $opt->verbose ) {
+            foreach my $sha ( @{ $file->recall('shas') || [] } ) {
+                info('          : %s', $git->show($sha, { format => '%h - %s', s => 1 }));
+            }   
+        }
     }
     info(HR_DARK);
     info('TOTAL: %d file(s)', $num_files );
