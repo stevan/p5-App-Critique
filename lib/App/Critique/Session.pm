@@ -97,7 +97,7 @@ sub perl_critic_theme   { $_[0]->{perl_critic_theme}   }
 sub perl_critic_policy  { $_[0]->{perl_critic_policy}  }
 
 sub tracked_files     { @{ $_[0]->{tracked_files} } }
-sub file_criteria { $_[0]->{file_criteria} }
+sub file_criteria     { $_[0]->{file_criteria} }
 
 sub current_file_idx { $_[0]->{current_file_idx}   }
 sub inc_file_idx     { $_[0]->{current_file_idx}++ }
