@@ -64,7 +64,7 @@ sub execute {
 MAIN:
     while (1) {
 
-        info(HR_LIGHT);
+        info(HR_DARK);
 
         $idx  = $session->current_file_idx;
         $file = $tracked_files[ $idx ];
@@ -76,10 +76,14 @@ MAIN:
 
         my @violations = $self->discover_violations( $session, $file, $opt );
 
-        $file->remember('violations' => scalar @violations);
+        # remember it the first time we use it
+        # but do not update it for each re-process
+        # which we do after each edit
+        $file->remember('violations' => scalar @violations)
+            unless $file->recall('violations');
 
         if ( @violations == 0 ) {
-            info('No violations found, proceeding to next file.');
+            info(ITALIC('No violations found, proceeding to next file.'));
             next MAIN;
         }
         else {
@@ -90,7 +94,10 @@ MAIN:
 
             if ( $should_review ) {
 
-                my ($reviewed, $edited) = (0, 0);
+                my ($reviewed, $edited) = (
+                    $file->recall('reviewed') // 0, 
+                    $file->recall('edited')   // 0,
+                );
 
                 foreach my $violation ( @violations ) {
 
@@ -105,8 +112,8 @@ MAIN:
                     my $did_commit = 0;
 
                     if ( $should_edit ) {
-                        $edited++;
                         $did_commit = $self->edit_violation( $session, $file, $violation );
+                        $edited++ if $did_commit;
                     }
 
                     # keep state on disc ...
@@ -153,10 +160,10 @@ sub display_violation {
     info(BOLD('Violation: %s'), $violation->description);
     info(HR_DARK);
     info('%s', $violation->explanation);
-    if ( $opt->verbose ) {
-        info(HR_LIGHT);
-        info('%s', $violation->diagnostics);
-    }
+    #if ( $opt->verbose ) {
+    #    info(HR_LIGHT);
+    #    info('%s', $violation->diagnostics);
+    #}
     info(HR_LIGHT);
     info('  policy   : %s'           => $violation->policy);
     info('  severity : %d'           => $violation->severity);
@@ -193,41 +200,29 @@ EDIT:
     my $did_edit = scalar grep { my $from = $_->from; $filename =~ /$from/ } @changed;
 
     if ( $did_edit ) {
+        info(HR_DARK);
+        info('Changes detected, generating diff.');
         info(HR_LIGHT);
-        info('Changes detected.');
-        info(HR_LIGHT);
+        info('%s', join "\n" => $git->diff);
+        
+        my $policy_name = $violation->policy;
+        $policy_name =~ s/^Perl\:\:Critic\:\:Policy\:\://;        
+        
+        my $commit_msg = sprintf "%s - critique(%s)" => $violation->description, $policy_name;
+        
     CHOOSE:
-        # TODO:
-        # Pondering adding a revert here as well
-        # - SL
-        my $what_now = prompt_str(
-            BOLD('What would you like to do? (c)ommit (d)iff (e)dit (s)kip'),
-            {
-                valid   => sub { $_[0] =~ m/[cdes]{1}/ },
-                default => 'c',
-            }
+
+        info(HR_LIGHT);
+        my $commit_this_change = prompt_yn(
+            (
+                BOLD('Commit Message:').
+                "\n\n    $commit_msg\n\n".
+                BOLD('Choose (y)es to use this message, or (n)o for more options')
+            ),
+            { default => 'y' }
         );
 
-        if ( $what_now eq 'c' ) {
-            info(HR_LIGHT);
-            my $policy_name = $violation->policy;
-            $policy_name =~ s/^Perl\:\:Critic\:\:Policy\:\://;
-
-            my $commit_msg = prompt_str(
-                BOLD('Please write a commit message, or choose the default'),
-                {
-                    default => (sprintf "%s - critique(%s)" => $violation->description, $policy_name),
-                    output => sub {
-                        my ($msg, $default) = @_;
-                        my $length = (length $default) + 2;
-                        print $msg,"\n+",('-' x $length),"+\n| ",$default," |\n+",('-' x $length),"+\n> ";
-                    }
-                }
-            );
-
-            $commit_msg =~ s/^\s*//g;
-            $commit_msg =~ s/\s*$//g;
-
+        if ( $commit_this_change ) {
             info(HR_DARK);
             info('Adding and commiting file (%s) to git', $filename);
             info(HR_LIGHT);
@@ -238,25 +233,39 @@ EDIT:
 
             $file->remember('shas'     => [ @{ $file->recall('shas') || [] }, $sha ]);
             $file->remember('commited' => ($file->recall('commited') || 0) + 1);
-
+            
             return 1;
         }
-        elsif ( $what_now eq 'd' ) {
+        else {
             info(HR_LIGHT);
-            info('%s', join "\n" => $git->diff);
-            info(HR_LIGHT);
-            goto CHOOSE;
-        }
-        elsif ( $what_now eq 'e' ) {
-            goto EDIT;
-        }
-        elsif ( $what_now eq 'n' ) {
-            return 0;
+            my $what_now = prompt_str(
+                BOLD('What would you like to edit? (f)ile, (c)ommit message'),
+                { valid => sub { $_[0] =~ m/[fc]{1}/ } }
+            );
+            
+            if ( $what_now eq 'c' ) {
+                info(HR_LIGHT);
+                $commit_msg = prompt_str( BOLD('Please write a commit message: ') );
+                goto CHOOSE;
+            }
+            elsif ( $what_now eq 'f' ) {
+                goto EDIT;
+            }
         }
     }
     else {
         info(HR_LIGHT);
-        info('No edits found for file (%s), skipping to next violation or file', $filename);
+        my $what_now = prompt_str(
+            BOLD('No edits found, would like to (e)dit again, or (s)kip this file?'),
+            { valid => sub { $_[0] =~ m/[es]{1}/ } }
+        );
+        
+        if ( $what_now eq 'e' ) {
+            goto EDIT;
+        }
+        elsif ( $what_now eq 's' ) {
+            return 0;
+        }
     }
 
     return 0;
