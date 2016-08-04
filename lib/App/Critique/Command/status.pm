@@ -39,7 +39,7 @@ sub execute {
         info('  perl_critic_policy  : %s', $session->perl_critic_policy  // 'auto');
         info('  git_work_tree       : %s', $session->git_work_tree       // 'auto');
         info('  git_branch          : %s', $session->git_branch          // 'auto');
-        info(HR_LIGHT);
+        info(HR_DARK);
         info('FILE CRITERIA:');
         info(HR_LIGHT);        
         info('  filter       : %s', $session->file_criteria->{'filter'}       // '-');        
