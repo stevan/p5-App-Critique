@@ -123,7 +123,7 @@ App::Critique::Command::remove - Remove critique session files
 
 =head1 DESCRIPTION
 
-This command will remove the current session file, afterwhich
+This command will remove the current session file, after which
 it will attempt to delete the branch (../) directory and the
 repository (../../) directory if they are empty.
 
