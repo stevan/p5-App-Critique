@@ -44,7 +44,7 @@ sub execute {
 
     my @all;
     traverse_filesystem(
-        root        => $root,
+        root        => $session->git_work_tree,
         path        => $root,
         predicate   => generate_file_predicate(
             $session => (
