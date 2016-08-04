@@ -72,12 +72,12 @@ sub execute {
         info(HR_DARK);
         info('STATISTICS(Perl::Critic)');
         info(HR_LIGHT);
-        info(BOLD('  violations : %s'), format_number($stats->total_violations));
-        info('-- PERL '.('-' x (TERM_WIDTH() - 8)));
+        info(BOLD(' VIOLATIONS  : %s'), format_number($stats->total_violations));
+        info('== PERL '.('=' x (TERM_WIDTH() - 8)));
         info('  modules    : %s', format_number($stats->modules));
         info('  subs       : %s', format_number($stats->subs));
         info('  statements : %s', format_number($stats->statements));
-        info('-- LINES '.('-' x (TERM_WIDTH() - 9)));
+        info('== LINES '.('=' x (TERM_WIDTH() - 9)));
         info(BOLD('TOTAL        : %s'), format_number($stats->lines));
         info('  perl       : %s', format_number($stats->lines_of_perl));
         info('  pod        : %s', format_number($stats->lines_of_pod));
