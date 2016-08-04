@@ -65,11 +65,11 @@ sub execute {
         }
     }
     info(HR_DARK);
-    info('TOTAL: %d file(s)', $num_files );
-    info('  (v)iolations : %d', $violations);
-    info('  (r)eviwed    : %d', $reviewed  );
-    info('  (e)dited     : %d', $edited    );
-    info('  (c)ommited   : %d', $commited  );
+    info('TOTAL: %s file(s)', format_number($num_files) );
+    info('  (v)iolations : %s', format_number($violations));
+    info('  (r)eviwed    : %s', format_number($reviewed)  );
+    info('  (e)dited     : %s', format_number($edited)    );
+    info('  (c)ommited   : %s', format_number($commited)  );
 
     if ( $opt->verbose ) {
         info(HR_LIGHT);
