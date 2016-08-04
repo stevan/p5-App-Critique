@@ -6,12 +6,16 @@ use warnings;
 our $VERSION   = '0.01';
 our $AUTHORITY = 'cpan:STEVAN';
 
+use Term::ANSIColor ':constants';
+
 use App::Critique::Session;
 
 use App::Critique -command;
 
 sub execute {
     my ($self, $opt, $args) = @_;
+    
+    local $Term::ANSIColor::AUTORESET = 1;
 
     my $session = $self->cautiously_load_session( $opt, $args );
 
@@ -54,21 +58,26 @@ sub execute {
         info('CURRENT FILE INDEX: (%d)', $curr_file_idx);
     }
     info(HR_LIGHT);
-    foreach my $i ( 0 .. $#tracked_files ) {
-        my $file = $tracked_files[$i];
-        info('%s [%s|%s|%s|%s] %s',
-            ($i == $curr_file_idx ? '>' : ' '),
-            $file->recall('violations') // '-',
-            $file->recall('reviewed')   // '-',
-            $file->recall('edited')     // '-',
-            $file->recall('commited')   // '-',
-            $file->relative_path( $session->git_work_tree ),
-        );
-        if ( $opt->verbose ) {
-            foreach my $sha ( @{ $file->recall('shas') || [] } ) {
-                info('          : %s', $git->show($sha, { format => '%h - %s', s => 1 }));
-            }   
+    if ( $num_files ) {
+        foreach my $i ( 0 .. $#tracked_files ) {
+            my $file = $tracked_files[$i];
+            info('%s [%s|%s|%s|%s] %s',
+                ($i == $curr_file_idx ? '>' : ' '),
+                $file->recall('violations') // '-',
+                $file->recall('reviewed')   // '-',
+                $file->recall('edited')     // '-',
+                $file->recall('commited')   // '-',
+                $file->relative_path( $session->git_work_tree ),
+            );
+            if ( $opt->verbose ) {
+                foreach my $sha ( @{ $file->recall('shas') || [] } ) {
+                    info('          : %s', $git->show($sha, { format => '%h - %s', s => 1 }));
+                }   
+            }
         }
+    }
+    else {
+        info(ITALIC('... no files added.'));    
     }
     info(HR_DARK);
     info('TOTAL: %s file(s)', format_number($num_files) );
