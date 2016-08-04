@@ -63,6 +63,26 @@ sub execute {
             Path::Tiny::path( $file )->relative( $root )
         );
     }
+    
+    if ( $opt->verbose && $opt->no_violation ) {
+        my $stats = $session->perl_critic->statistics;
+        info(HR_DARK);
+        info('STATISTICS(Perl::Critic):');
+        info(HR_LIGHT);
+        info('violations : %s', format_number($stats->total_violations));
+        info('-- PERL '.('-' x (TERM_WIDTH() - 8)));
+        info('modules    : %s', format_number($stats->modules));
+        info('subs       : %s', format_number($stats->subs));
+        info('statements : %s', format_number($stats->statements));
+        info('-- LINES '.('-' x (TERM_WIDTH() - 9)));
+        info('TOTAL      : %s', format_number($stats->lines));
+        info('perl       : %s', format_number($stats->lines_of_perl));
+        info('pod        : %s', format_number($stats->lines_of_pod));
+        info('comments   : %s', format_number($stats->lines_of_comment));
+        info('data       : %s', format_number($stats->lines_of_data));
+        info('blank      : %s', format_number($stats->lines_of_blank));        
+        info(HR_DARK);
+    }
 
     if ( $opt->dry_run ) {
         info('[dry run] %s file(s) found, 0 files added.', format_number($num_files));
@@ -96,7 +116,7 @@ sub traverse_filesystem {
 
         # only accept things that match the path
         if ( $predicate->( $root, $path ) ) {
-            info('Matched: keeping file (%s)', $path->relative( $root )) if $verbose;
+            info(BOLD('Matched: keeping file (%s)'), $path->relative( $root )) if $verbose;
             push @$acc => $path;
         }
         else {
