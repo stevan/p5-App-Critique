@@ -4,9 +4,10 @@ requires 'App::Cmd'                  => '0.328';
 requires 'App::Cmd::Plugin::Prompt'  => '0';
 
 requires 'Perl::Critic'              => '0';
-requires 'Git::Repository'           => '0';
+requires 'Git::Wrapper'              => '0';
 requires 'JSON::XS'                  => '0';
 requires 'Path::Tiny'                => '0';
+requires 'Number::Format'            => '0';
 
 # Core
 requires 'FindBin'                   => '0';
