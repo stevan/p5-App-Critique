@@ -65,12 +65,12 @@ sub execute {
     }
 
     if ( $opt->dry_run ) {
-        info('[dry run] %d file(s) found, 0 files added.', $num_files);
+        info('[dry run] %s file(s) found, 0 files added.', format_number($num_files));
     }
     else {
         $session->set_tracked_files( @all );
         $session->reset_file_idx;        
-        info('Sucessfully added %d file(s).', $num_files);
+        info('Sucessfully added %s file(s).', format_number($num_files));
 
         $self->cautiously_store_session( $session, $opt, $args );
         info('Session file stored successfully (%s).', $session->session_file_path);
