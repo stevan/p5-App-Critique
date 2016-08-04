@@ -7,6 +7,8 @@ our $VERSION   = '0.01';
 our $AUTHORITY = 'cpan:STEVAN';
 
 use Term::ReadKey ();
+use Term::ReadKey  ();
+use Number::Format ();
 
 use constant TERM_WIDTH => (Term::ReadKey::GetTerminalSize())[0] // 80;
 use constant HR_ERROR   => ('== ERROR ', ('=' x (TERM_WIDTH - 9)));
@@ -26,12 +28,25 @@ use App::Cmd::Setup -plugin => {
         info
         warning
         error
+        
+        format_number
+        format_bytes
     ]]
 };
 
 sub info    { my ($plugin, $cmd, @args) = @_;    _info( @args ) }
 sub warning { my ($plugin, $cmd, @args) = @_; _warning( @args ) }
 sub error   { my ($plugin, $cmd, @args) = @_;   _error( @args ) }
+
+sub format_number {
+    my ($plugin, $cmd, @args) = @_;
+    Number::Format::format_number( @args );
+}
+
+sub format_bytes {
+    my ($plugin, $cmd, @args) = @_;
+    Number::Format::format_bytes( @args );
+}
 
 # the real stuff
 
