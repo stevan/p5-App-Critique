@@ -115,6 +115,8 @@ You must also supply L<Perl::Critic> informaton must be specified, either
 as a L<Perl::Critic> profile config (ex: F<perlcriticrc>) with additional
 L<Perl::Critic> 'theme' expression added. Alternatively you can just
 specify a single L<Perl::Critic::Policy> to use during the critique
-session.
+session. If no L<Perl::Critic> specific options are detected, then we will
+do whatever is the default for L<Perl::Critic>, which currently is to 
+use all the available policies with their default configuration. 
 
 =cut
