@@ -6,7 +6,8 @@ use warnings;
 our $VERSION   = '0.01';
 our $AUTHORITY = 'cpan:STEVAN';
 
-use Path::Tiny ();
+use Path::Tiny      ();
+use Term::ANSIColor ':constants';
 
 use App::Critique::Session;
 
@@ -30,6 +31,8 @@ sub opt_spec {
 
 sub execute {
     my ($self, $opt, $args) = @_;
+    
+    local $Term::ANSIColor::AUTORESET = 1;
 
     my $session = $self->cautiously_load_session( $opt, $args );
 
@@ -59,7 +62,7 @@ sub execute {
 
     foreach my $file ( @all ) {
         info(
-            'Including %s',
+            ITALIC('Including %s'),
             Path::Tiny::path( $file )->relative( $root )
         );
     }
@@ -67,7 +70,7 @@ sub execute {
     if ( $opt->verbose && $opt->no_violation ) {
         my $stats = $session->perl_critic->statistics;
         info(HR_DARK);
-        info('STATISTICS(Perl::Critic):');
+        info('STATISTICS(Perl::Critic)');
         info(HR_LIGHT);
         info('violations : %s', format_number($stats->total_violations));
         info('-- PERL '.('-' x (TERM_WIDTH() - 8)));
