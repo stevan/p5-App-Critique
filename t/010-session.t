@@ -63,7 +63,7 @@ subtest '... testing session with a simple git repo' => sub {
             git_branch          => 'master',
             current_file_idx    => 0,
             tracked_files       => [],
-            file_criteria   => undef
+            file_criteria       => {},
         },
         '... got the expected values from pack'
     );

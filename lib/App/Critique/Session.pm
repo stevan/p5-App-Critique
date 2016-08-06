@@ -48,7 +48,7 @@ sub new {
         # local storage
         current_file_idx    => 0,
         tracked_files       => [],
-        file_criteria       => undef,
+        file_criteria       => {},
 
         # Do Not Serialize
         _path   => $path,
@@ -128,7 +128,8 @@ sub set_tracked_files {
 
 sub set_file_criteria {
     my ($self, $filters_used) = @_;
-    $self->{file_criteria} = $filters_used;
+    $self->{file_criteria}->{ $_ } = $filters_used->{ $_ }
+        foreach keys %$filters_used;
 }
 
 # ...
