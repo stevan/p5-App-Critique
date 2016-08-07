@@ -1,5 +1,7 @@
 #!perl -w
 
+# PODNAME: bin/critique
+
 use strict;
 use warnings;
 use FindBin;
@@ -11,10 +13,3 @@ use App::Critique;
 App::Critique->new({ show_version_cmd => 1 })->run;
 
 1;
-
-__END__
-
-=pod
-
-=cut
-

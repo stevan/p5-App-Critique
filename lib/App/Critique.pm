@@ -32,7 +32,7 @@ BEGIN {
         $CONFIG{'IGNORE'}->{ $_ } = 1
             foreach split /\:/ => $ignore;
     }
-    
+
     $ENV{'ANSI_COLORS_DISABLED'} = ! $CONFIG{'COLOR'};
 }
 
@@ -53,6 +53,12 @@ use App::Cmd::Setup -app => {
 
 __END__
 
+# ABSTRACT: An incremental refactoring tool for Perl powered by Perl::Critic
+
 =pod
+
+=head1 NAME
+
+App::Critique - An incremental refactoring tool for Perl powered by Perl::Critic
 
 =cut
