@@ -65,7 +65,7 @@ workflow.
 
 The idea behind L<App::Critique> is based on two assumptions.
 
-The first is that refactoring often involves a lot of repetative and easily
+The first is that refactoring often involves a lot of repetitive and easily
 automated actions, and this tool aims to make this workflow as smooth as
 possible.
 
