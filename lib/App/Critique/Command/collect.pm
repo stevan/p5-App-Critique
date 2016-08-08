@@ -31,7 +31,7 @@ sub opt_spec {
 
 sub execute {
     my ($self, $opt, $args) = @_;
-    
+
     local $Term::ANSIColor::AUTORESET = 1;
 
     my $session = $self->cautiously_load_session( $opt, $args );
@@ -66,7 +66,7 @@ sub execute {
             Path::Tiny::path( $file )->relative( $root )
         );
     }
-    
+
     if ( $opt->verbose && $opt->no_violation ) {
         my $stats = $session->perl_critic->statistics;
         info(HR_DARK);
@@ -83,7 +83,7 @@ sub execute {
         info('  pod        : %s', format_number($stats->lines_of_pod));
         info('  comments   : %s', format_number($stats->lines_of_comment));
         info('  data       : %s', format_number($stats->lines_of_data));
-        info('  blank      : %s', format_number($stats->lines_of_blank));        
+        info('  blank      : %s', format_number($stats->lines_of_blank));
         info(HR_DARK);
     }
 
@@ -92,7 +92,7 @@ sub execute {
     }
     else {
         $session->set_tracked_files( @all );
-        $session->reset_file_idx;        
+        $session->reset_file_idx;
         info('Sucessfully added %s file(s).', format_number($num_files));
 
         $self->cautiously_store_session( $session, $opt, $args );
@@ -109,9 +109,9 @@ sub traverse_filesystem {
     my $verbose   = $args{verbose};
 
     if ( $path->is_file ) {
-        
+
         #warn "GOT A FILE: $path";
-        
+
         # ignore anything but perl files ...
         return unless is_perl_file( $path->stringify );
 
@@ -130,9 +130,9 @@ sub traverse_filesystem {
         ;
     }
     else {
-        
+
         #warn "GOT A DIR: $path";
-        
+
         my @children = $path->children( qr/^[^.]/ );
 
         # prune the directories we really don't care about
@@ -303,10 +303,6 @@ __END__
 # ABSTRACT: Collect set of files for current critique session
 
 =pod
-
-=head1 NAME
-
-App::Critique::Command::collect - Collect set of files for current critique session
 
 =head1 DESCRIPTION
 

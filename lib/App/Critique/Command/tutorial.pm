@@ -20,10 +20,6 @@ __END__
 
 =pod
 
-=head1 NAME
-
-App::Critique::Command::tutorial - Tutorial about how to use critique
-
 =head1 DESCRIPTION
 
 Here is a short description of one my workflows. One thing to note is

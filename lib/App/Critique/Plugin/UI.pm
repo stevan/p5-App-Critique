@@ -84,8 +84,4 @@ __END__
 
 =pod
 
-=head1 NAME
-
-App::Critique::Plugin::UI - UI elements for App::Critique
-
 =cut

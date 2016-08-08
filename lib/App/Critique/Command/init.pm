@@ -86,10 +86,6 @@ __END__
 
 =pod
 
-=head1 NAME
-
-App::Critique::Command::init - Initialize critique session file
-
 =head1 DESCRIPTION
 
 This command will create a critique session file in your F<~/.critique>
@@ -116,7 +112,7 @@ as a L<Perl::Critic> profile config (ex: F<perlcriticrc>) with additional
 L<Perl::Critic> 'theme' expression added. Alternatively you can just
 specify a single L<Perl::Critic::Policy> to use during the critique
 session. If no L<Perl::Critic> specific options are detected, then we will
-do whatever is the default for L<Perl::Critic>, which currently is to 
-use all the available policies with their default configuration. 
+do whatever is the default for L<Perl::Critic>, which currently is to
+use all the available policies with their default configuration.
 
 =cut

@@ -117,10 +117,6 @@ __END__
 
 =pod
 
-=head1 NAME
-
-App::Critique::Command::remove - Remove critique session files
-
 =head1 DESCRIPTION
 
 This command will remove the current session file, after which

@@ -86,8 +86,4 @@ __END__
 
 =pod
 
-=head1 NAME
-
-App::Critique::Session::File - Information about file processed by App::Critique
-
 =cut

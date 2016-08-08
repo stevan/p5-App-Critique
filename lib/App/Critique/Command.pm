@@ -83,9 +83,5 @@ __END__
 
 =pod
 
-=head1 NAME
-
-App::Critique::Command - Command base class for App::Critique
-
 =cut
 

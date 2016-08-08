@@ -57,8 +57,4 @@ __END__
 
 =pod
 
-=head1 NAME
-
-App::Critique - An incremental refactoring tool for Perl powered by Perl::Critic
-
 =cut

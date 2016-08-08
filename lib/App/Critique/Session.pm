@@ -273,8 +273,4 @@ __END__
 
 =pod
 
-=head1 NAME
-
-App::Critique::Session - Session interface for App::Critique
-
 =cut

@@ -95,7 +95,7 @@ MAIN:
             if ( $should_review ) {
 
                 my ($reviewed, $edited) = (
-                    $file->recall('reviewed') // 0, 
+                    $file->recall('reviewed') // 0,
                     $file->recall('edited')   // 0,
                 );
 
@@ -204,12 +204,12 @@ EDIT:
         info('Changes detected, generating diff.');
         info(HR_LIGHT);
         info('%s', join "\n" => $git->diff);
-        
+
         my $policy_name = $violation->policy;
-        $policy_name =~ s/^Perl\:\:Critic\:\:Policy\:\://;        
-        
+        $policy_name =~ s/^Perl\:\:Critic\:\:Policy\:\://;
+
         my $commit_msg = sprintf "%s - critique(%s)" => $violation->description, $policy_name;
-        
+
     CHOOSE:
 
         info(HR_LIGHT);
@@ -233,7 +233,7 @@ EDIT:
 
             $file->remember('shas'     => [ @{ $file->recall('shas') || [] }, $sha ]);
             $file->remember('commited' => ($file->recall('commited') || 0) + 1);
-            
+
             return 1;
         }
         else {
@@ -242,7 +242,7 @@ EDIT:
                 BOLD('What would you like to edit? (f)ile, (c)ommit message'),
                 { valid => sub { $_[0] =~ m/[fc]{1}/ } }
             );
-            
+
             if ( $what_now eq 'c' ) {
                 info(HR_LIGHT);
                 $commit_msg = prompt_str( BOLD('Please write a commit message: ') );
@@ -259,7 +259,7 @@ EDIT:
             BOLD('No edits found, would like to (e)dit again, or (s)kip this file?'),
             { valid => sub { $_[0] =~ m/[es]{1}/ } }
         );
-        
+
         if ( $what_now eq 'e' ) {
             goto EDIT;
         }
@@ -278,10 +278,6 @@ __END__
 # ABSTRACT: Critique all the files.
 
 =pod
-
-=head1 NAME
-
-App::Critique::Command::process - Critique all the files.
 
 =head1 DESCRIPTION
 

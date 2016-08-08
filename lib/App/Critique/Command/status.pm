@@ -14,7 +14,7 @@ use App::Critique -command;
 
 sub execute {
     my ($self, $opt, $args) = @_;
-    
+
     local $Term::ANSIColor::AUTORESET = 1;
 
     my $session = $self->cautiously_load_session( $opt, $args );
@@ -45,10 +45,10 @@ sub execute {
         info('  git_branch          : %s', $session->git_branch          // 'auto');
         info(HR_DARK);
         info('FILE CRITERIA:');
-        info(HR_LIGHT);        
-        info('  filter       : %s', $session->file_criteria->{'filter'}       // '-');        
-        info('  match        : %s', $session->file_criteria->{'match'}        // '-');        
-        info('  no-violation : %s', $session->file_criteria->{'no_violation'} // '-');        
+        info(HR_LIGHT);
+        info('  filter       : %s', $session->file_criteria->{'filter'}       // '-');
+        info('  match        : %s', $session->file_criteria->{'match'}        // '-');
+        info('  no-violation : %s', $session->file_criteria->{'no_violation'} // '-');
     }
 
     info(HR_DARK);
@@ -72,12 +72,12 @@ sub execute {
             if ( $opt->verbose ) {
                 foreach my $sha ( @{ $file->recall('shas') || [] } ) {
                     info('          : %s', $git->show($sha, { format => '%h - %s', s => 1 }));
-                }   
+                }
             }
         }
     }
     else {
-        info(ITALIC('... no files added.'));    
+        info(ITALIC('... no files added.'));
     }
     info(HR_DARK);
     info('TOTAL: %s file(s)', format_number($num_files) );
@@ -101,10 +101,6 @@ __END__
 # ABSTRACT: Display status of the current critique session.
 
 =pod
-
-=head1 NAME
-
-App::Critique::Command::status - Display status of the current critique session.
 
 =head1 DESCRIPTION
 
