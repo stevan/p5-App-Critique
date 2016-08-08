@@ -31,12 +31,12 @@ and get more info.
 
 The very first thing you need to do is navigate to a git checkout
 directory. Just like F<git> itself, F<critique> needs a working
-directory to do it's work in.
+directory to do its work in.
 
 =head2 Initialize
 
 Next you need to initialise a F<critique> session, I have found that
-focusing on a single L<Perl::Critiq> policy at a time can be helpful
+focusing on a single L<Perl::Critic> policy at a time can be helpful
 and so I use the line below to initialize my session.
 
   > critique init -v --perl-critic-policy Variables::ProhibitUnusedVariables
@@ -53,7 +53,7 @@ find all the available perl files, and looks like this:
   > critique collect -v --root lib/ExampleCompany/
 
 You can also provide different criteria to help create the file list
-that you want, you can do this in a few ways, here are some examples.
+that you want. You can do this in a few ways, here are some examples.
 
   > critique collect -v --root lib/ --filter ExampleCompany/Db/
 
