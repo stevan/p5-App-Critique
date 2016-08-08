@@ -86,4 +86,9 @@ __END__
 
 =pod
 
+=head1 DESCRIPTION
+
+This class holds information about files that have been processed
+by L<App::Critique> and contains no real user serviceable parts.
+
 =cut

@@ -273,4 +273,9 @@ __END__
 
 =pod
 
+=head1 DESCRIPTION
+
+This is the main interace to the L<App::Critique> session file
+and contains no real user serviceable parts.
+
 =cut

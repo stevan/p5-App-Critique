@@ -14,3 +14,14 @@ use App::Critique;
 App::Critique->new({ show_version_cmd => 1 })->run;
 
 1;
+
+__END__
+
+=pod
+
+=head1 DESCRIPTION
+
+The script entry point for the L<App::Critique> application, see the individual
+L<App::Critique::Command> classes for more information.
+
+=cut

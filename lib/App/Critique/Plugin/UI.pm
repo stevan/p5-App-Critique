@@ -84,4 +84,9 @@ __END__
 
 =pod
 
+=head1 DESCRIPTION
+
+Just a simple L<App::Cmd::Plugin> to handle UI elements, nothing
+really useful in here.
+
 =cut

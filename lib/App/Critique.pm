@@ -57,4 +57,26 @@ __END__
 
 =pod
 
+=head1 DESCRIPTION
+
+This tool is specifically designed to find syntactic patterns in Perl source
+code and allow you to review, refactor and commit your changes in one smooth
+workflow.
+
+The idea behind L<App::Critique> is based on two assumptions.
+
+The first is that refactoring often involves a lot of repetative and easily
+automated actions, and this tool aims to make this workflow as smooth as
+possible.
+
+The second is that many people, working on small incremental code improvements,
+in individual easily revertable commits, can have a huge effect on a codebase,
+which is exactly what this tool aims to do.
+
+The quickest way to start is to read the tutorial either by viewing the
+documentation for L<App::Critique::Command::tutorial> or by installing the
+app and running the following
+
+  > critique tutorial
+
 =cut
