@@ -269,6 +269,12 @@ sub _initialize_perl_critic {
 
 __END__
 
+# ABSTRACT: Session interface for App::Critique
+
 =pod
+
+=head1 NAME
+
+App::Critique::Session - Session interface for App::Critique
 
 =cut

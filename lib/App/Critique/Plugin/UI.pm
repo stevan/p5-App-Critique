@@ -27,7 +27,7 @@ use App::Cmd::Setup -plugin => {
         info
         warning
         error
-        
+
         format_number
         format_bytes
     ]]
@@ -80,6 +80,12 @@ sub _error {
 
 __END__
 
+# ABSTRACT: UI elements for App::Critique
+
 =pod
+
+=head1 NAME
+
+App::Critique::Plugin::UI - UI elements for App::Critique
 
 =cut

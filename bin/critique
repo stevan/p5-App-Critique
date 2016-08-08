@@ -1,6 +1,7 @@
 #!perl -w
 
 # PODNAME: bin/critique
+# ABSTRACT: An incremental refactoring tool for Perl powered by Perl::Critic
 
 use strict;
 use warnings;

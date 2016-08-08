@@ -79,7 +79,13 @@ sub cautiously_store_session {
 
 __END__
 
+# ABSTRACT: Command base class for App::Critique
+
 =pod
+
+=head1 NAME
+
+App::Critique::Command - Command base class for App::Critique
 
 =cut
 

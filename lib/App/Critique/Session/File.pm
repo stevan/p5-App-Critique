@@ -53,7 +53,7 @@ sub forget {
 sub forget_all {
     my ($self) = @_;
     $self->{meta} = {}
-}   
+}
 
 # ...
 
@@ -82,6 +82,12 @@ sub unpack {
 
 __END__
 
+# ABSTRACT: Information about file processed by App::Critique
+
 =pod
+
+=head1 NAME
+
+App::Critique::Session::File - Information about file processed by App::Critique
 
 =cut
