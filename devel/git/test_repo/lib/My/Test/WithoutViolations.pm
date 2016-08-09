@@ -1,4 +1,5 @@
-package My::Test::WithoutViolations;
+package # IGNORE ME PAUSE
+    My::Test::WithoutViolations;
 
 use strict;
 use warnings;
