@@ -36,7 +36,7 @@ sub run {
     my ($in, $out, $err);
 
     my @lines = IPC::Run::run(
-        [ 'perl', "$FindBin::Bin/../bin/critique", $cmd, @args ],
+        [ $^X, "$FindBin::Bin/../bin/critique", $cmd, @args ],
         \$in, \$out, \$err
     ) or die "critique: $?";
 
