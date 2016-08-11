@@ -1,6 +1,6 @@
 Revision history for Perl extension App::Critique
 
-0.02 9/8/2016
+0.02 11/8/2016
 
     [BUG FIXES]
     - The tests were using `perl` instead of $^X
