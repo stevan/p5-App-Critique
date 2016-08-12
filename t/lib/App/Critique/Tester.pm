@@ -38,7 +38,7 @@ sub run {
     my ($cmd, @args) = @_;
 
     my ($in, $out, $err);
-    my () = IPC::Run::run(
+    my @not_used_but_needed = IPC::Run::run(
         [ $^X, "$FindBin::Bin/../bin/critique", $cmd, @args ],
         \$in, \$out, \$err,
         init => sub {
