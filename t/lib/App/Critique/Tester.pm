@@ -8,7 +8,11 @@ use IPC::Run   ();
 
 use Git::Wrapper;
 
-my %TEMP_WORK_TREES;
+my ($PSUEDO_HOME, %TEMP_WORK_TREES);
+
+BEGIN {
+    $PSUEDO_HOME = Path::Tiny::tempdir( CLEANUP => 1 )
+}
 
 sub init_test_repo {
 
@@ -34,11 +38,13 @@ sub run {
     my ($cmd, @args) = @_;
 
     my ($in, $out, $err);
-
-    my @lines = IPC::Run::run(
+    my () = IPC::Run::run(
         [ $^X, "$FindBin::Bin/../bin/critique", $cmd, @args ],
-        \$in, \$out, \$err
-    ) or die "critique: $?";
+        \$in, \$out, \$err,
+        init => sub {
+            $ENV{CRITIQUE_HOME} = $PSUEDO_HOME->stringify;
+        }
+    ) or die "critique: $err";
 
     return ($out, $err);
 }
@@ -60,6 +66,14 @@ sub teardown_test_repo {
     my $test_repo = $_[0];
     my $work_tree = delete $TEMP_WORK_TREES{ $test_repo };
     undef $work_tree;
+}
+
+END {
+    undef $PSUEDO_HOME;
+    foreach my $k ( keys %TEMP_WORK_TREES ) {
+        my $work_tree = delete $TEMP_WORK_TREES{ $k };
+        undef $work_tree;
+    }
 }
 
 # ...
