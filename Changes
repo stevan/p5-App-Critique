@@ -1,5 +1,12 @@
 Revision history for Perl extension App::Critique
 
+0.03 12/8/2016
+    [BUG FIXES]
+    - some issues with the dependency list, I was
+      missing some, and the version for one had to
+      be specified, should fix the CPANTS errors
+        - I hope
+
 0.02 11/8/2016
 
     [BUG FIXES]
