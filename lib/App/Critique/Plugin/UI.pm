@@ -9,7 +9,7 @@ our $AUTHORITY = 'cpan:STEVAN';
 use Term::ReadKey  ();
 use Number::Format ();
 
-use constant TERM_WIDTH => (Term::ReadKey::GetTerminalSize())[0] // 80;
+use constant TERM_WIDTH => eval { local $SIG{__WARN__} = sub {''}; (Term::ReadKey::GetTerminalSize())[0] // 80 };
 use constant HR_ERROR   => ('== ERROR '.('=' x (TERM_WIDTH - 9)));
 use constant HR_DARK    => ('=' x TERM_WIDTH);
 use constant HR_LIGHT   => ('-' x TERM_WIDTH);
