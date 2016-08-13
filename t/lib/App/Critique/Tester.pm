@@ -16,6 +16,10 @@ BEGIN {
 
 sub init_test_repo {
 
+    # if we don't have git, why both testing
+    Test::More::BAIL_OUT('Unable to find a `git` binary, not in path')
+        unless Git::Wrapper->has_git_in_path;
+
     # grab the test files for the repo
     my $work_tree = Path::Tiny::tempdir( CLEANUP => 1 );
     _copy_full_tree(
@@ -26,6 +30,15 @@ sub init_test_repo {
     # and then create, add and commit
     my $test_repo = Git::Wrapper->new( $work_tree );
     $test_repo->init;
+
+    if ( my $err = $test_repo->ERR ) {
+        # if we get an error from running
+        # init, we likely have a bad setup
+        # so bail again ...
+        Test::More::BAIL_OUT('Unable to find a usable `git` binary, because: ' . join "\n" => @$err)
+            unless 0 == scalar @$err;
+    }
+
     $test_repo->add( '*' );
     $test_repo->commit({ message => 'initial commit' });
 
