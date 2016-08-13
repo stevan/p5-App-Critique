@@ -1,5 +1,15 @@
 Revision history for Perl extension App::Critique
 
+0.04 13/8/2016
+    [BUG FIXES]
+    - fixed issue with warnings from Term::ReadKey
+        - should also fix the CPANTS errors for
+          Win32, where the warning became a
+          fatal error
+    - tests will now check for a usable git binary
+      in the path otherwise BAIL_OUT, which should
+      fix the other CPANTS errors
+
 0.03 12/8/2016
     [BUG FIXES]
     - some issues with the dependency list, I was
