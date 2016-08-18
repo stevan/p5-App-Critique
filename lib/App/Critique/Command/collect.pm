@@ -16,14 +16,16 @@ use App::Critique -command;
 sub opt_spec {
     my ($class) = @_;
     return (
-        [ 'root=s',       'directory to start traversal from (default is root of git work tree)' ],
+        [ 'root=s',        'directory to start traversal from (default is root of git work tree)' ],
         [],
-        [ 'no-violation', 'filter files that contain no Perl::Critic violations ' ],
+        [ 'no-violation',  'filter files that contain no Perl::Critic violations ' ],
         [],
-        [ 'filter|f=s',   'filter files to remove with this regular expression' ],
-        [ 'match|m=s',    'match files to keep with this regular expression' ],
+        [ 'filter|f=s',    'filter files to remove with this regular expression' ],
+        [ 'match|m=s',     'match files to keep with this regular expression' ],
         [],
-        [ 'dry-run',      'display list of files, but do not store them' ],
+        [ 'ignore-errors', 'when matching or filtering, ignore any errors that occur when testing a file (ex: Perl::Critic parse errors)' ],
+        [],
+        [ 'dry-run',       'display list of files, but do not store them' ],
         [],
         $class->SUPER::opt_spec,
     );
@@ -44,17 +46,17 @@ sub execute {
 
     my @all;
     traverse_filesystem(
-        root        => $session->git_work_tree,
-        path        => $root,
-        predicate   => generate_file_predicate(
+        root      => $session->git_work_tree,
+        path      => $root,
+        predicate => generate_file_predicate(
             $session => (
                 filter       => $opt->filter,
                 match        => $opt->match,
                 no_violation => $opt->no_violation
             )
         ),
-        accumulator => \@all,
-        verbose     => $opt->verbose,
+        accumulator   => \@all,
+        ignore_errors => $opt->ignore_errors,
     );
 
     my $num_files = scalar @all;
@@ -101,12 +103,12 @@ sub execute {
 }
 
 sub traverse_filesystem {
-    my %args      = @_;
-    my $root      = $args{root};
-    my $path      = $args{path};
-    my $predicate = $args{predicate};
-    my $acc       = $args{accumulator};
-    my $verbose   = $args{verbose};
+    my %args          = @_;
+    my $root          = $args{root};
+    my $path          = $args{path};
+    my $predicate     = $args{predicate};
+    my $acc           = $args{accumulator};
+    my $ignore_errors = $args{ignore_errors};
 
     if ( $path->is_file ) {
 
@@ -116,14 +118,29 @@ sub traverse_filesystem {
         return unless is_perl_file( $path->stringify );
 
         #warn "NOT PERL FILE: $path";
+        
+        my ($matched, $error);
+        eval {
+            $matched = $predicate->( $root, $path );
+            1;    
+        } or do {
+            $error = "$@";  
+        };
 
-        # only accept things that match the path
-        if ( $predicate->( $root, $path ) ) {
-            info(BOLD('Matched: keeping file (%s)'), $path->relative( $root )) if $verbose;
+        if ( $error ) {
+            if ( $ignore_errors ) {
+                warning('Unable to process (%s) because (%s)', $path->relative( $root ), $error);
+            }
+            else {
+                error('Unable to process (%s) because (%s)', $path->relative( $root ), $error);
+            }
+        }
+        elsif ( $matched ) {
+            info(BOLD('Matched: keeping file (%s)'), $path->relative( $root ));
             push @$acc => $path;
         }
         else {
-            info('Not Matched: skipping file (%s)', $path->relative( $root )) if $verbose;
+            info('Not Matched: skipping file (%s)', $path->relative( $root ));
         }
     }
     elsif ( -l $path ) { # Path::Tiny does not have a test for symlinks
@@ -143,11 +160,11 @@ sub traverse_filesystem {
         # recurse ...
          foreach my $child ( @children ) {
             traverse_filesystem(
-                root        => $root,
-                path        => $child,
-                predicate   => $predicate,
-                accumulator => $acc,
-                verbose     => $verbose,
+                root          => $root,
+                path          => $child,
+                predicate     => $predicate,
+                accumulator   => $acc,
+                ignore_errors => $ignore_errors,
             );
         }
     }
