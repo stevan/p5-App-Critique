@@ -217,7 +217,7 @@ EDIT:
         my $commit_this_change = prompt_yn(
             (
                 BOLD('Commit Message:').
-                "\n\n    $commit_msg\n\n".
+                "\n\n    ".(join "\n    " => split /\n/ => $commit_msg)."\n\n".
                 BOLD('Choose (y)es to use this message, or (n)o for more options')
             ),
             { default => 'y' }
@@ -246,7 +246,8 @@ EDIT:
 
             if ( $what_now eq 'c' ) {
                 info(HR_LIGHT);
-                $commit_msg = prompt_str( BOLD('Please write a commit message: ') );
+                $commit_msg = prompt_str( BOLD('Please write a commit message') );
+                $commit_msg =~ s/\\n/\n/g; # un-escape any newlines ...
                 goto CHOOSE;
             }
             elsif ( $what_now eq 'f' ) {
