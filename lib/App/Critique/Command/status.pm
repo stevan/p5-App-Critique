@@ -42,6 +42,7 @@ sub execute {
         info('  perl_critic_theme   : %s', $session->perl_critic_theme   // 'auto');
         info('  perl_critic_policy  : %s', $session->perl_critic_policy  // 'auto');
         info('  git_work_tree       : %s', $session->git_work_tree       // 'auto');
+        info('  git_work_tree_root  : %s', $session->git_work_tree_root  // 'auto');
         info('  git_branch          : %s', $session->git_branch          // 'auto');
         info(HR_DARK);
         info('FILE CRITERIA:');
@@ -67,7 +68,7 @@ sub execute {
                 $file->recall('reviewed')   // '-',
                 $file->recall('edited')     // '-',
                 $file->recall('commited')   // '-',
-                $file->relative_path( $session->git_work_tree ),
+                $file->relative_path( $session->git_work_tree_root ),
             );
             if ( $opt->verbose ) {
                 foreach my $sha ( @{ $file->recall('shas') || [] } ) {
@@ -80,7 +81,7 @@ sub execute {
         info(ITALIC('... no files added.'));
     }
     info(HR_DARK);
-    info('TOTAL: %s file(s)', format_number($num_files) );
+    info('TOTAL: %s file(s)',   format_number($num_files) );
     info('  (v)iolations : %s', format_number($violations));
     info('  (r)eviwed    : %s', format_number($reviewed)  );
     info('  (e)dited     : %s', format_number($edited)    );

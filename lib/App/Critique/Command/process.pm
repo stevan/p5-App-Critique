@@ -69,7 +69,7 @@ MAIN:
         $idx  = $session->current_file_idx;
         $file = $tracked_files[ $idx ];
 
-        my $path = $file->relative_path( $session->git_work_tree );
+        my $path = $file->relative_path( $session->git_work_tree_root );
 
         info('Running Perl::Critic against (%s)', $path);
         info(HR_LIGHT);
@@ -168,7 +168,7 @@ sub display_violation {
     info('  policy   : %s'           => $violation->policy);
     info('  severity : %d'           => $violation->severity);
     info('  location : %s @ <%d:%d>' => (
-        Path::Tiny::path( $violation->filename )->relative( $session->git_work_tree ),
+        Path::Tiny::path( $violation->filename )->relative( $session->git_work_tree_root ),
         $violation->line_number,
         $violation->column_number
     ));
@@ -180,12 +180,13 @@ sub display_violation {
 sub edit_violation {
     my ($self, $session, $file, $violation) = @_;
 
-    my $git      = $session->git_wrapper;
-    my $filename = $violation->filename;
+    my $git          = $session->git_wrapper;
+    my $rel_filename = $violation->filename;
+    my $abs_filename = Path::Tiny::path( $violation->filename )->relative( $session->git_work_tree_root );
 
     my $cmd_fmt  = $App::Critique::CONFIG{EDITOR};
     my @cmd_args = (
-        $filename,
+        $rel_filename,
         $violation->line_number,
         $violation->column_number
     );
@@ -197,7 +198,7 @@ EDIT:
 
     my $statuses = $git->status;
     my @changed  = $statuses->get('changed');
-    my $did_edit = scalar grep { my $from = $_->from; $filename =~ /$from/ } @changed;
+    my $did_edit = scalar grep { my $from = $_->from; $abs_filename =~ /$from/ } @changed;
 
     if ( $did_edit ) {
         info(HR_DARK);
@@ -224,9 +225,9 @@ EDIT:
 
         if ( $commit_this_change ) {
             info(HR_DARK);
-            info('Adding and commiting file (%s) to git', $filename);
+            info('Adding and commiting file (%s) to git', $abs_filename);
             info(HR_LIGHT);
-            info('%s', join "\n" => $git->add($filename, { v => 1 }));
+            info('%s', join "\n" => $git->add($rel_filename, { v => 1 }));
             info('%s', join "\n" => $git->commit({ v => 1, message => $commit_msg }));
 
             my ($sha) = $git->rev_parse('HEAD');

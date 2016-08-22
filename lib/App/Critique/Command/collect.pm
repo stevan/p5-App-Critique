@@ -46,7 +46,7 @@ sub execute {
 
     my @all;
     traverse_filesystem(
-        root      => $session->git_work_tree,
+        root      => $session->git_work_tree_root,
         path      => $root,
         predicate => generate_file_predicate(
             $session => (
@@ -65,7 +65,7 @@ sub execute {
     foreach my $file ( @all ) {
         info(
             ITALIC('Including %s'),
-            Path::Tiny::path( $file )->relative( $root )
+            Path::Tiny::path( $file )->relative( $session->git_work_tree_root )
         );
     }
 
