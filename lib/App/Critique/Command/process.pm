@@ -32,16 +32,16 @@ sub execute {
     my $session = $self->cautiously_load_session( $opt, $args );
 
     info('Session file loaded.');
-    
+
     # TODO:
-    # check to see if there are changes in the 
-    # working directory, if so, exit with an 
+    # check to see if there are changes in the
+    # working directory, if so, exit with an
     # error.
-    
+
     # TODO:
-    # add a new flag that will look at the last 
+    # add a new flag that will look at the last
     # commit and assuming it included the current
-    # file, add the SHA to the session data (with a 
+    # file, add the SHA to the session data (with a
     # special note saying it was commited manually)
 
     my @tracked_files = $session->tracked_files;
@@ -269,7 +269,7 @@ EDIT:
     else {
         info(HR_LIGHT);
         my $what_now = prompt_str(
-            BOLD('No edits found, would like to (e)dit again, or (s)kip this file?'),
+            BOLD('No edits found, would like to (e)dit again, or (s)kip this violation?'),
             { valid => sub { $_[0] =~ m/[es]{1}/ } }
         );
 
