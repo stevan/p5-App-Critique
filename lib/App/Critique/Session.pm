@@ -29,20 +29,24 @@ sub new {
 
     # auto-discover the current git repo and branch
     my ($git, $git_branch) = $class->_initialize_git_repo( %args );
+    
+    # initialize all the work tree related info ...
+    my ($git_work_tree, $git_work_tree_root) = $class->_initialize_git_work_tree( $git, %args );
 
     # now that we have worked out all the details,
     # we need to determine the path to the actual
     # critique file.
-    my $path = $class->_generate_critique_file_path( $git->dir, $git_branch );
+    my $path = $class->_generate_critique_file_path( $git_work_tree_root, $git_branch );
 
     my $self = bless {
         # user supplied ...
         perl_critic_profile => $args{perl_critic_profile},
         perl_critic_theme   => $args{perl_critic_theme},
         perl_critic_policy  => $args{perl_critic_policy},
-
+        git_work_tree       => Path::Tiny::path( $git_work_tree ),
+        
         # auto-discovered
-        git_work_tree       => Path::Tiny::path( $git->dir ),
+        git_work_tree_root  => Path::Tiny::path( $git_work_tree_root ),
         git_branch          => $git_branch,
 
         # local storage
@@ -78,10 +82,12 @@ sub locate_session_file {
     Carp::confess('You must specify a git-work-tree')
         unless $git_work_tree && -d $git_work_tree;
 
-    my ($git, $git_branch) = $class->_initialize_git_repo( git_work_tree => $git_work_tree );
+    my %args = (git_work_tree => $git_work_tree);
+    my ($git, $git_branch) = $class->_initialize_git_repo( %args );
+    my (undef, $git_work_tree_root) = $class->_initialize_git_work_tree( $git, %args );
 
     my $session_file = $class->_generate_critique_file_path(
-        Path::Tiny::path( $git->dir ),
+        $git_work_tree_root,
         $git_branch
     );
 
@@ -91,6 +97,7 @@ sub locate_session_file {
 # accessors
 
 sub git_work_tree       { $_[0]->{git_work_tree}       }
+sub git_work_tree_root  { $_[0]->{git_work_tree_root}  }
 sub git_branch          { $_[0]->{git_branch}          }
 sub perl_critic_profile { $_[0]->{perl_critic_profile} }
 sub perl_critic_theme   { $_[0]->{perl_critic_theme}   }
@@ -221,6 +228,8 @@ sub _generate_critique_file_path {
     );
 }
 
+## ...
+
 sub _initialize_git_repo {
     my ($class, %args) = @_;
 
@@ -242,6 +251,26 @@ sub _initialize_git_repo {
 
     # if all is well, return ...
     return ($git, $git_branch);
+}
+
+sub _initialize_git_work_tree {
+    my ($class, $git, %args) = @_;
+    
+    my $git_work_tree      = Path::Tiny::path( $args{git_work_tree} );
+    my $git_work_tree_root = $git_work_tree; # assume this is correct for now ...
+    
+    # then get the absolute root of the git work tree
+    # instead of just using what was passsed into us
+    my ($git_work_tree_updir) = $git->RUN('rev-parse', '--show-cdup');
+    if ( $git_work_tree_updir ) {
+        my $num_updirs = scalar grep $_, map { chomp; $_; } split /\// => $git_work_tree_updir;
+        while ( $num_updirs ) {
+            $git_work_tree_root = $git_work_tree_root->parent;   
+            $num_updirs--;     
+        }
+    }
+    
+    return ($git_work_tree, $git_work_tree_root);
 }
 
 sub _initialize_perl_critic {
