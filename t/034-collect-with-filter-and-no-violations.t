@@ -65,7 +65,7 @@ subtest '... testing collect' => sub {
         [
             qr/Session file loaded/,
             qr/Not Matched\: skipping file \(bin\/my-app\)/,
-            qr/Not Matched\: skipping file \(lib\/My\/Test\/WithoutViolations\.pm\)/,            
+            qr/Not Matched\: skipping file \(lib\/My\/Test\/WithoutViolations\.pm\)/,
             qr/Matched\: keeping file \(lib\/My\/Test\/WithViolations\.pm\)/,
             qr/Not Matched\: skipping file \(share\/debug.pl\)/,
             qr/Not Matched\: skipping file \(root\/app\.psgi\)/,
@@ -104,8 +104,8 @@ subtest '... testing status' => sub {
         ],
         [
             qr/Session file loaded/,
-            qr/perl_critic_policy\s+\: Variables\:\:ProhibitUnusedVariables/,
-            qr/git_work_tree\s*\: $work_tree/,
+            qr/perl_critic_policy\s+\= Variables\:\:ProhibitUnusedVariables/,
+            qr/git_work_tree\s*\= $work_tree/,
                 qr/lib\/My\/Test\/WithViolations\.pm/,
             qr/TOTAL\: 1 file\(s\)/,
             qr/\.critique\/$work_base\/master\/session\.json/,

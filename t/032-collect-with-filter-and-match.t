@@ -103,8 +103,8 @@ subtest '... testing status' => sub {
         ],
         [
             qr/Session file loaded/,
-            qr/perl_critic_policy\s+\: Variables\:\:ProhibitUnusedVariables/,
-            qr/git_work_tree\s*\: $work_tree/,
+            qr/perl_critic_policy\s+\= Variables\:\:ProhibitUnusedVariables/,
+            qr/git_work_tree\s*\= $work_tree/,
                 qr/t\/000\-test\-with\-violations\.t/,
             qr/TOTAL\: 1 file\(s\)/,
             qr/\.critique\/$work_base\/master\/session\.json/,
