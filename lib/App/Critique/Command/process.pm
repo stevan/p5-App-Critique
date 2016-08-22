@@ -32,6 +32,17 @@ sub execute {
     my $session = $self->cautiously_load_session( $opt, $args );
 
     info('Session file loaded.');
+    
+    # TODO:
+    # check to see if there are changes in the 
+    # working directory, if so, exit with an 
+    # error.
+    
+    # TODO:
+    # add a new flag that will look at the last 
+    # commit and assuming it included the current
+    # file, add the SHA to the session data (with a 
+    # special note saying it was commited manually)
 
     my @tracked_files = $session->tracked_files;
 
