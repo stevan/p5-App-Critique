@@ -49,12 +49,12 @@ sub execute {
         info(HR_LIGHT);
         info('Successuflly created session with the following configuration:');
         info(HR_LIGHT);
-        info('  perl_critic_profile = %s', $session->perl_critic_profile // '[auto]');
-        info('  perl_critic_theme   = %s', $session->perl_critic_theme   // '[auto]');
-        info('  perl_critic_policy  = %s', $session->perl_critic_policy  // '[auto]');
-        info('  git_work_tree       = %s', $session->git_work_tree       // '[auto]');
-        info('  git_work_tree_root  = %s', $session->git_work_tree_root  // '[auto]');
-        info('  git_branch          = %s', $session->git_branch          // '[auto]');
+        info('  perl_critic_profile = %s', $session->perl_critic_profile // '[...]');
+        info('  perl_critic_theme   = %s', $session->perl_critic_theme   // '[...]');
+        info('  perl_critic_policy  = %s', $session->perl_critic_policy  // '[...]');
+        info('  git_work_tree       = %s', $session->git_work_tree      );
+        info('  git_work_tree_root  = %s', $session->git_work_tree_root );
+        info('  git_branch          = %s', $session->git_branch         );
         info(HR_LIGHT);
     }
     else {

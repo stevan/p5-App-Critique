@@ -38,18 +38,18 @@ sub execute {
         info(HR_DARK);
         info('CONFIG:');
         info(HR_LIGHT);
-        info('  perl_critic_profile : %s', $session->perl_critic_profile // 'auto');
-        info('  perl_critic_theme   : %s', $session->perl_critic_theme   // 'auto');
-        info('  perl_critic_policy  : %s', $session->perl_critic_policy  // 'auto');
-        info('  git_work_tree       : %s', $session->git_work_tree       // 'auto');
-        info('  git_work_tree_root  : %s', $session->git_work_tree_root  // 'auto');
-        info('  git_branch          : %s', $session->git_branch          // 'auto');
+        info('  perl_critic_profile = %s', $session->perl_critic_profile // '[...]');
+        info('  perl_critic_theme   = %s', $session->perl_critic_theme   // '[...]');
+        info('  perl_critic_policy  = %s', $session->perl_critic_policy  // '[...]');
+        info('  git_work_tree       = %s', $session->git_work_tree      );
+        info('  git_work_tree_root  = %s', $session->git_work_tree_root );
+        info('  git_branch          = %s', $session->git_branch         );
         info(HR_DARK);
         info('FILE CRITERIA:');
         info(HR_LIGHT);
-        info('  filter       : %s', $session->file_criteria->{'filter'}       // '-');
-        info('  match        : %s', $session->file_criteria->{'match'}        // '-');
-        info('  no-violation : %s', $session->file_criteria->{'no_violation'} // '-');
+        info('  filter       = %s', $session->file_criteria->{'filter'}       // '[...]');
+        info('  match        = %s', $session->file_criteria->{'match'}        // '[...]');
+        info('  no-violation = %s', $session->file_criteria->{'no_violation'} // '[...]');
     }
 
     info(HR_DARK);
@@ -82,10 +82,10 @@ sub execute {
     }
     info(HR_DARK);
     info('TOTAL: %s file(s)',   format_number($num_files) );
-    info('  (v)iolations : %s', format_number($violations));
-    info('  (r)eviwed    : %s', format_number($reviewed)  );
-    info('  (e)dited     : %s', format_number($edited)    );
-    info('  (c)ommited   : %s', format_number($commited)  );
+    info('  (v)iolations = %s', format_number($violations));
+    info('  (r)eviwed    = %s', format_number($reviewed)  );
+    info('  (e)dited     = %s', format_number($edited)    );
+    info('  (c)ommited   = %s', format_number($commited)  );
 
     if ( $opt->verbose ) {
         info(HR_LIGHT);
