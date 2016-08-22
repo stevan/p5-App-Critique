@@ -1,5 +1,12 @@
 Revision history for Perl extension App::Critique
 
+0.05
+    - make path display more consistent by always 
+      showing it from the root of the git checkout
+      even if our working directory is below it
+    - allow multi-line commit messages 
+        - kinda crappy for now, but works
+
 0.04 13/8/2016
     [BUG FIXES]
     - fixed issue with warnings from Term::ReadKey

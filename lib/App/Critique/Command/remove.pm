@@ -3,7 +3,7 @@ package App::Critique::Command::remove;
 use strict;
 use warnings;
 
-our $VERSION   = '0.04';
+our $VERSION   = '0.05';
 our $AUTHORITY = 'cpan:STEVAN';
 
 use App::Critique::Session;
