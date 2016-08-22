@@ -74,7 +74,7 @@ sub execute {
         info(HR_DARK);
         info('STATISTICS(Perl::Critic)');
         info(HR_LIGHT);
-        info(BOLD(' VIOLATIONS  : %s'), format_number($stats->total_violations));
+        info(BOLD('VIOLATIONS   : %s'), format_number($stats->total_violations));
         info('== PERL '.('=' x (TERM_WIDTH() - 8)));
         info('  modules    : %s', format_number($stats->modules));
         info('  subs       : %s', format_number($stats->subs));
@@ -118,13 +118,13 @@ sub traverse_filesystem {
         return unless is_perl_file( $path->stringify );
 
         #warn "NOT PERL FILE: $path";
-        
+
         my ($matched, $error);
         eval {
             $matched = $predicate->( $root, $path );
-            1;    
+            1;
         } or do {
-            $error = "$@";  
+            $error = "$@";
         };
 
         if ( $error ) {
