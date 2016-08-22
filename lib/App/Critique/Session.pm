@@ -40,7 +40,7 @@ sub new {
 
     my $self = bless {
         # user supplied ...
-        perl_critic_profile => $args{perl_critic_profile},
+        perl_critic_profile => Path::Tiny::path( $args{perl_critic_profile} ),
         perl_critic_theme   => $args{perl_critic_theme},
         perl_critic_policy  => $args{perl_critic_policy},
         git_work_tree       => Path::Tiny::path( $git_work_tree ),
