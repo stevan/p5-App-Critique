@@ -17,7 +17,7 @@ BEGIN {
     use_ok('App::Critique::Session');
 }
 
-my $TEST_REPO = App::Critique::Tester::init_test_repo();
+my $TEST_REPO = App::Critique::Tester::init_test_env();
 
 subtest '... testing session with a simple git repo' => sub {
 
