@@ -61,6 +61,7 @@ subtest '... testing session with a simple git repo' => sub {
             perl_critic_policy  => undef,
             git_work_tree       => $TEST_REPO->dir,
             git_branch          => 'master',
+            git_head_sha        => ($TEST_REPO->rev_parse('HEAD'))[0],
             current_file_idx    => 0,
             tracked_files       => [],
             file_criteria       => {},

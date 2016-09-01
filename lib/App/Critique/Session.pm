@@ -28,7 +28,7 @@ sub new {
     my $critic = $class->_initialize_perl_critic( %args );
 
     # auto-discover the current git repo and branch
-    my ($git, $git_branch) = $class->_initialize_git_repo( %args );
+    my ($git, $git_branch, $git_head_sha) = $class->_initialize_git_repo( %args );
     
     # initialize all the work tree related info ...
     my ($git_work_tree, $git_work_tree_root) = $class->_initialize_git_work_tree( $git, %args );
@@ -52,6 +52,7 @@ sub new {
         # auto-discovered
         git_work_tree_root  => Path::Tiny::path( $git_work_tree_root ),
         git_branch          => $git_branch,
+        git_head_sha        => $git_head_sha,
 
         # local storage
         current_file_idx    => 0,
@@ -103,6 +104,7 @@ sub locate_session_file {
 sub git_work_tree       { $_[0]->{git_work_tree}       }
 sub git_work_tree_root  { $_[0]->{git_work_tree_root}  }
 sub git_branch          { $_[0]->{git_branch}          }
+sub git_head_sha        { $_[0]->{git_head_sha}        }
 sub perl_critic_profile { $_[0]->{perl_critic_profile} }
 sub perl_critic_theme   { $_[0]->{perl_critic_theme}   }
 sub perl_critic_policy  { $_[0]->{perl_critic_policy}  }
@@ -154,6 +156,7 @@ sub pack {
 
         git_work_tree       => ($self->{git_work_tree} ? $self->{git_work_tree}->stringify : undef),
         git_branch          => $self->{git_branch},
+        git_head_sha        => $self->{git_head_sha},
 
         current_file_idx    => $self->{current_file_idx},
         tracked_files       => [ map $_->pack, @{ $self->{tracked_files} } ],
@@ -239,7 +242,7 @@ sub _initialize_git_repo {
 
     my $git = Git::Wrapper->new( $args{git_work_tree} );
 
-    # auto-discover the current git branch
+    # auto-discover/validate the current git branch    
     my ($git_branch) = map /^\*\s(.*)$/, grep /^\*/, $git->branch;
 
     Carp::confess('Unable to determine git branch, looks like your repository is bare')
@@ -247,14 +250,43 @@ sub _initialize_git_repo {
 
     # make sure the branch we are on is the
     # same one we are being asked to load,
-    # this is very much unlikely to happen
-    # but something we should die about none
-    # the less.
+    # this error condition is very unlikely 
+    # to occur since the session file path 
+    # is based on branch, which is dynamically
+    # determined on load. The only way this 
+    # could happen is if you manually loaded
+    # the session file for one branch while 
+    # intentionally on another branch. So while
+    # this is unlikely, it is probably something 
+    # we should die about none the less since 
+    # it might be a real pain to debug. 
     Carp::confess('Attempting to inflate session for branch ('.$args{git_branch}.') but branch ('.$git_branch.') is currently active')
         if exists $args{git_branch} && $args{git_branch} ne $git_branch;
+    
+    # auto-discover/validate the git HEAD sha  
+    my $git_head_sha = $args{git_head_sha};
+    
+    # if we have it already, ...
+    if ( $git_head_sha ) {
+        # test to make sure the SHA is an ancestor
+        
+        my ($possible_branch) = map  /^\*\s(.*)$/, grep /^\*/, $git->branch({ 
+            contains => $git_head_sha 
+        });
+        
+        Carp::confess('The git HEAD sha ('.$git_head_sha.') is not contained within this git branch('.$git_branch.'), something has gone wrong')
+            if not($possible_branch) && $possible_branch ne $git_branch;
+    }
+    else {
+        # auto-discover the git SHA 
+        ($git_head_sha) = $git->rev_parse('HEAD');
+        
+        Carp::confess('Unable to determine the SHA of the HEAD, either your repository has no commits or perhaps is bare, either way, we can not work with it')
+            unless $git_head_sha;   
+    }
 
     # if all is well, return ...
-    return ($git, $git_branch);
+    return ($git, $git_branch, $git_head_sha);
 }
 
 sub _initialize_git_work_tree {

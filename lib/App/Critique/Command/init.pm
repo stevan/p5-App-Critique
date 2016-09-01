@@ -55,6 +55,7 @@ sub execute {
         info('  git_work_tree       = %s', $session->git_work_tree      );
         info('  git_work_tree_root  = %s', $session->git_work_tree_root );
         info('  git_branch          = %s', $session->git_branch         );
+        info('  git_HEAD_sha        = %s', $session->git_head_sha       );
         info(HR_LIGHT);
     }
     else {
