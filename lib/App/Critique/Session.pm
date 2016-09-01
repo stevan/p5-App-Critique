@@ -275,7 +275,7 @@ sub _initialize_git_repo {
         });
         
         Carp::confess('The git HEAD sha ('.$git_head_sha.') is not contained within this git branch('.$git_branch.'), something has gone wrong')
-            if not($possible_branch) && $possible_branch ne $git_branch;
+            unless $possible_branch && $possible_branch ne $git_branch;
     }
     else {
         # auto-discover the git SHA 
