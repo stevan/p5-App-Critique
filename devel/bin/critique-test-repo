@@ -10,12 +10,18 @@ use Getopt::Long ();
 
 use App::Critique::Tester;
 
-my ($repo_template);
+my ($repo_template, $show_help);
 Getopt::Long::GetOptions(
     'template=s' => \$repo_template,
+    'help'       => \$show_help,
 );
 
-die 'You must specify a template directory to build the repository from'
+if ( $show_help ) {
+    print 'critique-test-repo --template=$template_directory', "\n";
+    exit;
+}
+
+die 'You must specify a --template directory to build the repository from'
     unless $repo_template;
 
 my $repo = App::Critique::Tester::init_test_repo(
@@ -25,6 +31,4 @@ my $repo = App::Critique::Tester::init_test_repo(
 
 print $repo->dir, "\n";
 
-1;
-
-__END__
+exit;
