@@ -29,7 +29,7 @@ sub new {
 
     # auto-discover the current git repo and branch
     my ($git, $git_branch, $git_head_sha) = $class->_initialize_git_repo( %args );
-    
+
     # initialize all the work tree related info ...
     my ($git_work_tree, $git_work_tree_root) = $class->_initialize_git_work_tree( $git, %args );
 
@@ -48,7 +48,7 @@ sub new {
         perl_critic_theme   => $args{perl_critic_theme},
         perl_critic_policy  => $args{perl_critic_policy},
         git_work_tree       => Path::Tiny::path( $git_work_tree ),
-        
+
         # auto-discovered
         git_work_tree_root  => Path::Tiny::path( $git_work_tree_root ),
         git_branch          => $git_branch,
@@ -242,7 +242,7 @@ sub _initialize_git_repo {
 
     my $git = Git::Wrapper->new( $args{git_work_tree} );
 
-    # auto-discover/validate the current git branch    
+    # auto-discover/validate the current git branch
     my ($git_branch) = map /^\*\s(.*)$/, grep /^\*/, $git->branch;
 
     Carp::confess('Unable to determine git branch, looks like your repository is bare')
@@ -250,39 +250,39 @@ sub _initialize_git_repo {
 
     # make sure the branch we are on is the
     # same one we are being asked to load,
-    # this error condition is very unlikely 
-    # to occur since the session file path 
+    # this error condition is very unlikely
+    # to occur since the session file path
     # is based on branch, which is dynamically
-    # determined on load. The only way this 
+    # determined on load. The only way this
     # could happen is if you manually loaded
-    # the session file for one branch while 
+    # the session file for one branch while
     # intentionally on another branch. So while
-    # this is unlikely, it is probably something 
-    # we should die about none the less since 
-    # it might be a real pain to debug. 
+    # this is unlikely, it is probably something
+    # we should die about none the less since
+    # it might be a real pain to debug.
     Carp::confess('Attempting to inflate session for branch ('.$args{git_branch}.') but branch ('.$git_branch.') is currently active')
         if exists $args{git_branch} && $args{git_branch} ne $git_branch;
-    
-    # auto-discover/validate the git HEAD sha  
+
+    # auto-discover/validate the git HEAD sha
     my $git_head_sha = $args{git_head_sha};
-    
+
     # if we have it already, ...
     if ( $git_head_sha ) {
         # test to make sure the SHA is an ancestor
-        
-        my ($possible_branch) = map  /^\*\s(.*)$/, grep /^\*/, $git->branch({ 
-            contains => $git_head_sha 
+
+        my ($possible_branch) = map  /^\*\s(.*)$/, grep /^\*/, $git->branch({
+            contains => $git_head_sha
         });
-        
+
         Carp::confess('The git HEAD sha ('.$git_head_sha.') is not contained within this git branch('.$git_branch.'), something has gone wrong')
-            unless $possible_branch && $possible_branch ne $git_branch;
+            if defined $possible_branch && $possible_branch ne $git_branch;
     }
     else {
-        # auto-discover the git SHA 
+        # auto-discover the git SHA
         ($git_head_sha) = $git->rev_parse('HEAD');
-        
+
         Carp::confess('Unable to determine the SHA of the HEAD, either your repository has no commits or perhaps is bare, either way, we can not work with it')
-            unless $git_head_sha;   
+            unless $git_head_sha;
     }
 
     # if all is well, return ...
@@ -291,21 +291,21 @@ sub _initialize_git_repo {
 
 sub _initialize_git_work_tree {
     my ($class, $git, %args) = @_;
-    
+
     my $git_work_tree      = Path::Tiny::path( $args{git_work_tree} );
     my $git_work_tree_root = $git_work_tree; # assume this is correct for now ...
-    
+
     # then get the absolute root of the git work tree
     # instead of just using what was passsed into us
     my ($git_work_tree_updir) = $git->RUN('rev-parse', '--show-cdup');
     if ( $git_work_tree_updir ) {
         my $num_updirs = scalar grep $_, map { chomp; $_; } split /\// => $git_work_tree_updir;
         while ( $num_updirs ) {
-            $git_work_tree_root = $git_work_tree_root->parent;   
-            $num_updirs--;     
+            $git_work_tree_root = $git_work_tree_root->parent;
+            $num_updirs--;
         }
     }
-    
+
     return ($git_work_tree, $git_work_tree_root);
 }
 
