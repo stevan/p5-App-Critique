@@ -183,9 +183,26 @@ sub generate_file_predicate {
 
     # lets build an array of code_ref filters, that will be use to filter
     # the files, the code refs assume the params will be $path,$rel.
+
+    #-------------------------------#
+    # match | filter | no-violation #
+    #-------------------------------#
+    #    1  |    1   |      1       # collect with match, filter and no violations
+    #    1  |    1   |      0       # collect with match and filter
+    #    1  |    0   |      1       # collect with match and no violations
+    #    1  |    0   |      0       # collect with match
+    #-------------------------------#
+    #    0  |    1   |      1       # collect with filter and no violations
+    #    0  |    1   |      0       # collect with filter
+    #-------------------------------#
+    #    0  |    0   |      1       # collect with no violations
+    #-------------------------------#
+    #    0  |    0   |      0       # collect
+    #-------------------------------#
+
     my @filters = (sub { return 1 });
-    push @filters, sub { return $_[1] !~ /$filter/} if $filter;
     push @filters, sub { return $_[1] =~ /$match/ } if $match ;
+    push @filters, sub { return $_[1] !~ /$filter/} if $filter;
     push @filters, sub {
         return scalar $c->critique( $_[0]->stringify )
     }  if $no_violation;
