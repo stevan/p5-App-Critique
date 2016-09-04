@@ -179,98 +179,25 @@ sub generate_file_predicate {
     my $match        = $args{match};
     my $no_violation = $args{no_violation};
 
-    my $predicate;
+    my $c = $session->perl_critic;
 
-    # ------------------------------#
-    # filter | match | no-violation #
-    # ------------------------------#
-    #    0   |   0   |      0       # collect
-    # ------------------------------#
-    #    1   |   0   |      0       # collect with filter
-    #    1   |   1   |      0       # collect with filter and match
-    #    1   |   1   |      1       # collect with filter match and no violations
-    #    1   |   0   |      1       # collect with filter and no violations
-    # ------------------------------#
-    #    0   |   1   |      0       # collect with match
-    #    0   |   1   |      1       # collect with match and no violations
-    # ------------------------------#
-    #    0   |   0   |      1       # collect with no violations
-    # ------------------------------#
+    # lets build an array of code_ref filters, that will be use to filter
+    # the files, the code refs assume the params will be $path,$rel.
+    my @filters = (sub { return 1 });
+    push @filters, sub { return $_[1] !~ /$filter/} if $filter;
+    push @filters, sub { return $_[1] =~ /$match/ } if $match ;
+    push @filters, sub {
+        return scalar $c->critique( $_[0]->stringify )
+    }  if $no_violation;
 
-    # filter only
-    if ( $filter && not($match) && not($no_violation) ) {
-        $predicate = sub {
-            my $root = $_[0];
-            my $path = $_[1];
-            my $rel  = $path->relative( $root );
-            return $rel !~ /$filter/;
-        };
-    }
-    # filter and match
-    elsif ( $filter && $match && not($no_violation) ) {
-        $predicate = sub {
-            my $root = $_[0];
-            my $path = $_[1];
-            my $rel  = $path->relative( $root );
-            return $rel =~ /$match/
-                && $rel !~ /$filter/;
-        };
-    }
-    # filter and match and check violations
-    elsif ( $filter && $match && $no_violation ) {
-        my $c = $session->perl_critic;
-        $predicate = sub {
-            my $root = $_[0];
-            my $path = $_[1];
-            my $rel  = $path->relative( $root );
-            return $rel =~ /$match/
-                && $rel !~ /$filter/
-                && scalar $c->critique( $path->stringify );
-        };
-    }
-    # filter and check violations
-    elsif ( $filter && not($match) && $no_violation ) {
-        my $c = $session->perl_critic;
-        $predicate = sub {
-            my $root = $_[0];
-            my $path = $_[1];
-            my $rel  = $path->relative( $root );
-            return $rel !~ /$filter/
-                && scalar $c->critique( $path->stringify );
-        };
-    }
-    # match only
-    elsif ( not($filter) && $match && not($no_violation) ) {
-        $predicate = sub {
-            my $root = $_[0];
-            my $path = $_[1];
-            my $rel  = $path->relative( $root );
-            return $rel =~ /$match/;
-        };
-    }
-    # match and check violations
-    elsif ( not($filter) && $match && $no_violation ) {
-        my $c = $session->perl_critic;
-        $predicate = sub {
-            my $root = $_[0];
-            my $path = $_[1];
-            my $rel  = $path->relative( $root );
-            return $rel =~ /$match/
-                && scalar $c->critique( $path->stringify );
-        };
-    }
-    # check violations only
-    elsif ( not($filter) && not($match) && $no_violation ) {
-        my $c = $session->perl_critic;
-        $predicate = sub {
-            my $path = $_[1];
-            return scalar $c->critique( $path->stringify );
-        };
-    }
-    # none of the above
-    else {
-        $predicate = sub () { 1 };
-    }
+    my $predicate = sub {
+        my ($root,$path) = @_;
+        my $rel = $path->relative( $root );
+        for my $file_filter( @filters ) {
+            return unless $file_filter->($path,$rel);
+        }
+        return 1;
+    };
 
     $session->set_file_criteria({
         filter       => $filter,
