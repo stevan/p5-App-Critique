@@ -87,15 +87,16 @@ MAIN:
 
         # perlcritic can fail, so lets guard against it and let the user
         # decide if they want to carry on
-        my @violations = eval {
-            $self->discover_violations( $session, $file, $opt )
-        };
-        if ($@) {
+        my @violations;
+        eval {
+            @violations = $self->discover_violations( $session, $file, $opt );
+            1;
+        } or do {
             info(HR_ERROR);
             warn($@);
             info(HR_LIGHT);
             my $should_review = prompt_yn(
-                BOLD(sprintf 'A error has occurred do you want to continue?', (scalar @violations)),
+                BOLD(sprintf 'A error has occurred do you want to continue?'),
                 { default => 'y' }
             );
             unless ( $should_review ) { exit }
