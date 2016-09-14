@@ -101,7 +101,7 @@ MAIN:
             );
             unless ( $should_review ) { exit }
             next;
-        }
+        };
 
         # remember it the first time we use it
         # but do not update it for each re-process
