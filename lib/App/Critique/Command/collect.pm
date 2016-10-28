@@ -31,6 +31,10 @@ sub opt_spec {
     );
 }
 
+our $PAUSE_TRAVERSAL = 0;
+our $HALT_TRAVERSAL  = bless \(my $h) => 'App::Critique::Command::collect::HALT';
+our $ABORT_TRAVERSAL = bless \(my $a) => 'App::Critique::Command::collect::ABORT';
+
 sub execute {
     my ($self, $opt, $args) = @_;
 
@@ -45,19 +49,40 @@ sub execute {
         : $session->git_work_tree;
 
     my @all;
-    traverse_filesystem(
-        root      => $session->git_work_tree_root,
-        path      => $root,
-        predicate => generate_file_predicate(
-            $session => (
-                filter       => $opt->filter,
-                match        => $opt->match,
-                no_violation => $opt->no_violation
-            )
-        ),
-        accumulator   => \@all,
-        ignore_errors => $opt->ignore_errors,
-    );
+    eval {
+        local $SIG{INT} = sub { $PAUSE_TRAVERSAL++ };
+        
+        traverse_filesystem(
+            root      => $session->git_work_tree_root,
+            path      => $root,
+            predicate => generate_file_predicate(
+                $session => (
+                    filter       => $opt->filter,
+                    match        => $opt->match,
+                    no_violation => $opt->no_violation
+                )
+            ),
+            accumulator   => \@all,
+            ignore_errors => $opt->ignore_errors,
+        );
+        1;
+    } or do {
+        my $e = $@;
+        if ($e eq $HALT_TRAVERSAL) {
+            warning('File collection has been halted');
+            # TODO:
+            # should try to save state here so that 
+            # we can recover the traversal if we 
+            # want to restart.
+            # - SL
+        }
+        elsif ($e eq $ABORT_TRAVERSAL) {
+            error('File collection has been aborted');
+        }
+        else {
+            die $e;
+        }
+    };
 
     my $num_files = scalar @all;
     info('Collected %d perl file(s) for critique.', $num_files);
@@ -102,13 +127,45 @@ sub execute {
     }
 }
 
-sub traverse_filesystem {
+sub traverse_filesystem {   
     my %args          = @_;
     my $root          = $args{root};
     my $path          = $args{path};
     my $predicate     = $args{predicate};
     my $acc           = $args{accumulator};
     my $ignore_errors = $args{ignore_errors};
+
+    if ( $PAUSE_TRAVERSAL ) {
+        warning('[processing paused]');
+
+    PROMPT:
+        my $continue = prompt_str(
+            '>> (r)esume (h)alt (a)bort - (s)tatus ',
+            {
+                valid   => sub { $_[0] =~ m/[rhas]{1}/ },
+                default => 'r',
+            }
+        );
+
+        if ( $continue eq 'r' ) {
+            warning('[resuming]');
+            $PAUSE_TRAVERSAL = 0;
+        }
+        elsif ( $continue eq 'h' ) {
+            warning('[abort processing - partial pruning]');
+            die $HALT_TRAVERSAL;
+        }
+        elsif ( $continue eq 'a' ) {
+            warning('[abort processing - results discarded]');
+            @$acc = ();
+            die $HALT_TRAVERSAL;
+        }
+        elsif ( $continue eq 's' ) {
+            warning( join "\n" => @$acc );
+            warning('[Accumulated %d files so far]', scalar @$acc );
+            goto PROMPT;
+        }
+    }
 
     if ( $path->is_file ) {
 
