@@ -300,6 +300,18 @@ EDIT:
         elsif ( $what_now eq 's' ) {
             return 0;
         }
+        elsif ( $what_now eq 'b' ) {
+            my $line_num = $violation->line_number;
+            my @lines    = $git->blame(
+                $rel_filename, { 
+                    L => (join ',' => $line_num - 5, $line_num + 5) 
+                }
+            );
+            $lines[5] = BOLD($lines[5]);
+            info(HR_LIGHT);
+            info('%s', join "\n" => @lines);
+            goto RETRY;
+        }
     }
 
     return 0;
