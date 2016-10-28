@@ -42,24 +42,29 @@ sub execute {
         }
     }
     
-    info('Found %d removed file(s).', format_number(scalar @removed_files));
-    
-    if ( $opt->verbose || $opt->dry_run ) {
-        info(HR_LIGHT);
-        info($_->path) foreach @removed_files;
-        info(HR_LIGHT);
-    }
-    
-    if ( $opt->dry_run ) {
-        info('[dry-run] Would have updated list of %s file(s).', format_number(scalar @preserved_files));
+    if ( @removed_files ) {
+        info('Found %d removed file(s).', format_number(scalar @removed_files));
+        
+        if ( $opt->verbose || $opt->dry_run ) {
+            info(HR_LIGHT);
+            info($_->path) foreach @removed_files;
+            info(HR_LIGHT);
+        }
+        
+        if ( $opt->dry_run ) {
+            info('[dry-run] Would have updated list of %s file(s).', format_number(scalar @preserved_files));
+        }
+        else {
+            $session->set_tracked_files( @preserved_files );
+            $session->reset_file_idx;
+            info('Sucessfully updated list of %s file(s).', format_number(scalar @preserved_files));
+
+            $self->cautiously_store_session( $session, $opt, $args );
+            info('Session file stored successfully (%s).', $session->session_file_path);
+        }
     }
     else {
-        $session->set_tracked_files( @preserved_files );
-        $session->reset_file_idx;
-        info('Sucessfully updated list of %s file(s).', format_number(scalar @preserved_files));
-
-        $self->cautiously_store_session( $session, $opt, $args );
-        info('Session file stored successfully (%s).', $session->session_file_path);
+        info('Nothing to remove, so nothing to change, so session file is untouched.');
     }
 
 }
