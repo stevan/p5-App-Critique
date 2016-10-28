@@ -78,4 +78,7 @@ This command will clean up the set of files for the current critique
 session. If a file has been deleted in the filesystem, this will also 
 remove that file from the critique session as well.
 
+NOTE: This will reset the current file index, but not any of the 
+accumulated statistics. 
+
 =cut
