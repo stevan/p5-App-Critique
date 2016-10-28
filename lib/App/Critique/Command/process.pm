@@ -231,7 +231,7 @@ EDIT:
         info(HR_DARK);
         info('Changes detected, generating diff.');
         info(HR_LIGHT);
-        info('%s', join "\n" => $git->RUN('diff',{ 'color' => $App::Critique::CONFIG{COLOR} }));
+        info('%s', join "\n" => $git->RUN('diff', { 'color' => $App::Critique::CONFIG{COLOR} }));
         my $policy_name = $violation->policy;
         $policy_name =~ s/^Perl\:\:Critic\:\:Policy\:\://;
 
