@@ -27,6 +27,9 @@ sub opt_spec {
 sub execute {
     my ($self, $opt, $args) = @_;
 
+    error('No acceptable value found for EDITOR in the critique config, please set one.') 
+        unless $App::Critique::CONFIG{EDITOR};
+
     local $Term::ANSIColor::AUTORESET = 1;
 
     my $session = $self->cautiously_load_session( $opt, $args );
