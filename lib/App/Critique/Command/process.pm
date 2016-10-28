@@ -266,8 +266,8 @@ EDIT:
         else {
             info(HR_LIGHT);
             my $what_now = prompt_str(
-                BOLD('What would you like to edit? (f)ile, (c)ommit message'),
-                { valid => sub { $_[0] =~ m/[fc]{1}/ } }
+                BOLD('What would you like to do? edit the (f)ile, edit the (c)ommit message or (a)ppend the commit message'),
+                { valid => sub { $_[0] =~ m/[fca]{1}/ } }
             );
 
             if ( $what_now eq 'c' ) {
@@ -276,16 +276,22 @@ EDIT:
                 $commit_msg =~ s/\\n/\n/g; # un-escape any newlines ...
                 goto CHOOSE;
             }
+            elsif ( $what_now eq 'a' ) {
+                info(HR_LIGHT);
+                $commit_msg .= "\n\n" . prompt_str( BOLD('Please append the commit message') );
+                goto CHOOSE;
+            }
             elsif ( $what_now eq 'f' ) {
                 goto EDIT;
             }
         }
     }
     else {
+    RETRY:
         info(HR_LIGHT);
         my $what_now = prompt_str(
-            BOLD('No edits found, would like to (e)dit again, or (s)kip this violation?'),
-            { valid => sub { $_[0] =~ m/[es]{1}/ } }
+            BOLD('No edits found, would like to (e)dit again, (s)kip this violation or (b)lame the file?'),
+            { valid => sub { $_[0] =~ m/[esb]{1}/ } }
         );
 
         if ( $what_now eq 'e' ) {
