@@ -63,9 +63,11 @@ subtest '... testing collect' => sub {
         ],
         [
             qr/Session file loaded/,
+            qr/Accumulated 7 files, now processing/,
+            qr/Filtered 5 files, left with 2/,              
             qr/Collected 2 perl file\(s\) for critique/,
             qr/Including lib\/My\/Test\/WithViolations\.pm/,
-            qr/Including t\/000-test-with-violations\.t/,
+            qr/Including t\/000-test-with-violations\.t/,          
             qr/Sucessfully added 2 file\(s\)/,
             qr/Session file stored successfully/,
             qr/\.critique\/$work_base\/master\/session\.json/,

@@ -31,9 +31,7 @@ sub opt_spec {
     );
 }
 
-our $PAUSE_TRAVERSAL = 0;
-our $HALT_TRAVERSAL  = bless \(my $h) => 'App::Critique::Command::collect::HALT';
-our $ABORT_TRAVERSAL = bless \(my $a) => 'App::Critique::Command::collect::ABORT';
+our $PAUSE_PROCESSING = 0;
 
 sub execute {
     my ($self, $opt, $args) = @_;
@@ -48,40 +46,80 @@ sub execute {
         ? Path::Tiny::path( $opt->root )
         : $session->git_work_tree;
 
+    my $git_root       = $session->git_work_tree_root;
+    my $file_predicate = generate_file_predicate(
+        $session => (
+            filter       => $opt->filter,
+            match        => $opt->match,
+            no_violation => $opt->no_violation
+        )
+    );
+
     my @all;
     eval {
-        local $SIG{INT} = sub { $PAUSE_TRAVERSAL++ };
+        local $SIG{INT} = sub { $PAUSE_PROCESSING++ };
         
-        traverse_filesystem(
-            root      => $session->git_work_tree_root,
-            path      => $root,
-            predicate => generate_file_predicate(
-                $session => (
-                    filter       => $opt->filter,
-                    match        => $opt->match,
-                    no_violation => $opt->no_violation
-                )
-            ),
+        find_all_perl_files(
+            root          => $git_root,
+            path          => $root,
             accumulator   => \@all,
-            ignore_errors => $opt->ignore_errors,
         );
+        
+        my $unfiltered_count = scalar @all;
+        info('Accumulated %d files, now processing', $unfiltered_count);
+        
+        my @filtered_all;
+        while ( @all ) {
+            if ( $PAUSE_PROCESSING ) {
+                warning('[processing paused]');
+
+            PROMPT:
+                my $continue = prompt_str(
+                    '>> (r)esume (h)alt (a)bort | (s)tatus ',
+                    {
+                        valid   => sub { $_[0] =~ m/[rhas]{1}/ },
+                        default => 'r',
+                    }
+                );
+
+                if ( $continue eq 'r' ) {
+                    warning('[resuming]');
+                    $PAUSE_PROCESSING = 0;
+                }
+                elsif ( $continue eq 'h' ) {
+                    warning('[abort processing - partial pruning]');
+                    last;
+                }
+                elsif ( $continue eq 'a' ) {
+                    warning('[abort processing - results discarded]');
+                    @filtered_all = ();
+                    last;
+                }
+                elsif ( $continue eq 's' ) {
+                    warning( join "\n" => @filtered_all );
+                    warning('[Accumulated %d files so far]', scalar @filtered_all );
+                    goto PROMPT;
+                }
+            }
+            
+            my $path = shift @all;
+            
+            info('Processing file %s', $path);
+            if ( $file_predicate->( $git_root, $path ) ) {
+                info(BOLD('Keeping file %s'), $path);
+                push @filtered_all => $path;
+            }
+        }
+        
+        my $filtered_count = scalar @filtered_all;
+        info('Filtered %d files, left with %d', $unfiltered_count - $filtered_count, $filtered_count);
+        
+        @all = @filtered_all;
+        
         1;
     } or do {
         my $e = $@;
-        if ($e eq $HALT_TRAVERSAL) {
-            warning('File collection has been halted');
-            # TODO:
-            # should try to save state here so that 
-            # we can recover the traversal if we 
-            # want to restart.
-            # - SL
-        }
-        elsif ($e eq $ABORT_TRAVERSAL) {
-            error('File collection has been aborted');
-        }
-        else {
-            die $e;
-        }
+        die $e;
     };
 
     my $num_files = scalar @all;
@@ -90,7 +128,7 @@ sub execute {
     foreach my $file ( @all ) {
         info(
             ITALIC('Including %s'),
-            Path::Tiny::path( $file )->relative( $session->git_work_tree_root )
+            Path::Tiny::path( $file )->relative( $git_root )
         );
     }
 
@@ -127,86 +165,23 @@ sub execute {
     }
 }
 
-sub traverse_filesystem {   
-    my %args          = @_;
-    my $root          = $args{root};
-    my $path          = $args{path};
-    my $predicate     = $args{predicate};
-    my $acc           = $args{accumulator};
-    my $ignore_errors = $args{ignore_errors};
-
-    if ( $PAUSE_TRAVERSAL ) {
-        warning('[processing paused]');
-
-    PROMPT:
-        my $continue = prompt_str(
-            '>> (r)esume (h)alt (a)bort - (s)tatus ',
-            {
-                valid   => sub { $_[0] =~ m/[rhas]{1}/ },
-                default => 'r',
-            }
-        );
-
-        if ( $continue eq 'r' ) {
-            warning('[resuming]');
-            $PAUSE_TRAVERSAL = 0;
-        }
-        elsif ( $continue eq 'h' ) {
-            warning('[abort processing - partial pruning]');
-            die $HALT_TRAVERSAL;
-        }
-        elsif ( $continue eq 'a' ) {
-            warning('[abort processing - results discarded]');
-            @$acc = ();
-            die $HALT_TRAVERSAL;
-        }
-        elsif ( $continue eq 's' ) {
-            warning( join "\n" => @$acc );
-            warning('[Accumulated %d files so far]', scalar @$acc );
-            goto PROMPT;
-        }
-    }
+sub find_all_perl_files {   
+    my %args = @_;
+    my $root = $args{root}; # the reason for `root` is to have nicer output (just FYI)
+    my $path = $args{path};
+    my $acc  = $args{accumulator};
 
     if ( $path->is_file ) {
-
-        #warn "GOT A FILE: $path";
-
         # ignore anything but perl files ...
         return unless is_perl_file( $path->stringify );
 
-        #warn "NOT PERL FILE: $path";
-
-        my ($matched, $error);
-        eval {
-            $matched = $predicate->( $root, $path );
-            1;
-        } or do {
-            $error = "$@";
-        };
-
-        if ( $error ) {
-            if ( $ignore_errors ) {
-                warning('Unable to process (%s) because (%s)', $path->relative( $root ), $error);
-            }
-            else {
-                error('Unable to process (%s) because (%s)', $path->relative( $root ), $error);
-            }
-        }
-        elsif ( $matched ) {
-            info(BOLD('Matched: keeping file (%s)'), $path->relative( $root ));
-            push @$acc => $path;
-        }
-        else {
-            info('Not Matched: skipping file (%s)', $path->relative( $root ));
-        }
+        info('... adding file (%s)', $path->relative( $root )); # this should be the only usafe of root
+        push @$acc => $path;
     }
     elsif ( -l $path ) { # Path::Tiny does not have a test for symlinks
         ;
     }
     else {
-
-        #warn "GOT A DIR: $path";
-
         my @children = $path->children( qr/^[^.]/ );
 
         # prune the directories we really don't care about
@@ -216,12 +191,10 @@ sub traverse_filesystem {
 
         # recurse ...
          foreach my $child ( @children ) {
-            traverse_filesystem(
+            find_all_perl_files(
                 root          => $root,
                 path          => $child,
-                predicate     => $predicate,
                 accumulator   => $acc,
-                ignore_errors => $ignore_errors,
             );
         }
     }
