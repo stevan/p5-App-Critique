@@ -60,61 +60,20 @@ sub execute {
         local $SIG{INT} = sub { $PAUSE_PROCESSING++ };
         
         find_all_perl_files(
-            root          => $git_root,
-            path          => $root,
-            accumulator   => \@all,
+            root        => $git_root,
+            path        => $root,
+            accumulator => \@all,
         );
-        
         my $unfiltered_count = scalar @all;
         info('Accumulated %d files, now processing', $unfiltered_count);
         
-        my @filtered_all;
-        while ( @all ) {
-            if ( $PAUSE_PROCESSING ) {
-                warning('[processing paused]');
-
-            PROMPT:
-                my $continue = prompt_str(
-                    '>> (r)esume (h)alt (a)bort | (s)tatus ',
-                    {
-                        valid   => sub { $_[0] =~ m/[rhas]{1}/ },
-                        default => 'r',
-                    }
-                );
-
-                if ( $continue eq 'r' ) {
-                    warning('[resuming]');
-                    $PAUSE_PROCESSING = 0;
-                }
-                elsif ( $continue eq 'h' ) {
-                    warning('[abort processing - partial pruning]');
-                    last;
-                }
-                elsif ( $continue eq 'a' ) {
-                    warning('[abort processing - results discarded]');
-                    @filtered_all = ();
-                    last;
-                }
-                elsif ( $continue eq 's' ) {
-                    warning( join "\n" => @filtered_all );
-                    warning('[Accumulated %d files so far]', scalar @filtered_all );
-                    goto PROMPT;
-                }
-            }
-            
-            my $path = shift @all;
-            
-            info('Processing file %s', $path);
-            if ( $file_predicate->( $git_root, $path ) ) {
-                info(BOLD('Keeping file %s'), $path);
-                push @filtered_all => $path;
-            }
-        }
-        
-        my $filtered_count = scalar @filtered_all;
+        filter_files_serially( 
+            root   => $git_root,
+            files  => \@all,
+            filter => $file_predicate
+        );
+        my $filtered_count = scalar @all;
         info('Filtered %d files, left with %d', $unfiltered_count - $filtered_count, $filtered_count);
-        
-        @all = @filtered_all;
         
         1;
     } or do {
@@ -163,6 +122,58 @@ sub execute {
         $self->cautiously_store_session( $session, $opt, $args );
         info('Session file stored successfully (%s).', $session->session_file_path);
     }
+}
+
+sub filter_files_serially {
+    my %args   = @_;
+    my $root   = $args{root}; # the reason for `root` is to pass to the filter
+    my $all    = $args{files};
+    my $filter = $args{filter};
+    
+    my @filtered_all;
+    while ( @$all ) {
+        if ( $PAUSE_PROCESSING ) {
+            warning('[processing paused]');
+
+        PROMPT:
+            my $continue = prompt_str(
+                '>> (r)esume (h)alt (a)bort | (s)tatus ',
+                {
+                    valid   => sub { $_[0] =~ m/[rhas]{1}/ },
+                    default => 'r',
+                }
+            );
+
+            if ( $continue eq 'r' ) {
+                warning('[resuming]');
+                $PAUSE_PROCESSING = 0;
+            }
+            elsif ( $continue eq 'h' ) {
+                warning('[abort processing - partial pruning]');
+                last;
+            }
+            elsif ( $continue eq 'a' ) {
+                warning('[abort processing - results discarded]');
+                @filtered_all = ();
+                last;
+            }
+            elsif ( $continue eq 's' ) {
+                warning( join "\n" => @filtered_all );
+                warning('[Accumulated %d files so far]', scalar @filtered_all );
+                goto PROMPT;
+            }
+        }
+        
+        my $path = shift @$all;
+        
+        info('Processing file %s', $path);
+        if ( $filter->( $root, $path ) ) {
+            info(BOLD('Keeping file %s'), $path);
+            push @filtered_all => $path;
+        }
+    }
+    
+    @$all = @filtered_all;
 }
 
 sub find_all_perl_files {   
