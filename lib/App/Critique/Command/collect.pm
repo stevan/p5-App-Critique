@@ -6,8 +6,9 @@ use warnings;
 our $VERSION   = '0.05';
 our $AUTHORITY = 'cpan:STEVAN';
 
-use Path::Tiny      ();
-use Term::ANSIColor ':constants';
+use Path::Tiny            ();
+use Term::ANSIColor       ':constants';
+use Parallel::ForkManager ();
 
 use App::Critique::Session;
 
@@ -134,7 +135,82 @@ sub filter_files {
 }
 
 sub filter_files_parallel {
-    error('[TODO] Implement filter_files_parallel');
+    my %args      = @_;
+    my $root      = $args{root}; # the reason for `root` is to pass to the filter
+    my $all       = $args{files};
+    my $filter    = $args{filter};    
+    my $num_procs = $args{num_procs};   
+    
+    my $num_files = scalar( @$all );
+    my $temp_dir  = Path::Tiny->tempdir;
+    
+    my $partition_size = int($num_files / $num_procs);
+    my $remainder      = int($num_files % $num_procs);
+    
+    info('Number of files     : %d', $num_files);
+    info('Number of processes : %d', $num_procs);
+    info('Partition size      : %d', $partition_size);
+    info('Remainder           : %d', $remainder);
+    info('Total <%5d>       : %d', $num_files, (($partition_size * $num_procs) + $remainder));
+
+    my $pm = Parallel::ForkManager->new(
+        $num_procs,
+        $temp_dir,
+    );
+
+    my @filtered_all;
+    $pm->run_on_finish(
+        sub {
+            my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_structure_reference) = @_;
+            if ( defined $data_structure_reference ) {
+                push @filtered_all => @{ $data_structure_reference };
+            }
+            else {
+                die "Whoa dude, what happened!";
+            }
+        }
+    );
+    
+    my @partitions = map { 
+        [ 
+            (($partition_size * $_) - $partition_size) + (($_ == 1) ? 0 : 1),                        
+            ($partition_size * $_),
+        ] 
+    } 1 .. $num_procs;
+    
+    # this will come out to length + 1
+    # so we want to trim off the end 
+    $partitions[ -1 ]->[ 1 ]--; 
+    # then add the remainder here
+    $partitions[ -1 ]->[ 1 ] += $remainder;
+    
+PROCESS_LOOP:
+    while ( @partitions ) {
+        my ($start, $end) = @{ shift @partitions };
+        
+        #use Data::Dumper;
+        #warn Dumper [ $start, $end ];
+                
+        $pm->start() and next PROCESS_LOOP;
+        
+        my @filtered;
+        
+        foreach my $i ( $start .. $end ) {
+            my $path = $all->[ $i ];
+            
+            info('[%d] Processing file %s', $$, $path);
+            if ( $filter->( $root, $path ) ) {
+                info(BOLD('[%d] Keeping file %s'), $$, $path);
+                push @filtered => $path;
+            }
+        }
+        
+        $pm->finish(0, \@filtered);         
+    }
+    
+    $pm->wait_all_children;
+    
+    @$all = @filtered_all; 
 }
 
 sub filter_files_serially {
