@@ -41,9 +41,12 @@ sub execute {
         info('  perl_critic_profile = %s', $session->perl_critic_profile // '[...]');
         info('  perl_critic_theme   = %s', $session->perl_critic_theme   // '[...]');
         info('  perl_critic_policy  = %s', $session->perl_critic_policy  // '[...]');
+        info(HR_LIGHT);
         info('  git_work_tree       = %s', $session->git_work_tree      );
         info('  git_work_tree_root  = %s', $session->git_work_tree_root );
         info('  git_branch          = %s', $session->git_branch         );
+        info('  git_head_sha        = %s', $session->git_head_sha       );
+        
         info(HR_DARK);
         info('FILE CRITERIA:');
         info(HR_LIGHT);
