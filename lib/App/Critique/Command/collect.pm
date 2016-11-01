@@ -23,7 +23,7 @@ sub opt_spec {
         [ 'filter|f=s',    'filter files to remove with this regular expression' ],
         [ 'match|m=s',     'match files to keep with this regular expression' ],
         [],
-        [ 'ignore-errors', 'when matching or filtering, ignore any errors that occur when testing a file (ex: Perl::Critic parse errors)' ],
+        [ 'n=i',           'number of concurrent processes across which to partition the filtering job', { default => 0 } ],
         [],
         [ 'dry-run',       'display list of files, but do not store them' ],
         [],
@@ -57,8 +57,6 @@ sub execute {
 
     my @all;
     eval {
-        local $SIG{INT} = sub { $PAUSE_PROCESSING++ };
-        
         find_all_perl_files(
             root        => $git_root,
             path        => $root,
@@ -67,10 +65,11 @@ sub execute {
         my $unfiltered_count = scalar @all;
         info('Accumulated %d files, now processing', $unfiltered_count);
         
-        filter_files_serially( 
-            root   => $git_root,
-            files  => \@all,
-            filter => $file_predicate
+        filter_files( 
+            root      => $git_root,
+            files     => \@all,
+            filter    => $file_predicate,
+            num_procs => $opt->n
         );
         my $filtered_count = scalar @all;
         info('Filtered %d files, left with %d', $unfiltered_count - $filtered_count, $filtered_count);
@@ -124,11 +123,27 @@ sub execute {
     }
 }
 
+sub filter_files {
+    my %args = @_;
+    if ( $args{num_procs} == 0 ) {
+        filter_files_serially( %args );
+    }
+    else {
+        filter_files_parallel( %args ); 
+    }
+}
+
+sub filter_files_parallel {
+    error('[TODO] Implement filter_files_parallel');
+}
+
 sub filter_files_serially {
     my %args   = @_;
     my $root   = $args{root}; # the reason for `root` is to pass to the filter
     my $all    = $args{files};
     my $filter = $args{filter};
+    
+    local $SIG{INT} = sub { $PAUSE_PROCESSING++ };
     
     my @filtered_all;
     while ( @$all ) {
