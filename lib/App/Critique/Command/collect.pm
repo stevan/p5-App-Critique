@@ -191,7 +191,7 @@ PROCESS_LOOP:
         #use Data::Dumper;
         #warn Dumper [ $start, $end ];
                 
-        $pm->start() and next PROCESS_LOOP;
+        $pm->start and next PROCESS_LOOP;
         
         my @filtered;
         
