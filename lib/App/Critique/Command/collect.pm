@@ -91,7 +91,7 @@ sub execute {
         );
     }
 
-    if ( $opt->verbose && $opt->no_violation ) {
+    if ( $opt->verbose && $opt->no_violation && $opt->n == 0 ) {
         my $stats = $session->perl_critic->statistics;
         info(HR_DARK);
         info('STATISTICS(Perl::Critic)');
