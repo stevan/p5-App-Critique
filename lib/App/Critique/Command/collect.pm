@@ -221,6 +221,8 @@ sub filter_files_serially {
     
     local $SIG{INT} = sub { $PAUSE_PROCESSING++ };
     
+    my $num_processed = 0;
+    
     my @filtered_all;
     while ( @$all ) {
         if ( $PAUSE_PROCESSING ) {
@@ -250,6 +252,7 @@ sub filter_files_serially {
             }
             elsif ( $continue eq 's' ) {
                 warning( join "\n" => @filtered_all );
+                warning('[Processed %d files so far]', $num_processed );
                 warning('[Accumulated %d files so far]', scalar @filtered_all );
                 goto PROMPT;
             }
@@ -262,6 +265,8 @@ sub filter_files_serially {
             info(BOLD('Keeping file %s'), $path);
             push @filtered_all => $path;
         }
+        
+        $num_processed++;
     }
     
     @$all = @filtered_all;
