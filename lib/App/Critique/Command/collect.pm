@@ -240,11 +240,11 @@ sub filter_files_serially {
                 $PAUSE_PROCESSING = 0;
             }
             elsif ( $continue eq 'h' ) {
-                warning('[abort processing - partial pruning]');
+                warning('[halt processing - retaining results accumulated so far]');
                 last;
             }
             elsif ( $continue eq 'a' ) {
-                warning('[abort processing - results discarded]');
+                warning('[abort processing - discarding all results]');
                 @filtered_all = ();
                 last;
             }
