@@ -7,6 +7,7 @@ our $VERSION   = '0.05';
 our $AUTHORITY = 'cpan:STEVAN';
 
 use Path::Tiny      ();
+use List::Util      ();
 use Term::ANSIColor ':constants';
 
 use App::Critique::Session;
@@ -16,9 +17,11 @@ use App::Critique -command;
 sub opt_spec {
     my ($class) = @_;
     return (
-        [ 'reset', 'resets the file index to 0',             { default => 0 } ],
-        [ 'back',  'back up and re-process the last file',   { default => 0 } ],
-        [ 'next',  'skip over processing the current file ', { default => 0 } ],
+        [ 'reset', 'resets the file index to 0',            { default => 0 } ],
+        [ 'back',  'back up and re-process the last file',  { default => 0 } ],
+        [ 'next',  'skip over processing the current file', { default => 0 } ],
+        [],
+        [ 'blame', 'show the `git blame` block for each violation', { default => 0 } ],
         [],
         $class->SUPER::opt_spec
     );
@@ -186,6 +189,9 @@ sub discover_violations {
 
 sub display_violation {
     my ($self, $session, $file, $violation, $opt) = @_;
+    
+    my $rel_filename = Path::Tiny::path( $violation->filename )->relative( $session->git_work_tree_root );
+    
     info(HR_DARK);
     info(BOLD('Violation: %s'), $violation->description);
     info(HR_DARK);
@@ -198,13 +204,40 @@ sub display_violation {
     info('  policy   : %s'           => $violation->policy);
     info('  severity : %d'           => $violation->severity);
     info('  location : %s @ <%d:%d>' => (
-        Path::Tiny::path( $violation->filename )->relative( $session->git_work_tree_root ),
+        $rel_filename,
         $violation->line_number,
         $violation->column_number
     ));
     info(HR_LIGHT);
     info(ITALIC('%s'), $violation->source);
+    
+    if ( $opt->blame ) {
+        info(HR_DARK);
+        info('%s', $self->blame_violation( 
+            $session, 
+            $rel_filename, 
+            $violation->line_number 
+        ));
+    }
+    
     info(HR_LIGHT);
+}
+
+sub blame_violation {
+    my ($self, $session, $rel_filename, $line_num) = @_;
+    
+    my $line_count = scalar $rel_filename->lines;
+    my $start_line = $line_num - 5;
+    my $end_line   = $line_num + 5;
+    $end_line = $line_count if $end_line > $line_count;
+    
+    my @lines = $session->git_wrapper->blame(
+        $rel_filename, { 
+            L => (join ',' => $start_line, $end_line ) 
+        }
+    );
+    $lines[5] = BOLD($lines[5]);
+    return join "\n" => @lines;
 }
 
 sub edit_violation {
@@ -304,15 +337,12 @@ EDIT:
             return 0;
         }
         elsif ( $what_now eq 'b' ) {
-            my $line_num = $violation->line_number;
-            my @lines    = $git->blame(
-                $rel_filename, { 
-                    L => (join ',' => $line_num - 5, $line_num + 5) 
-                }
-            );
-            $lines[5] = BOLD($lines[5]);
             info(HR_LIGHT);
-            info('%s', join "\n" => @lines);
+            info('%s', $self->blame_violation( 
+                $session, 
+                $rel_filename, 
+                $violation->line_number 
+            ));
             goto RETRY;
         }
     }
