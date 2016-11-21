@@ -31,7 +31,7 @@ sub execute {
     
     my @tracked_files = $session->tracked_files;
     
-    info('Reviewing %d file(s).', format_number(scalar @tracked_files));
+    info('Reviewing %s file(s).', format_number(scalar @tracked_files));
     
     foreach my $file ( @tracked_files ) {
         if ( -e $file->path ) {
@@ -43,7 +43,7 @@ sub execute {
     }
     
     if ( @removed_files ) {
-        info('Found %d removed file(s).', format_number(scalar @removed_files));
+        info('Found %s removed file(s).', format_number(scalar @removed_files));
         
         if ( $opt->verbose || $opt->dry_run ) {
             info(HR_LIGHT);
