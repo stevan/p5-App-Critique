@@ -236,7 +236,7 @@ sub display_violation {
 sub blame_violation {
     my ($self, $session, $rel_filename, $line_num) = @_;
     
-    my $line_count = scalar $rel_filename->lines;
+    my $line_count = scalar Path::Tiny::path($rel_filename)->lines;
     my $start_line = $line_num - 5;
     my $end_line   = $line_num + 5;
     $end_line = $line_count if $end_line > $line_count;
