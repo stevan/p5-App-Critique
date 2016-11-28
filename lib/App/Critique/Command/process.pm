@@ -286,16 +286,15 @@ EDIT:
     CHOOSE:
 
         info(HR_LIGHT);
-        my $commit_this_change = prompt_yn(
+        my $commit_this_change = prompt_str(
             (
                 BOLD('Commit Message:').
                 "\n\n    ".(join "\n    " => split /\n/ => $commit_msg)."\n\n".
-                BOLD('Choose (y)es to use this message, or (n)o for more options')
+                BOLD("Press ENTER to accept this message, enter text to be appended to the commit message, or (n)o for more options.\n")
             ),
-            { default => 'y' }
         );
 
-        if ( $commit_this_change ) {
+        if ( !$commit_this_change ) {
             info(HR_DARK);
             info('Adding and commiting file (%s) to git', $abs_filename);
             info(HR_LIGHT);
@@ -309,7 +308,7 @@ EDIT:
 
             return 1;
         }
-        else {
+        elsif ( lc($commit_this_change) eq 'n' ) { 
             info(HR_LIGHT);
             my $what_now = prompt_str(
                 BOLD('What would you like to do? edit the (f)ile, edit the (c)ommit message or (a)ppend the commit message'),
@@ -330,6 +329,10 @@ EDIT:
             elsif ( $what_now eq 'f' ) {
                 goto EDIT;
             }
+        }
+        else {
+            $commit_msg .= "\n\n" . $commit_this_change;
+            goto CHOOSE;
         }
     }
     else {
