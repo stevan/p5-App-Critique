@@ -112,10 +112,11 @@ sub perl_critic_policy  { $_[0]->{perl_critic_policy}  }
 sub tracked_files     { @{ $_[0]->{tracked_files} } }
 sub file_criteria     { $_[0]->{file_criteria} }
 
-sub current_file_idx { $_[0]->{current_file_idx}   }
-sub inc_file_idx     { $_[0]->{current_file_idx}++ }
-sub dec_file_idx     { $_[0]->{current_file_idx}-- }
-sub reset_file_idx   { $_[0]->{current_file_idx}=0 }
+sub current_file_idx { $_[0]->{current_file_idx}       }
+sub inc_file_idx     { $_[0]->{current_file_idx}++     }
+sub dec_file_idx     { $_[0]->{current_file_idx}--     }
+sub reset_file_idx   { $_[0]->{current_file_idx}=0     }
+sub set_file_idx     { $_[0]->{current_file_idx}=$_[1] }
 
 sub session_file_path { $_[0]->{_path} }
 sub git_wrapper       { $_[0]->{_git}  }
