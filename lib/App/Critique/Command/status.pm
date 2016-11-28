@@ -56,7 +56,7 @@ sub execute {
     }
 
     info(HR_DARK);
-    info('FILES: <legend: [v|r|e|c] path>');
+    info('FILES: <legend: [v|r|e|c]:(idx) path>');
     if ( $opt->verbose ) {
         info(HR_LIGHT);
         info('CURRENT FILE INDEX: (%d)', $curr_file_idx);
@@ -65,17 +65,18 @@ sub execute {
     if ( $num_files ) {
         foreach my $i ( 0 .. $#tracked_files ) {
             my $file = $tracked_files[$i];
-            info('%s [%s|%s|%s|%s] %s',
+            info('%s [%s|%s|%s|%s]:(%d) %s',
                 ($i == $curr_file_idx ? '>' : ' '),
                 $file->recall('violations') // '-',
                 $file->recall('reviewed')   // '-',
                 $file->recall('edited')     // '-',
                 $file->recall('commited')   // '-',
+                $i,                
                 $file->relative_path( $session->git_work_tree_root ),
             );
             if ( $opt->verbose ) {
                 foreach my $sha ( @{ $file->recall('shas') || [] } ) {
-                    info('          : %s', $git->show($sha, { format => '%h - %s', s => 1 }));
+                    info('           | %s', $git->show($sha, { format => '%h - %s', s => 1 }));
                 }
             }
         }
