@@ -17,9 +17,10 @@ use App::Critique -command;
 sub opt_spec {
     my ($class) = @_;
     return (
-        [ 'reset', 'resets the file index to 0',            { default => 0 } ],
-        [ 'back',  'back up and re-process the last file',  { default => 0 } ],
-        [ 'next',  'skip over processing the current file', { default => 0 } ],
+        [ 'reset',  'resets the file index to 0',            { default => 0 } ],
+        [ 'back',   'back up and re-process the last file',  { default => 0 } ],
+        [ 'next',   'skip over processing the current file', { default => 0 } ],
+        [ 'goto=i', 'goto to file at given index' ],
         [],
         [ 'blame', 'show the `git blame` block for each violation', { default => 0 } ],
         [],
@@ -52,6 +53,11 @@ sub execute {
 
     my @tracked_files = $session->tracked_files;
 
+    # TODO:
+    # not all these options can be given together, so 
+    # we should do some validation for that.
+    # - SL
+
     if ( $opt->back ) {
         $session->dec_file_idx;
         $tracked_files[ $session->current_file_idx ]->forget_all;
@@ -64,6 +70,10 @@ sub execute {
     if ( $opt->reset ) {
         $session->reset_file_idx;
         $_->forget_all foreach @tracked_files;
+    }
+
+    if ( my $idx = $opt->goto ) {
+        $session->set_file_idx( $idx );
     }
 
     if ( $session->current_file_idx == scalar @tracked_files ) {
