@@ -256,6 +256,8 @@ sub edit_violation {
     my $git          = $session->git_wrapper;
     my $rel_filename = $violation->filename;
     my $abs_filename = Path::Tiny::path( $violation->filename )->relative( $session->git_work_tree_root );
+    my $policy       = $violation->policy;
+    my $rewriter     = $policy->can('rewriter') ? $policy->rewriter( $violation ) : undef;
 
     my $cmd_fmt  = $App::Critique::CONFIG{EDITOR};
     my @cmd_args = (
@@ -267,7 +269,29 @@ sub edit_violation {
     my $cmd = sprintf $cmd_fmt => @cmd_args;
 
 EDIT:
-    system $cmd;
+    if ( $rewriter && $rewriter->can_rewrite ) {
+        info(HR_LIGHT);
+        info('... attempting to re-write violation.');
+        my $document; 
+        eval {
+            $document = $rewriter->rewrite;
+            1;
+        } or do {
+            error('Unable to re-write violation(%s) because (%s)', $violation, $@);
+        };
+        info(BOLD('Violation re-written successfully!')); 
+        info('... attempting to save file(%s)', $abs_filename);
+        eval {
+            $document->save( $abs_filename );
+            1;
+        } or do {
+            error('Unable to save file(%s) because (%s)', $abs_filename, $@);  
+        };
+        info(BOLD('File(%s) saved successfully!'), $abs_filename); 
+    }
+    else {
+        system $cmd;    
+    }
 
     my $statuses = $git->status;
     my @changed  = $statuses->get('changed');
