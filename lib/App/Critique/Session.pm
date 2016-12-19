@@ -221,7 +221,7 @@ sub _generate_critique_dir_path {
 
     # ~/.critique/<git-repo-name>/<git-branch-name>/session.json
 
-    $root->child( '.critique' )
+    $root->child( $App::Critique::CONFIG{'DATA_DIR'} )
          ->child( $git->basename )
          ->child( $git_branch );
 }
@@ -232,7 +232,7 @@ sub _generate_critique_file_path {
         $git_work_tree,
         $git_branch
     )->child(
-        'session.json'
+        $App::Critique::CONFIG{'DATA_FILE'}
     );
 }
 
