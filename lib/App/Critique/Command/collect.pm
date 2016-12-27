@@ -6,6 +6,7 @@ use warnings;
 our $VERSION   = '0.05';
 our $AUTHORITY = 'cpan:STEVAN';
 
+use English '-no_match_vars';
 use Path::Tiny            ();
 use Term::ANSIColor       ':constants';
 use Parallel::ForkManager ();
@@ -198,9 +199,9 @@ PROCESS_LOOP:
         foreach my $i ( $start .. $end ) {
             my $path = $all->[ $i ];
 
-            info('[%d] Processing file %s', $$, $path);
+            info('[%d] Processing file %s', $PID, $path);
             if ( $filter->( $root, $path ) ) {
-                info(BOLD('[%d] Keeping file %s'), $$, $path);
+                info(BOLD('[%d] Keeping file %s'), $PID, $path);
                 push @filtered => $path;
             }
         }
