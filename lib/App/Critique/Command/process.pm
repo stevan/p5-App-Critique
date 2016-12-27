@@ -2,6 +2,7 @@ package App::Critique::Command::process;
 
 use strict;
 use warnings;
+use constant { 'WINDOW_SIZE' => 5 };
 
 our $VERSION   = '0.05';
 our $AUTHORITY = 'cpan:STEVAN';
@@ -237,8 +238,8 @@ sub blame_violation {
     my ($self, $session, $rel_filename, $line_num) = @_;
     
     my $line_count = scalar Path::Tiny::path($rel_filename)->lines;
-    my $start_line = $line_num - 5;
-    my $end_line   = $line_num + 5;
+    my $start_line = $line_num - WINDOW_SIZE();
+    my $end_line   = $line_num + WINDOW_SIZE();
     $end_line = $line_count if $end_line > $line_count;
     
     my @lines = $session->git_wrapper->blame(
