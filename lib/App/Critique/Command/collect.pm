@@ -172,12 +172,10 @@ sub filter_files_parallel {
         }
     );
 
-    my @partitions = map {
-        [
-            (($partition_size * $_) - $partition_size) + (($_ == 1) ? 0 : 1),
-            ($partition_size * $_),
-        ]
-    } 1 .. $num_procs;
+    my @partitions = map [
+        (($partition_size * $_) - $partition_size) + (($_ == 1) ? 0 : 1),
+        ($partition_size * $_),
+    ], 1 .. $num_procs;
 
     # this will come out to length + 1
     # so we want to trim off the end
