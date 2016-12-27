@@ -6,9 +6,12 @@ use warnings;
 our $VERSION   = '0.05';
 our $AUTHORITY = 'cpan:STEVAN';
 
-use Path::Tiny ();
-
 use App::Cmd::Setup -command;
+
+use App::Critique;
+use App::Critique::Session;
+use App::Critique::Plugin::UI;
+use Path::Tiny ();
 
 sub opt_spec {
     my ( $class, $app ) = @_;
