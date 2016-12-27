@@ -31,7 +31,7 @@ sub opt_spec {
 sub execute {
     my ($self, $opt, $args) = @_;
 
-    error('No acceptable value found for EDITOR in the critique config, please set one.') 
+    error('No acceptable value found for EDITOR in the critique config, please set one.')
         unless $App::Critique::CONFIG{EDITOR};
 
     local $Term::ANSIColor::AUTORESET = 1;
@@ -54,7 +54,7 @@ sub execute {
     my @tracked_files = $session->tracked_files;
 
     # TODO:
-    # not all these options can be given together, so 
+    # not all these options can be given together, so
     # we should do some validation for that.
     # - SL
 
@@ -199,9 +199,9 @@ sub discover_violations {
 
 sub display_violation {
     my ($self, $session, $file, $violation, $opt) = @_;
-    
+
     my $rel_filename = Path::Tiny::path( $violation->filename )->relative( $session->git_work_tree_root );
-    
+
     info(HR_DARK);
     info(BOLD('Violation: %s'), $violation->description);
     info(HR_DARK);
@@ -220,30 +220,30 @@ sub display_violation {
     ));
     info(HR_LIGHT);
     info(ITALIC('%s'), $violation->source);
-    
+
     if ( $opt->blame ) {
         info(HR_DARK);
-        info('%s', $self->blame_violation( 
-            $session, 
-            $rel_filename, 
-            $violation->line_number 
+        info('%s', $self->blame_violation(
+            $session,
+            $rel_filename,
+            $violation->line_number
         ));
     }
-    
+
     info(HR_LIGHT);
 }
 
 sub blame_violation {
     my ($self, $session, $rel_filename, $line_num) = @_;
-    
+
     my $line_count = scalar Path::Tiny::path($rel_filename)->lines;
     my $start_line = $line_num - 5;
     my $end_line   = $line_num + 5;
     $end_line = $line_count if $end_line > $line_count;
-    
+
     my @lines = $session->git_wrapper->blame(
-        $rel_filename, { 
-            L => (join ',' => $start_line, $end_line ) 
+        $rel_filename, {
+            L => (join ',' => $start_line, $end_line )
         }
     );
     $lines[5] = BOLD($lines[5]);
@@ -272,25 +272,25 @@ EDIT:
     if ( $rewriter && $rewriter->can_rewrite ) {
         info(HR_LIGHT);
         info('... attempting to re-write violation.');
-        my $document; 
+        my $document;
         eval {
             $document = $rewriter->rewrite;
             1;
         } or do {
             error('Unable to re-write violation(%s) because (%s)', $violation, $@);
         };
-        info(BOLD('Violation re-written successfully!')); 
+        info(BOLD('Violation re-written successfully!'));
         info('... attempting to save file(%s)', $abs_filename);
         eval {
             $document->save( $abs_filename );
             1;
         } or do {
-            error('Unable to save file(%s) because (%s)', $abs_filename, $@);  
+            error('Unable to save file(%s) because (%s)', $abs_filename, $@);
         };
-        info(BOLD('File(%s) saved successfully!'), $abs_filename); 
+        info(BOLD('File(%s) saved successfully!'), $abs_filename);
     }
     else {
-        system $cmd;    
+        system $cmd;
     }
 
     my $statuses = $git->status;
@@ -332,7 +332,7 @@ EDIT:
 
             return 1;
         }
-        elsif ( lc($commit_this_change) eq 'n' ) { 
+        elsif ( lc($commit_this_change) eq 'n' ) {
             info(HR_LIGHT);
             my $what_now = prompt_str(
                 BOLD('What would you like to do? edit the (f)ile, edit the (c)ommit message or (a)ppend the commit message'),
@@ -375,10 +375,10 @@ EDIT:
         }
         elsif ( $what_now eq 'b' ) {
             info(HR_LIGHT);
-            info('%s', $self->blame_violation( 
-                $session, 
-                $rel_filename, 
-                $violation->line_number 
+            info('%s', $self->blame_violation(
+                $session,
+                $rel_filename,
+                $violation->line_number
             ));
             goto RETRY;
         }

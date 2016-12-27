@@ -14,7 +14,7 @@ our $AUTHORITY = 'cpan:STEVAN';
 our %CONFIG;
 BEGIN {
     $CONFIG{'HOME'}      = $ENV{'CRITIQUE_HOME'}      || File::HomeDir->my_home;
-    $CONFIG{'DATA_DIR'}  = $ENV{'CRITIQUE_DATA_DIR'}  || '.critique';    
+    $CONFIG{'DATA_DIR'}  = $ENV{'CRITIQUE_DATA_DIR'}  || '.critique';
     $CONFIG{'DATA_FILE'} = $ENV{'CRITIQUE_DATA_FILE'} || 'session.json';
     $CONFIG{'COLOR'}     = $ENV{'CRITIQUE_COLOR'}     // 1;
     $CONFIG{'DEBUG'}     = $ENV{'CRITIQUE_DEBUG'}     // 0;
