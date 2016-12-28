@@ -78,7 +78,7 @@ sub execute {
         1;
     } or do {
         my $e = $@;
-        $self->usage_error($e);
+        die $e;
     };
 
     my $num_files = scalar @all;
@@ -166,7 +166,7 @@ sub filter_files_parallel {
                 push @filtered_all => @{ $data_structure_reference };
             }
             else {
-                $self->usage_error('Whoa dude, what happened!');
+                die "Whoa dude, what happened!";
             }
         }
     );
