@@ -6,6 +6,7 @@ use warnings;
 our $VERSION   = '0.05';
 our $AUTHORITY = 'cpan:STEVAN';
 
+use English '-no_match_vars';
 use Path::Tiny            ();
 use Term::ANSIColor       ':constants';
 use Parallel::ForkManager ();
@@ -65,8 +66,8 @@ sub execute {
         );
         my $unfiltered_count = scalar @all;
         info('Accumulated %d files, now processing', $unfiltered_count);
-        
-        filter_files( 
+
+        filter_files(
             root      => $git_root,
             files     => \@all,
             filter    => $file_predicate,
@@ -74,11 +75,11 @@ sub execute {
         );
         my $filtered_count = scalar @all;
         info('Filtered %d files, left with %d', $unfiltered_count - $filtered_count, $filtered_count);
-        
+
         1;
     } or do {
         my $e = $@;
-        die $e;
+        $self->usage_error($e);
     };
 
     my $num_files = scalar @all;
@@ -130,7 +131,7 @@ sub filter_files {
         filter_files_serially( %args );
     }
     else {
-        filter_files_parallel( %args ); 
+        filter_files_parallel( %args );
     }
 }
 
@@ -138,15 +139,15 @@ sub filter_files_parallel {
     my %args      = @_;
     my $root      = $args{root}; # the reason for `root` is to pass to the filter
     my $all       = $args{files};
-    my $filter    = $args{filter};    
-    my $num_procs = $args{num_procs};   
-    
+    my $filter    = $args{filter};
+    my $num_procs = $args{num_procs};
+
     my $num_files = scalar( @$all );
     my $temp_dir  = Path::Tiny->tempdir;
-    
+
     my $partition_size = int($num_files / $num_procs);
     my $remainder      = int($num_files % $num_procs);
-    
+
     info('Number of files     : %d', $num_files);
     info('Number of processes : %d', $num_procs);
     info('Partition size      : %d', $partition_size);
@@ -166,51 +167,49 @@ sub filter_files_parallel {
                 push @filtered_all => @{ $data_structure_reference };
             }
             else {
-                die "Whoa dude, what happened!";
+                $self->usage_error('Whoa dude, what happened!');
             }
         }
     );
-    
-    my @partitions = map { 
-        [ 
-            (($partition_size * $_) - $partition_size) + (($_ == 1) ? 0 : 1),                        
-            ($partition_size * $_),
-        ] 
-    } 1 .. $num_procs;
-    
+
+    my @partitions = map [
+        (($partition_size * $_) - $partition_size) + (($_ == 1) ? 0 : 1),
+        ($partition_size * $_),
+    ], 1 .. $num_procs;
+
     # this will come out to length + 1
-    # so we want to trim off the end 
-    $partitions[ -1 ]->[ 1 ]--; 
+    # so we want to trim off the end
+    $partitions[ -1 ]->[ 1 ]--;
     # then add the remainder here
     $partitions[ -1 ]->[ 1 ] += $remainder;
-    
+
 PROCESS_LOOP:
     while ( @partitions ) {
         my ($start, $end) = @{ shift @partitions };
-        
+
         #use Data::Dumper;
         #warn Dumper [ $start, $end ];
-                
+
         $pm->start and next PROCESS_LOOP;
-        
+
         my @filtered;
-        
+
         foreach my $i ( $start .. $end ) {
             my $path = $all->[ $i ];
-            
-            info('[%d] Processing file %s', $$, $path);
+
+            info('[%d] Processing file %s', $PID, $path);
             if ( $filter->( $root, $path ) ) {
-                info(BOLD('[%d] Keeping file %s'), $$, $path);
+                info(BOLD('[%d] Keeping file %s'), $PID, $path);
                 push @filtered => $path;
             }
         }
-        
-        $pm->finish(0, \@filtered);         
+
+        $pm->finish(0, \@filtered);
     }
-    
+
     $pm->wait_all_children;
-    
-    @$all = @filtered_all; 
+
+    @$all = @filtered_all;
 }
 
 sub filter_files_serially {
@@ -218,11 +217,11 @@ sub filter_files_serially {
     my $root   = $args{root}; # the reason for `root` is to pass to the filter
     my $all    = $args{files};
     my $filter = $args{filter};
-    
+
     local $SIG{INT} = sub { $PAUSE_PROCESSING++ };
-    
+
     my $num_processed = 0;
-    
+
     my @filtered_all;
     while ( @$all ) {
         if ( $PAUSE_PROCESSING ) {
@@ -257,22 +256,22 @@ sub filter_files_serially {
                 goto PROMPT;
             }
         }
-        
+
         my $path = shift @$all;
-        
+
         info('Processing file %s', $path);
         if ( $filter->( $root, $path ) ) {
             info(BOLD('Keeping file %s'), $path);
             push @filtered_all => $path;
         }
-        
+
         $num_processed++;
     }
-    
+
     @$all = @filtered_all;
 }
 
-sub find_all_perl_files {   
+sub find_all_perl_files {
     my %args = @_;
     my $root = $args{root}; # the reason for `root` is to have nicer output (just FYI)
     my $path = $args{path};
