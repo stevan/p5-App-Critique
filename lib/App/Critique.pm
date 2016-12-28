@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use File::HomeDir ();
-use JSON::XS      ();
+use JSON::MaybeXS ();
 
 our $VERSION   = '0.05';
 our $AUTHORITY = 'cpan:STEVAN';
@@ -40,7 +40,7 @@ BEGIN {
 
 # ... then gloablly used stuff, ....
 
-our $JSON = JSON::XS->new->utf8->pretty->canonical;
+our $JSON = JSON::MaybeXS->new->utf8->pretty->canonical;
 
 # ... then load the app and plugins
 
