@@ -1,7 +1,6 @@
 Revision history for Perl extension App::Critique
 
-0.05
-    
+0.05 07-07-2017
     [IMPORTANT CHANGES]
     - the output has changed and so has the workflow
       too much to explain here, but trust me, it is 
