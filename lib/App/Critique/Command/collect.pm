@@ -278,33 +278,56 @@ sub find_all_perl_files {
     my $path = $args{path};
     my $acc  = $args{accumulator};
 
-    if ( $path->is_file ) {
-        # ignore anything but perl files ...
-        return unless is_perl_file( $path->stringify );
+    my $ignore = $App::Critique::CONFIG{'IGNORE'};
 
-        info('... adding file (%s)', $path->relative( $root )); # this should be the only usafe of root
-        push @$acc => $path;
-    }
-    elsif ( -l $path ) { # Path::Tiny does not have a test for symlinks
-        ;
-    }
-    else {
-        my @children = $path->children( qr/^[^.]/ );
+    use Directory::Scanner;
 
-        # prune the directories we really don't care about
-        if ( my $ignore = $App::Critique::CONFIG{'IGNORE'} ) {
-            @children = grep !$ignore->{ $_->basename }, @children;
-        }
+    @$acc = Directory::Scanner
+        ->for( $path )
+        ->ignore(sub {
+            my $path = $_[0];
+            my $base = $path->basename;
+            #warn "#### ", $path, "\n";
+            $base =~ /^\./ or exists $ignore->{ $base };
+        })
+        ->recurse
+        ->filter(sub {
+            my $path = $_[0];
+            #warn "####!! ", $path, "\n";
+            $path->is_file and is_perl_file( $path->stringify )
+        })
+        ->apply(sub {
+            info('... adding file (%s)', $_[0]->relative( $root )); # this should be the only usafe of root
+        })
+        ->stream->flatten;
 
-        # recurse ...
-         foreach my $child ( @children ) {
-            find_all_perl_files(
-                root          => $root,
-                path          => $child,
-                accumulator   => $acc,
-            );
-        }
-    }
+    #if ( $path->is_file ) {
+    #    # ignore anything but perl files ...
+    #    return unless is_perl_file( $path->stringify );
+#
+    #    info('... adding file (%s)', $path->relative( $root )); # this should be the only usafe of root
+    #    push @$acc => $path;
+    #}
+    #elsif ( -l $path ) { # Path::Tiny does not have a test for symlinks
+    #    ;
+    #}
+    #else {
+    #    my @children = $path->children( qr/^[^.]/ );
+#
+    #    # prune the directories we really don't care about
+    #    if ( my $ignore = $App::Critique::CONFIG{'IGNORE'} ) {
+    #        @children = grep !$ignore->{ $_->basename }, @children;
+    #    }
+#
+    #    # recurse ...
+    #     foreach my $child ( @children ) {
+    #        find_all_perl_files(
+    #            root          => $root,
+    #            path          => $child,
+    #            accumulator   => $acc,
+    #        );
+    #    }
+    #}
 
     return;
 }
