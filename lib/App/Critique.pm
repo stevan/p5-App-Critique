@@ -19,7 +19,22 @@ BEGIN {
     $CONFIG{'COLOR'}     = $ENV{'CRITIQUE_COLOR'}     // 1;
     $CONFIG{'DEBUG'}     = $ENV{'CRITIQUE_DEBUG'}     // 0;
     $CONFIG{'VERBOSE'}   = $ENV{'CRITIQUE_VERBOSE'}   // 0;
+    # EDITOR variable should contain 3 %s palceholders: for file, line and column.
     $CONFIG{'EDITOR'}    = $ENV{'CRITIQUE_EDITOR'}    || $ENV{'EDITOR'} || $ENV{'VISUAL'};
+
+    # Try to guess what format your editor accepts
+    if (!$ENV{'CRITIQUE_EDITOR'}) {
+        if ($CONFIG{EDITOR} =~ /^((m|g)?vim)|(vi)$/) {
+            # Vim takes <FILE> +<LINE> or you can call the cursor() function
+            $CONFIG{EDITOR} .= ' %s "+call cursor(%s, %s)"'
+        } elsif ($CONFIG{EDITOR} =~ /^emacs$/) {
+            # Emacs takes +<LINE>:<COL> <FILE>, notice different order
+            $CONFIG{EDITOR} .= ' +%2$s:%3$s %1$s'
+        } elsif ($CONFIG{EDITOR} =~ /^subl$/) {
+            # Sublime takes <FILE> :<LINE>:<COL>
+            $CONFIG{EDITOR} .= ' %s:%s:%s';
+        }
+    }
 
     # okay, we give you sensible Perl & Git defaults
     $CONFIG{'IGNORE'} = {
