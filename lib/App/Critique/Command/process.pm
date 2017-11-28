@@ -11,6 +11,7 @@ use List::Util      ();
 use Term::ANSIColor ':constants';
 
 use App::Critique::Session;
+use App::Critique::Utils ();
 
 use App::Critique -command;
 
@@ -259,14 +260,15 @@ sub edit_violation {
     my $policy       = $violation->policy;
     my $rewriter     = $policy->can('rewriter') ? $policy->rewriter( $violation ) : undef;
 
-    my $cmd_fmt  = $App::Critique::CONFIG{EDITOR};
     my @cmd_args = (
         $rel_filename,
         $violation->line_number,
         $violation->column_number
     );
 
-    my $cmd = sprintf $cmd_fmt => @cmd_args;
+    my $cmd = App::Critique::Utils::editor_cmd(
+        $App::Critique::CONFIG{EDITOR}, @cmd_args,
+    ) || join ' ', $App::Critique::CONFIG{EDITOR}, $rel_filename;
 
 EDIT:
     if ( $rewriter && $rewriter->can_rewrite ) {
