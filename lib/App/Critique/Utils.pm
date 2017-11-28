@@ -3,10 +3,35 @@ package App::Critique::Utils;
 
 use strict;
 use warnings;
-use parent 'Exporter';
-use Carp ();
 
-our @EXPORT_OK = qw< editor_cmd >;
+our $VERSION   = '0.06';
+our $AUTHORITY = 'cpan:STEVAN';
+
+use Carp       ();
+use List::Util ();
+
+our @EXPORT_OK = qw[ build_editor_cmd ];
+
+sub import {
+    my $class = shift;
+    return unless @_;
+
+    my @args = @_;
+    $class->import_into( scalar caller, @args );
+}
+
+sub import_into {
+    my ($from, $to, @exports) = @_;
+
+    foreach my $export ( @exports ) {
+        Carp::confess('Unable to export ('.$export.') because it is not a valid export for this module')
+            if not List::Util::any { $_ eq $export } @EXPORT_OK;
+
+        *{$to.'::'.$export} = \&{$from.'::'.$export};
+    }
+}
+
+## Globals Variables ...
 
 our %EDITOR_FMT = (
     'vim'         => '"+call cursor(%line%, %column%)" %filename%',
@@ -18,17 +43,24 @@ our %EDITOR_ALIASES = (
     'subl' => 'sublimetext',
 );
 
-sub editor_cmd {
+## Utility functions ...
+
+sub build_editor_cmd {
     my ( $editor, $filename, $line, $column ) = @_;
 
-    @_ == 4
-        or Carp::croak('editor_cmd( $editor, $filename, $line, $column )');
+    Carp::croak('You must supply an editor')
+        unless $editor;
 
-    $editor //= '';
+    Carp::croak('You must supply a filename')
+        unless $filename;
 
-    my $fmt = $EDITOR_FMT{$editor}
-        || $EDITOR_FMT{ $EDITOR_ALIASES{$editor} // '' }
-        or return;
+    Carp::croak('You must supply line and column numbers')
+        unless defined $line && defined $column;
+
+    my $fmt = $EDITOR_FMT{$editor} || $EDITOR_FMT{ $EDITOR_ALIASES{$editor} // '' };
+
+    Carp::croak('Unable to find format string for editor ('.$editor.') in %EDITOR_FMT or %EDITOR_ALIASES')
+        unless $fmt;
 
     $fmt =~ s/%line%/$line/xmsg;
     $fmt =~ s/%column%/$column/xmsg;

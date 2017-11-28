@@ -266,9 +266,10 @@ sub edit_violation {
         $violation->column_number
     );
 
-    my $cmd = App::Critique::Utils::editor_cmd(
-        $App::Critique::CONFIG{EDITOR}, @cmd_args,
-    ) || join ' ', $App::Critique::CONFIG{EDITOR}, $rel_filename;
+    my $cmd = App::Critique::Utils::build_editor_cmd(
+        $App::Critique::CONFIG{EDITOR},
+        @cmd_args
+    );
 
 EDIT:
     if ( $rewriter && $rewriter->can_rewrite ) {
