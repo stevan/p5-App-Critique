@@ -22,6 +22,11 @@ sub opt_spec {
         [ 'back',   'back up and re-process the last file',  { default => 0 } ],
         [ 'next',   'skip over processing the current file', { default => 0 } ],
         [ 'goto=i', 'goto to file at given index' ],
+        [
+            'quick',
+'quick mode: jump to fixing next violation without asking any question',
+            { default => 0 }
+        ],
         [],
         [ 'blame', 'show the `git blame` block for each violation', { default => 0 } ],
         [],
@@ -131,8 +136,12 @@ MAIN:
             next MAIN;
         }
         else {
-            my $should_review = prompt_yn(
-                BOLD(sprintf 'Found %d violations, would you like to review them?', (scalar @violations)),
+            my $should_review = $opt->quick || prompt_yn(
+                BOLD(
+                    sprintf
+                      'Found %d violations, would you like to review them?',
+                    ( scalar @violations )
+                ),
                 { default => 'y' }
             );
 
@@ -148,10 +157,11 @@ MAIN:
                     $self->display_violation( $session, $file, $violation, $opt );
                     $reviewed++;
 
-                    my $should_edit = prompt_yn(
+                    my $should_edit =
+                      $opt->quick
+                      || prompt_yn(
                         BOLD('Would you like to fix this violation?'),
-                        { default => 'y' }
-                    );
+                        { default => 'y' } );
 
                     my $did_commit = 0;
 
@@ -254,17 +264,19 @@ sub blame_violation {
 sub edit_violation {
     my ($self, $session, $file, $violation) = @_;
 
-    my $git          = $session->git_wrapper;
-    my $rel_filename = $violation->filename;
-    my $abs_filename = Path::Tiny::path( $violation->filename )->relative( $session->git_work_tree_root );
-    my $policy       = $violation->policy;
-    my $rewriter     = $policy->can('rewriter') ? $policy->rewriter( $violation ) : undef;
+    my $git = $session->git_wrapper;
 
-    my @cmd_args = (
-        $rel_filename,
-        $violation->line_number,
-        $violation->column_number
-    );
+
+    my $edit_filename = $file->filename_for_edit( $session, $violation );
+
+    my $git_filename = $file->filename_for_git_add( $session, $violation );
+    my $policy = $violation->policy;
+    my $rewriter =
+      $policy->can('rewriter') ? $policy->rewriter($violation) : undef;
+
+    my $cmd_fmt = $App::Critique::CONFIG{EDITOR};
+    my @cmd_args =
+      ( $edit_filename, $violation->line_number, $violation->column_number );
 
     my $cmd = App::Critique::Utils::build_editor_cmd(
         $App::Critique::CONFIG{EDITOR},
@@ -282,23 +294,25 @@ EDIT:
         } or do {
             error('Unable to re-write violation(%s) because (%s)', $violation, $@);
         };
-        info(BOLD('Violation re-written successfully!'));
-        info('... attempting to save file(%s)', $abs_filename);
+        info( BOLD('Violation re-written successfully!') );
+        info( '... attempting to save file(%s)', $git_filename );
         eval {
-            $document->save( $abs_filename );
+            $file->save_ppi($document);
             1;
         } or do {
-            error('Unable to save file(%s) because (%s)', $abs_filename, $@);
+            error('Unable to save file(%s) because (%s)', $git_filename, $@);
         };
-        info(BOLD('File(%s) saved successfully!'), $abs_filename);
+        info( BOLD('File(%s) saved successfully!'), $git_filename );
     }
     else {
         system $cmd;
+        $file->after_manual_edit( $session, $violation );
     }
 
     my $statuses = $git->status;
     my @changed  = $statuses->get('changed');
-    my $did_edit = scalar grep { my $from = $_->from; $abs_filename =~ /$from/ } @changed;
+    my $did_edit =
+      scalar grep { my $from = $_->from; $git_filename =~ /$from/ } @changed;
 
     if ( $did_edit ) {
         info(HR_DARK);
@@ -323,10 +337,12 @@ EDIT:
 
         if ( !$commit_this_change ) {
             info(HR_DARK);
-            info('Adding and commiting file (%s) to git', $abs_filename);
+            info( 'Adding and commiting file (%s) to git', $git_filename );
             info(HR_LIGHT);
-            info('%s', join "\n" => $git->add($rel_filename, { v => 1 }));
-            info('%s', join "\n" => $git->commit({ v => 1, message => $commit_msg }));
+            info( '%s', join "\n" => $git->add( $git_filename, { v => 1 } ) );
+            info( '%s',
+                join "\n" => $git->commit( { v => 1, message => $commit_msg } )
+            );
 
             my ($sha) = $git->rev_parse('HEAD');
 
@@ -380,7 +396,7 @@ EDIT:
             info(HR_LIGHT);
             info('%s', $self->blame_violation(
                 $session,
-                $rel_filename,
+                $git_filename,
                 $violation->line_number
             ));
             goto RETRY;
