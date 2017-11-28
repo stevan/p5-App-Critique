@@ -1,4 +1,4 @@
-#!perl
+#!/usr/bin/env perl
 
 use strict;
 use warnings;
@@ -70,7 +70,7 @@ subtest '... testing collect' => sub {
             qr/\.\.\. adding file \(t\/000\-test\-with\-violations\.t\)/,
             qr/\.\.\. adding file \(t\/001\-test\-without-violations\.t\)/,
             qr/Accumulated 7 files, now processing/,
-            qr/Filtered 5 files, left with 2/,            
+            qr/Filtered 5 files, left with 2/,
             qr/Collected 2 perl file\(s\) for critique/,
             qr/Including t\/000\-test\-with\-violations\.t/,
             qr/Including t\/001\-test\-without-violations\.t/,

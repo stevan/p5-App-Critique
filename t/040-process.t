@@ -1,4 +1,4 @@
-#!perl
+#!/usr/bin/env perl
 
 use strict;
 use warnings;
@@ -12,7 +12,7 @@ use App::Critique::Tester;
 
 BEGIN {
     $ENV{CRITIQUE_EDITOR} = 'ed %s';
-    
+
     use_ok('App::Critique');
 }
 
