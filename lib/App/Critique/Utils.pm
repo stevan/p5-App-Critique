@@ -36,7 +36,7 @@ sub import_into {
 our %EDITOR_FMT = (
     'vim'         => '"+call cursor(%line%, %column%)" %filename%',
     'emacs'       => '+%line%:%column% %filename%',
-    'sublimetext' => '%filename%:%line%:%column%',
+    'sublimetext' => '-w %filename%:%line%:%column%',
 );
 
 our %EDITOR_ALIASES = (
