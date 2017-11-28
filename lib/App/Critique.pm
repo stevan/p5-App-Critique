@@ -6,7 +6,7 @@ use warnings;
 use File::HomeDir ();
 use JSON::MaybeXS ();
 
-our $VERSION   = '0.05';
+our $VERSION   = '0.06';
 our $AUTHORITY = 'cpan:STEVAN';
 
 # load our CONFIG first, ...

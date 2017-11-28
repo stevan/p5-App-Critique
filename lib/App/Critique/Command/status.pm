@@ -3,7 +3,7 @@ package App::Critique::Command::status;
 use strict;
 use warnings;
 
-our $VERSION   = '0.05';
+our $VERSION   = '0.06';
 our $AUTHORITY = 'cpan:STEVAN';
 
 use Term::ANSIColor ':constants';
@@ -46,7 +46,7 @@ sub execute {
         info('  git_work_tree_root  = %s', $session->git_work_tree_root );
         info('  git_branch          = %s', $session->git_branch         );
         info('  git_head_sha        = %s', $session->git_head_sha       );
-        
+
         info(HR_DARK);
         info('FILE CRITERIA:');
         info(HR_LIGHT);
@@ -71,7 +71,7 @@ sub execute {
                 $file->recall('reviewed')   // '-',
                 $file->recall('edited')     // '-',
                 $file->recall('commited')   // '-',
-                $i,                
+                $i,
                 $file->relative_path( $session->git_work_tree_root ),
             );
             if ( $opt->verbose ) {

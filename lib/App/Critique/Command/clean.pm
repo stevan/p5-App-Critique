@@ -3,7 +3,7 @@ package App::Critique::Command::clean;
 use strict;
 use warnings;
 
-our $VERSION   = '0.05';
+our $VERSION   = '0.06';
 our $AUTHORITY = 'cpan:STEVAN';
 
 use App::Critique::Session;
@@ -28,11 +28,11 @@ sub execute {
 
     my @removed_files;
     my @preserved_files;
-    
+
     my @tracked_files = $session->tracked_files;
-    
+
     info('Reviewing %s file(s).', format_number(scalar @tracked_files));
-    
+
     foreach my $file ( @tracked_files ) {
         if ( -e $file->path ) {
             push @preserved_files => $file;
@@ -41,16 +41,16 @@ sub execute {
             push @removed_files => $file;
         }
     }
-    
+
     if ( @removed_files ) {
         info('Found %s removed file(s).', format_number(scalar @removed_files));
-        
+
         if ( $opt->verbose || $opt->dry_run ) {
             info(HR_LIGHT);
             info($_->path) foreach @removed_files;
             info(HR_LIGHT);
         }
-        
+
         if ( $opt->dry_run ) {
             info('[dry-run] Would have updated list of %s file(s).', format_number(scalar @preserved_files));
         }
@@ -79,11 +79,11 @@ __END__
 
 =head1 DESCRIPTION
 
-This command will clean up the set of files for the current critique 
-session. If a file has been deleted in the filesystem, this will also 
+This command will clean up the set of files for the current critique
+session. If a file has been deleted in the filesystem, this will also
 remove that file from the critique session as well.
 
-NOTE: This will reset the current file index, but not any of the 
-accumulated statistics. 
+NOTE: This will reset the current file index, but not any of the
+accumulated statistics.
 
 =cut
