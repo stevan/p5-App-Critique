@@ -22,11 +22,6 @@ sub opt_spec {
         [ 'back',   'back up and re-process the last file',  { default => 0 } ],
         [ 'next',   'skip over processing the current file', { default => 0 } ],
         [ 'goto=i', 'goto to file at given index' ],
-        [
-            'quick',
-'quick mode: jump to fixing next violation without asking any question',
-            { default => 0 }
-        ],
         [],
         [ 'blame', 'show the `git blame` block for each violation', { default => 0 } ],
         [],
@@ -136,7 +131,7 @@ MAIN:
             next MAIN;
         }
         else {
-            my $should_review = $opt->quick || prompt_yn(
+            my $should_review = prompt_yn(
                 BOLD(
                     sprintf
                       'Found %d violations, would you like to review them?',
@@ -157,9 +152,7 @@ MAIN:
                     $self->display_violation( $session, $file, $violation, $opt );
                     $reviewed++;
 
-                    my $should_edit =
-                      $opt->quick
-                      || prompt_yn(
+                    my $should_edit = prompt_yn(
                         BOLD('Would you like to fix this violation?'),
                         { default => 'y' } );
 
