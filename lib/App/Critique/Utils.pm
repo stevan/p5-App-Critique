@@ -45,6 +45,19 @@ our %EDITOR_ALIASES = (
 
 ## Utility functions ...
 
+sub supported_editors        { sort keys %EDITOR_FMT     }
+sub supported_editor_aliases { sort keys %EDITOR_ALIASES }
+
+sub can_support_editor {
+    my ( $editor ) = @_;
+
+    return unless $editor;
+
+    return $EDITOR_FMT{ $editor }
+        || $EDITOR_ALIASES{ $editor }
+        && $EDITOR_FMT{ $EDITOR_ALIASES{ $editor } }
+}
+
 sub build_editor_cmd {
     my ( $editor, $filename, $line, $column ) = @_;
 

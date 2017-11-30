@@ -3,11 +3,13 @@ package App::Critique;
 use strict;
 use warnings;
 
+our $VERSION   = '0.06';
+our $AUTHORITY = 'cpan:STEVAN';
+
 use File::HomeDir ();
 use JSON::MaybeXS ();
 
-our $VERSION   = '0.06';
-our $AUTHORITY = 'cpan:STEVAN';
+use App::Critique::Utils ();
 
 # load our CONFIG first, ...
 
@@ -19,8 +21,28 @@ BEGIN {
     $CONFIG{'COLOR'}     = $ENV{'CRITIQUE_COLOR'}     // 1;
     $CONFIG{'DEBUG'}     = $ENV{'CRITIQUE_DEBUG'}     // 0;
     $CONFIG{'VERBOSE'}   = $ENV{'CRITIQUE_VERBOSE'}   // 0;
-    # EDITOR variable should contain 3 %s palceholders: for file, line and column.
-    $CONFIG{'EDITOR'}    = $ENV{'CRITIQUE_EDITOR'}    || $ENV{'EDITOR'} || $ENV{'VISUAL'};
+
+    # try and deterimine if we have an editor ...
+    $CONFIG{'EDITOR'} = $ENV{'CRITIQUE_EDITOR'} || $ENV{'EDITOR'} || $ENV{'VISUAL'};
+
+    # then make sure the editor is good ...
+    die '## !! IMPORTANT !!'
+            ."\n"
+        . '## The editor ('.($CONFIG{'EDITOR'} // 'undef').') found in the %ENV is not supported.'
+            ."\n"
+        . '## Supported editors:'
+            ."\n"
+            .'##   - '.(join ', ' => App::Critique::Utils::supported_editors())
+            ."\n"
+        .'## Supported editor aliases:'
+            ."\n"
+            .'##   - '.(join ', ' => App::Critique::Utils::supported_editor_aliases())
+            ."\n"
+        .'## Please choose an editor and set the $ENV{CRITIQUE_EDITOR} variable.'
+            ."\n"
+        .'## (NOTE: Patches welcome for adding support for additional editors)'
+            ."\n\n"
+        unless App::Critique::Utils::can_support_editor( $CONFIG{'EDITOR'} );
 
     # okay, we give you sensible Perl & Git defaults
     $CONFIG{'IGNORE'} = {
