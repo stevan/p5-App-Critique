@@ -33,6 +33,14 @@ The very first thing you need to do is navigate to a git checkout
 directory. Just like F<git> itself, F<critique> needs a working
 directory to do its work in.
 
+The second thing you need to do is to set the editor that F<critique>
+will use when opening up files to fix a violation. This is as simple
+as setting the C<CRITIQUE_EDITOR> environment variable to one of the
+supported editors.
+
+The currently supported editors are F<vim>, F<emacs> and F<sublimetext>;
+along with supporting F<subl> as an alias for F<sublimetext>.
+
 =head2 Initialize
 
 Next you need to initialise a F<critique> session, I have found that
@@ -77,6 +85,10 @@ C<--match> and C<--no-violation>) in any way you choose.
 Note that this is a destructive command, it will overwrite any
 previous files and file associated settings. It is possible however
 to use C<--dry-run> flag to specify a non-destructuve test run.
+
+Note that if you need to process a lot of files then it might be
+worth it to also set the C<--num_procs> or C<-n> argument to tell
+F<critique> to parallellize the collection process.
 
 =head2 Status
 

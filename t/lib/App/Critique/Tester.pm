@@ -43,7 +43,9 @@ sub run {
         [ $^X, "$FindBin::Bin/../bin/critique", $cmd, @args ],
         \$in, \$out, \$err,
         init => sub {
-            $ENV{CRITIQUE_HOME} = $PSUEDO_HOME->stringify;
+            # set ENV things needed to run ...
+            $ENV{CRITIQUE_HOME}   = $PSUEDO_HOME->stringify;
+            $ENV{CRITIQUE_EDITOR} = 'subl';
         }
     ) or die "critique: $err";
 

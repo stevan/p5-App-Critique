@@ -11,8 +11,6 @@ use Test::More;
 use App::Critique::Tester;
 
 BEGIN {
-    $ENV{CRITIQUE_EDITOR} = 'ed %s';
-
     use_ok('App::Critique');
 }
 

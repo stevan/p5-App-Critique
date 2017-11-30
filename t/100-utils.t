@@ -27,13 +27,13 @@ subtest '... testing build_editor_cmd' => sub {
     my $subl = 'file.pl:10:20';
     is(
         App::Critique::Utils::build_editor_cmd( 'sublimetext', 'file.pl', '10', '20' ),
-        "sublimetext $subl",
+        "sublimetext -w $subl",
         'sublimetext returns correct command line',
     );
 
     is(
         App::Critique::Utils::build_editor_cmd( 'subl', 'file.pl', '10', '20' ),
-        "subl $subl",
+        "subl -w $subl",
         'subl is the same as sublimetext',
     );
 

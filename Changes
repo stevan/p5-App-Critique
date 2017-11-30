@@ -1,10 +1,17 @@
 Revision history for Perl extension App::Critique
 
 0.06
+  [IMPORTANT CHANGES]
+  - Setting CRITIQUE_EDITOR (or EDITOR or VISUAL)
+    is now required to run `critique` at all.
+    Previously it only errored the first time we
+    called the `process` command.
+
+  [ENHANCEMENTS]
   - Adding better support for the editor option, this
     will do the right thing for three common editors
     (vi, emacs and Sublime Text) and should be able to
-    support others if needed
+    support others if needed.
       - Patches welcome for other editors!
       - Thanks to Sawyer X and Roman Alexeev for this.
 

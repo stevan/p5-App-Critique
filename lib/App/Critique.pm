@@ -25,25 +25,6 @@ BEGIN {
     # try and deterimine if we have an editor ...
     $CONFIG{'EDITOR'} = $ENV{'CRITIQUE_EDITOR'} || $ENV{'EDITOR'} || $ENV{'VISUAL'};
 
-    # then make sure the editor is good ...
-    die '## !! IMPORTANT !!'
-            ."\n"
-        . '## The editor ('.($CONFIG{'EDITOR'} // 'undef').') found in the %ENV is not supported.'
-            ."\n"
-        . '## Supported editors:'
-            ."\n"
-            .'##   - '.(join ', ' => App::Critique::Utils::supported_editors())
-            ."\n"
-        .'## Supported editor aliases:'
-            ."\n"
-            .'##   - '.(join ', ' => App::Critique::Utils::supported_editor_aliases())
-            ."\n"
-        .'## Please choose an editor and set the $ENV{CRITIQUE_EDITOR} variable.'
-            ."\n"
-        .'## (NOTE: Patches welcome for adding support for additional editors)'
-            ."\n\n"
-        unless App::Critique::Utils::can_support_editor( $CONFIG{'EDITOR'} );
-
     # okay, we give you sensible Perl & Git defaults
     $CONFIG{'IGNORE'} = {
         '.git'   => 1,
@@ -73,6 +54,37 @@ use App::Cmd::Setup -app => {
         '=App::Critique::Plugin::UI',
     ]
 };
+
+# UGLY HACK:
+# We only override `run` so that we
+# can check the EDITOR settings at
+# a sensible time, but this is kinda
+# ugly, sorry.
+# - SL
+sub run {
+    my ($self, @args) = @_;
+
+    # before we run, make sure the editor is good ...
+    die '## !! IMPORTANT !!'
+            ."\n"
+        . '## The editor ('.($CONFIG{'EDITOR'} // 'undef').') found in the %ENV is not supported.'
+            ."\n"
+        . '## Supported editors:'
+            ."\n"
+            .'##   - '.(join ', ' => App::Critique::Utils::supported_editors())
+            ."\n"
+        .'## Supported editor aliases:'
+            ."\n"
+            .'##   - '.(join ', ' => App::Critique::Utils::supported_editor_aliases())
+            ."\n"
+        .'## Please choose an editor and set the $ENV{CRITIQUE_EDITOR} variable.'
+            ."\n"
+        .'## (NOTE: Patches welcome for adding support for additional editors)'
+            ."\n\n"
+        unless App::Critique::Utils::can_support_editor( $CONFIG{'EDITOR'} );
+
+    return $self->SUPER::run( @args );
+}
 
 1;
 
