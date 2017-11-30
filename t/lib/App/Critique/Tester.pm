@@ -20,7 +20,7 @@ sub init_test_env {
     Test::More::BAIL_OUT('Unable to find a `git` binary, not in path')
         unless Git::Wrapper->has_git_in_path;
 
-    my $test_repo; 
+    my $test_repo;
     eval {
         $test_repo = init_test_repo('devel/git/test_repo', 1);
         1;
@@ -67,8 +67,8 @@ sub test {
 
 sub init_test_repo {
     my ($test_repo_path, $should_cleanup) = @_;
-    
-    # boolify 
+
+    # boolify
     $should_cleanup = !! $should_cleanup;
 
     # grab the test files for the repo
@@ -83,7 +83,7 @@ sub init_test_repo {
     $test_repo->init;
     $test_repo->add( '*' );
     $test_repo->commit({ message => 'initial commit' });
-    
+
     $TEMP_WORK_TREES{ $test_repo } = $work_tree
         if $should_cleanup;
 
