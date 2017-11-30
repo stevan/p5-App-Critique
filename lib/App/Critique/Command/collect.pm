@@ -24,7 +24,7 @@ sub opt_spec {
         [ 'filter|f=s',    'filter files to remove with this regular expression' ],
         [ 'match|m=s',     'match files to keep with this regular expression' ],
         [],
-        [ 'n=i',           'number of concurrent processes across which to partition the filtering job', { default => 0 } ],
+        [ 'num_procs|n=i', 'number of concurrent processes across which to partition the filtering job', { default => 0 } ],
         [],
         [ 'dry-run',       'display list of files, but do not store them' ],
         [],
@@ -70,7 +70,7 @@ sub execute {
             root      => $git_root,
             files     => \@all,
             filter    => $file_predicate,
-            num_procs => $opt->n
+            num_procs => $opt->num_procs
         );
         my $filtered_count = scalar @all;
         info('Filtered %d files, left with %d', $unfiltered_count - $filtered_count, $filtered_count);
@@ -91,7 +91,7 @@ sub execute {
         );
     }
 
-    if ( $opt->verbose && $opt->no_violation && $opt->n == 0 ) {
+    if ( $opt->verbose && $opt->no_violation && $opt->num_procs == 0 ) {
         my $stats = $session->perl_critic->statistics;
         info(HR_DARK);
         info('STATISTICS(Perl::Critic)');

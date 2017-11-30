@@ -6,6 +6,9 @@ Revision history for Perl extension App::Critique
     is now required to run `critique` at all.
     Previously it only errored the first time we
     called the `process` command.
+  - The `--n` option in the `collect` command is
+    now either `--num_procs` or `-n` which is more
+    sensible.
 
   [ENHANCEMENTS]
   - Adding better support for the editor option, this
