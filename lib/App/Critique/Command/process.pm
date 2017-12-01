@@ -266,7 +266,7 @@ sub edit_violation {
         $violation->column_number
     );
 
-    my $cmd = App::Critique::Utils::build_editor_cmd(
+    my $cmd = App::Critique::Utils::build_editor_command(
         $App::Critique::CONFIG{EDITOR},
         @cmd_args
     );

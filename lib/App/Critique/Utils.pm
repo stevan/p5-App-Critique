@@ -1,5 +1,4 @@
 package App::Critique::Utils;
-# ABSTRACT: Set of utilities for App::Critique
 
 use strict;
 use warnings;
@@ -10,7 +9,7 @@ our $AUTHORITY = 'cpan:STEVAN';
 use Carp       ();
 use List::Util ();
 
-our @EXPORT_OK = qw[ build_editor_cmd ];
+our @EXPORT_OK = qw[ build_editor_command ];
 
 sub import {
     my $class = shift;
@@ -41,6 +40,7 @@ our %EDITOR_FMT = (
 
 our %EDITOR_ALIASES = (
     'subl' => 'sublimetext',
+    'vi'   => 'vim',
 );
 
 ## Utility functions ...
@@ -58,7 +58,7 @@ sub can_support_editor {
         && $EDITOR_FMT{ $EDITOR_ALIASES{ $editor } }
 }
 
-sub build_editor_cmd {
+sub build_editor_command {
     my ( $editor, $filename, $line, $column ) = @_;
 
     Carp::croak('You must supply an editor')
@@ -82,5 +82,40 @@ sub build_editor_cmd {
     return "$editor $fmt";
 }
 
-
 1;
+
+__END__
+
+# ABSTRACT: Set of utilities for App::Critique
+
+=pod
+
+=head1 DESCRIPTION
+
+Simple set of utilities for L<App::Critique>.
+
+=head2 FUNCTIONS
+
+=over4
+
+=item C<supported_editors>
+
+Returns a list of the supported editors.
+
+=item C<supported_editor_aliases>
+
+Returns a list of the supported editor aliases.
+
+=item C<can_support_editor( $editor )>
+
+Returns boolean if this is a valid C<$editor> or editor alias.
+
+=item C<build_editor_command( $editor, $filename, $line, $column )>
+
+Given an C<$editor>, this will try to construct a correct the system
+command to open the C<$filename> at the correct C<$line> number and
+C<$column>.
+
+=back
+
+=cut
