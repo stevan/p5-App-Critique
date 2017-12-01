@@ -35,7 +35,7 @@ sub execute {
         info('  --perl-critic-profile = %s', $opt->perl_critic_profile // '[...]');
         info('  --perl-critic-theme   = %s', $opt->perl_critic_theme   // '[...]');
         info('  --perl-critic-policy  = %s', $opt->perl_critic_policy  // '[...]');
-        info('  --file-types = %s',          $opt->file_types  // '[...]');
+        info('  --file-types          = %s', $opt->file_types          // '[...]');
     }
     else {
         info('Attempting to initialize session file ...');
@@ -45,7 +45,7 @@ sub execute {
         perl_critic_theme   => $opt->perl_critic_theme,
         perl_critic_policy  => $opt->perl_critic_policy,
         git_work_tree       => $opt->git_work_tree,
-        file_types          => [ split /,/ , $opt->file_types ],
+        file_types          => [ split /\,/ => $opt->file_types ],
     );
 
     if ( $opt->verbose ) {
@@ -55,7 +55,7 @@ sub execute {
         info('  perl_critic_profile = %s', $session->perl_critic_profile // '[...]');
         info('  perl_critic_theme   = %s', $session->perl_critic_theme   // '[...]');
         info('  perl_critic_policy  = %s', $session->perl_critic_policy  // '[...]');
-        info('  file_types          = %s', $session->file_types  // '[...]');
+        info('  file_types          = %s', $session->file_types          // '[...]');
         info('  git_work_tree       = %s', $session->git_work_tree      );
         info('  git_work_tree_root  = %s', $session->git_work_tree_root );
         info('  git_branch          = %s', $session->git_branch         );
