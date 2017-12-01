@@ -1,10 +1,13 @@
 package App::Critique::Session::FileType;
+
 use strict;
-use warnings FATAL => 'all';
+use warnings;
 
-use Module::Load;
+our $VERSION   = '0.06';
+our $AUTHORITY = 'cpan:STEVAN';
 
-use Carp;
+use Module::Runtime ();
+use Carp            ();
 
 my @FILE_TYPES_IN_USE;
 
@@ -13,7 +16,7 @@ sub set_file_types {
 
     for (@file_types) {
         my $ft_class = __PACKAGE__ .'::'. $_;
-        load $ft_class;
+        Module::Runtime::use_module( $ft_class );
         push @FILE_TYPES_IN_USE, $ft_class;
     }
     return;
