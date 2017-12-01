@@ -17,7 +17,7 @@ sub opt_spec {
         [ 'perl-critic-profile=s', 'path to a Perl::Critic profile to use (default let Perl::Critic decide)' ],
         [ 'perl-critic-theme=s',   'Perl::Critic theme expression to use' ],
         [ 'perl-critic-policy=s',  'singular Perl::Critic policy to use (overrides -theme and -policy)' ],
-        [ 'file-types|f=s',        'file type modules to use (comma-separated)',  { default => 'perl5'} ],
+        [ 'file-types=s',          'file type modules to use (comma-separated)',  { default => 'perl5'} ],
         [],
         [ 'force',                 'force overwriting of existing session file' ],
         [],
