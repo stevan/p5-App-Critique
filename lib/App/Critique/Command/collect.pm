@@ -283,7 +283,7 @@ sub find_all_source_files {
         my $ft = App::Critique::Session::FileType->matching_filetype( $path->stringify );
         return unless $ft;
 
-        info('... adding file [%s](%s)', App::Critique::Session::FileType::shortname($ft), $path->relative( $root )); # this should be the only usafe of root
+        info('... adding file [%s](%s)', App::Critique::Session::FileType->shortname($ft), $path->relative( $root )); # this should be the only usage of root
         push @$acc => $path;
     }
     elsif ( -l $path ) { # Path::Tiny does not have a test for symlinks
@@ -342,7 +342,7 @@ sub generate_file_predicate {
     push @filters, sub { return $_[1] =~ /$match/ } if $match ;
     push @filters, sub { return $_[1] !~ /$filter/} if $filter;
     push @filters, sub {
-        return scalar App::Critique::Session::load_file(path => $_[0]->stringify )->critique($session);
+        return scalar App::Critique::Session->load_file(path => $_[0]->stringify )->critique($session);
     }  if $no_violation;
 
     my $predicate = sub {

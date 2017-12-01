@@ -83,30 +83,35 @@ sub filename_for_git_add {
 
  # Previous implementation used  the path from $violation
  # For perl5 file type, it's the same, and for cases when they are not the same,
- # it should be a separate FileTypePlugin
+ # it should be a separate FileType module
     Path::Tiny::path( $self->path )->relative( $session->git_work_tree_root );
 }
 
-# Filename we're going to be using to 'git add' the fixed file
+# Filename we're going to be using to run editor on in case where auto rewriting
+# failed or manual edit requested.
+#
+# Note that by default this is the same as filename_for_git_add, but other (not necessarily included
+# in this distribution) file type modiles need it to implement a workflow like this:
+#
+# - Transform original tracked file into something critiqeable
+# - Run critique on it and make changes
+# - Somehow propagate these changes back into git-tracked file
+#
 sub filename_for_edit {
     my ( $self, $session, $violation ) = @_;
-
- # Previous implementation used  the path from $violation
- # For perl5 file type, it's the same, and for cases when they are not the same,
- # it should be a separate FileTypePlugin
     Path::Tiny::path( $self->path )->relative( $session->git_work_tree_root );
 }
 
 sub match_filename {
-    die "Abstract class called, implementation is in a FileTypePlugin!";
+    die "Abstract class called, implementation is in a FileType module!";
 }
 
 sub save_ppi {
-    die "Abstract class called, implementation is in a FileTypePlugin!";
+    die "Abstract class called, implementation is in a FileType module!";
 }
 
 sub critique {
-    die "Abstract class called, implementation is in a FileTypePlugin!";
+    die "Abstract class called, implementation is in a FileType module!";
 
 }
 
@@ -126,7 +131,7 @@ __END__
 
 =head1 DESCRIPTION
 
-This is the base class for L<App::Critique::Session::FileType::Plugin::*>
+This is the base class for L<App::Critique::Session::FileType::*>
 classes.
 
 =cut

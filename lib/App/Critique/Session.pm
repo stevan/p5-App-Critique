@@ -27,7 +27,7 @@ sub new {
 
     # setup filetype plugins
 
-    $class->_initialize_ft_plugins(%args);
+    $class->_initialize_file_types(%args);
 
     # setup the perl critic instance
     my $critic = $class->_initialize_perl_critic( %args );
@@ -52,7 +52,7 @@ sub new {
         perl_critic_profile => $args{perl_critic_profile},
         perl_critic_theme   => $args{perl_critic_theme},
         perl_critic_policy  => $args{perl_critic_policy},
-        ft_plugins          => $args{ft_plugins},
+        file_types          => $args{file_types},
         git_work_tree       => Path::Tiny::path( $git_work_tree ),
 
         # auto-discovered
@@ -114,7 +114,7 @@ sub git_head_sha        { $_[0]->{git_head_sha}        }
 sub perl_critic_profile { $_[0]->{perl_critic_profile} }
 sub perl_critic_theme   { $_[0]->{perl_critic_theme}   }
 sub perl_critic_policy  { $_[0]->{perl_critic_policy}  }
-sub ft_plugins          { $_[0]->{ft_plugins}          }
+sub file_types          { $_[0]->{file_types}          }
 
 sub tracked_files     { @{ $_[0]->{tracked_files} } }
 sub file_criteria     { $_[0]->{file_criteria} }
@@ -142,8 +142,8 @@ sub set_tracked_files {
         (Scalar::Util::blessed($_) && $_->isa('App::Critique::Session::File')
             ? $_
             : ((ref $_ eq 'HASH')
-                ? load_file (%$_)
-                : load_file ( path => $_ )))
+                ? $self->load_file (%$_)
+                : $self->load_file ( path => $_ )))
     } @files;
 }
 
@@ -161,7 +161,7 @@ sub pack {
         perl_critic_profile => ($self->{perl_critic_profile} ? $self->{perl_critic_profile}->stringify : undef),
         perl_critic_theme   => $self->{perl_critic_theme},
         perl_critic_policy  => $self->{perl_critic_policy},
-        ft_plugins          => $self->{ft_plugins},
+        file_types          => $self->{file_types},
 
         git_work_tree       => ($self->{git_work_tree} ? $self->{git_work_tree}->stringify : undef),
         git_branch          => $self->{git_branch},
@@ -245,9 +245,9 @@ sub _generate_critique_file_path {
 }
 
 ## ...
-sub _initialize_ft_plugins {
+sub _initialize_file_types {
     my ($class, %args) = @_;
-    App::Critique::Session::FileType->set_plugin_set(@{ $args{ft_plugins}||[] });
+    App::Critique::Session::FileType->set_file_types(@{ $args{file_types}||[] });
 }
 
 sub _initialize_git_repo {
@@ -343,11 +343,11 @@ sub _initialize_perl_critic {
 }
 
 sub load_file {
-    my (%args) = @_;
+    my ($class, %args) = @_;
     my $path = $args{path};
-    my $cls = App::Critique::Session::FileType->matching_filetype($path);
-    Carp::confess ("$path does not match any loaded plugins") if !$cls;
-    return $cls->new(%args);
+    my $file_type_cls = App::Critique::Session::FileType->matching_filetype($path);
+    Carp::confess ("$path does not match any loaded filetypes") if !$file_type_cls;
+    return $file_type_cls->new(%args);
 }
 
 1;

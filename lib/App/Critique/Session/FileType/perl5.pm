@@ -1,4 +1,4 @@
-package App::Critique::Session::FileType::Plugin::perl5;
+package App::Critique::Session::FileType::perl5;
 use strict;
 use warnings;
 
