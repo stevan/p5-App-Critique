@@ -58,7 +58,7 @@ sub execute {
 
     my @all;
     eval {
-        find_all_perl_files(
+        find_all_source_files(
             root        => $git_root,
             path        => $root,
             accumulator => \@all,
@@ -272,7 +272,7 @@ sub filter_files_serially {
     @$all = @filtered_all;
 }
 
-sub find_all_perl_files {
+sub find_all_source_files {
     my %args = @_;
     my $root = $args{root}; # the reason for `root` is to have nicer output (just FYI)
     my $path = $args{path};
@@ -280,9 +280,10 @@ sub find_all_perl_files {
 
     if ( $path->is_file ) {
         # ignore anything but perl files ...
-        return unless is_perl_file( $path->stringify );
+        my $ft = App::Critique::Session::FileType->matching_filetype( $path->stringify );
+        return unless $ft;
 
-        info('... adding file (%s)', $path->relative( $root )); # this should be the only usafe of root
+        info('... adding file [%s](%s)', App::Critique::Session::FileType->shortname($ft), $path->relative( $root )); # this should be the only usage of root
         push @$acc => $path;
     }
     elsif ( -l $path ) { # Path::Tiny does not have a test for symlinks
@@ -298,7 +299,7 @@ sub find_all_perl_files {
 
         # recurse ...
          foreach my $child ( @children ) {
-            find_all_perl_files(
+            find_all_source_files(
                 root          => $root,
                 path          => $child,
                 accumulator   => $acc,
@@ -341,7 +342,7 @@ sub generate_file_predicate {
     push @filters, sub { return $_[1] =~ /$match/ } if $match ;
     push @filters, sub { return $_[1] !~ /$filter/} if $filter;
     push @filters, sub {
-        return scalar $c->critique( $_[0]->stringify )
+        return scalar App::Critique::Session->load_file(path => $_[0]->stringify )->critique($session);
     }  if $no_violation;
 
     my $predicate = sub {
@@ -360,38 +361,6 @@ sub generate_file_predicate {
     });
 
     return $predicate;
-}
-
-# NOTE:
-# This was mostly taken from the guts of
-# Perl::Critic::Util::{_is_perl,_is_backup}
-# - SL
-sub is_perl_file {
-    my ($file) = @_;
-
-    # skip all the backups
-    return 0 if $file =~ m{ [.] swp \z}xms;
-    return 0 if $file =~ m{ [.] bak \z}xms;
-    return 0 if $file =~ m{  ~ \z}xms;
-    return 0 if $file =~ m{ \A [#] .+ [#] \z}xms;
-
-    # but grab the perl files
-    return 1 if $file =~ m{ [.] PL    \z}xms;
-    return 1 if $file =~ m{ [.] p[lm] \z}xms;
-    return 1 if $file =~ m{ [.] t     \z}xms;
-    return 1 if $file =~ m{ [.] psgi  \z}xms;
-    return 1 if $file =~ m{ [.] cgi   \z}xms;
-
-    # if we have to, check for shebang
-    my $first;
-    {
-        open my $fh, '<', $file or return 0;
-        $first = <$fh>;
-        close $fh;
-    }
-
-    return 1 if defined $first && ( $first =~ m{ \A [#]!.*perl }xms );
-    return 0;
 }
 
 1;

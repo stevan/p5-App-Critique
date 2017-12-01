@@ -17,12 +17,17 @@ use Perl::Critic::Utils ();
 
 use App::Critique;
 use App::Critique::Session::File;
+use App::Critique::Session::FileType;
 
 sub new {
     my ($class, %args) = @_;
 
     Carp::confess('You must specify a git_work_tree')
         unless $args{git_work_tree} && -d $args{git_work_tree};
+
+    # setup filetype plugins
+
+    $class->_initialize_file_types(%args);
 
     # setup the perl critic instance
     my $critic = $class->_initialize_perl_critic( %args );
@@ -47,6 +52,7 @@ sub new {
         perl_critic_profile => $args{perl_critic_profile},
         perl_critic_theme   => $args{perl_critic_theme},
         perl_critic_policy  => $args{perl_critic_policy},
+        file_types          => $args{file_types},
         git_work_tree       => Path::Tiny::path( $git_work_tree ),
 
         # auto-discovered
@@ -108,6 +114,7 @@ sub git_head_sha        { $_[0]->{git_head_sha}        }
 sub perl_critic_profile { $_[0]->{perl_critic_profile} }
 sub perl_critic_theme   { $_[0]->{perl_critic_theme}   }
 sub perl_critic_policy  { $_[0]->{perl_critic_policy}  }
+sub file_types          { $_[0]->{file_types}          }
 
 sub tracked_files     { @{ $_[0]->{tracked_files} } }
 sub file_criteria     { $_[0]->{file_criteria} }
@@ -135,8 +142,8 @@ sub set_tracked_files {
         (Scalar::Util::blessed($_) && $_->isa('App::Critique::Session::File')
             ? $_
             : ((ref $_ eq 'HASH')
-                ? App::Critique::Session::File->new( %$_ )
-                : App::Critique::Session::File->new( path => $_ )))
+                ? $self->load_file (%$_)
+                : $self->load_file ( path => $_ )))
     } @files;
 }
 
@@ -154,6 +161,7 @@ sub pack {
         perl_critic_profile => ($self->{perl_critic_profile} ? $self->{perl_critic_profile}->stringify : undef),
         perl_critic_theme   => $self->{perl_critic_theme},
         perl_critic_policy  => $self->{perl_critic_policy},
+        file_types          => $self->{file_types},
 
         git_work_tree       => ($self->{git_work_tree} ? $self->{git_work_tree}->stringify : undef),
         git_branch          => $self->{git_branch},
@@ -237,6 +245,10 @@ sub _generate_critique_file_path {
 }
 
 ## ...
+sub _initialize_file_types {
+    my ($class, %args) = @_;
+    App::Critique::Session::FileType->set_file_types(@{ $args{file_types}||[] });
+}
 
 sub _initialize_git_repo {
     my ($class, %args) = @_;
@@ -327,8 +339,15 @@ sub _initialize_perl_critic {
         $args{perl_critic_profile} = Path::Tiny::path( $args{perl_critic_profile} )
             if $args{perl_critic_profile};
     }
-
     return $critic;
+}
+
+sub load_file {
+    my ($class, %args) = @_;
+    my $path = $args{path};
+    my $file_type_cls = App::Critique::Session::FileType->matching_filetype($path);
+    Carp::confess ("$path does not match any loaded filetypes") if !$file_type_cls;
+    return $file_type_cls->new(%args);
 }
 
 1;

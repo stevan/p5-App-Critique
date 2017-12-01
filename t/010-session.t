@@ -34,6 +34,7 @@ subtest '... testing session with a simple git repo' => sub {
     is($s->perl_critic_policy,  undef, '... no perl critic policy');
     is($s->perl_critic_theme,   undef, '... no perl critic theme');
     is($s->perl_critic_profile, undef, '... no perl critic profile');
+    is($s->file_types,          undef, '... no file types');
 
     is_deeply([$s->tracked_files], [], '... no tracked files');
 
@@ -65,6 +66,7 @@ subtest '... testing session with a simple git repo' => sub {
             current_file_idx    => 0,
             tracked_files       => [],
             file_criteria       => {},
+            file_types          => undef,
         },
         '... got the expected values from pack'
     );
