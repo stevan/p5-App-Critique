@@ -106,7 +106,7 @@ MAIN:
         # decide if they want to carry on
         my @violations;
         eval {
-            @violations = $self->discover_violations( $session, $file, $opt );
+            @violations = $file->critique( $session );
             1;
         } or do {
             info(HR_ERROR);
@@ -190,14 +190,6 @@ MAIN:
 
     }
 
-}
-
-sub discover_violations {
-    my ($self, $session, $file, $opt) = @_;
-
-    my @violations = $session->perl_critic->critique( $file->path->stringify );
-
-    return @violations;
 }
 
 
