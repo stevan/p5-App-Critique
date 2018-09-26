@@ -327,7 +327,7 @@ sub _initialize_perl_critic {
 
     my $critic;
     if ( $args{perl_critic_policy} ) {
-        $critic = Perl::Critic->new( '-single-policy' => $args{perl_critic_policy} );
+        $critic = Perl::Critic->new( '-single-policy' => $args{perl_critic_policy}, '-profile' => '' );
     }
     else {
         $critic = Perl::Critic->new(
