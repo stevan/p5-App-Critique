@@ -87,7 +87,7 @@ sub execute {
     info(HR_DARK);
     info('TOTAL: %s file(s)',   format_number($num_files) );
     info('  (v)iolations = %s', format_number($violations));
-    info('  (r)eviwed    = %s', format_number($reviewed)  );
+    info('  (r)eviewed   = %s', format_number($reviewed)  );
     info('  (e)dited     = %s', format_number($edited)    );
     info('  (c)ommited   = %s', format_number($commited)  );
 
