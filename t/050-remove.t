@@ -32,7 +32,7 @@ subtest '... testing init' => sub {
             qr/Attempting to initialize session file/,
             qr/\-\-perl\-critic\-policy\s+\= Variables\:\:ProhibitUnusedVariables/,
             qr/perl_critic_policy\s+\= Variables\:\:ProhibitUnusedVariables/,
-            qr/Successuflly created session/,
+            qr/Successfully created session/,
             qr/git_work_tree\s+\= $work_tree/,
             qr/Session file \(.*\) initialized successfully/,
             qr/\.critique\/$work_base\/master\/session\.json/,

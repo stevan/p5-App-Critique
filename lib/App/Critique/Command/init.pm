@@ -50,7 +50,7 @@ sub execute {
 
     if ( $opt->verbose ) {
         info(HR_LIGHT);
-        info('Successuflly created session with the following configuration:');
+        info('Successfully created session with the following configuration:');
         info(HR_LIGHT);
         info('  perl_critic_profile = %s', $session->perl_critic_profile // '[...]');
         info('  perl_critic_theme   = %s', $session->perl_critic_theme   // '[...]');
@@ -64,7 +64,7 @@ sub execute {
         info(HR_LIGHT);
     }
     else {
-        info('Successuflly created session.');
+        info('Successfully created session.');
     }
 
     if ( $session->session_file_exists ) {

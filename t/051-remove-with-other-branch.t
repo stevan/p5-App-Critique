@@ -31,7 +31,7 @@ subtest '... testing init' => sub {
         [
             qr/Attempting to initialize session file/,
             qr/\-\-perl\-critic\-policy\s+\= Variables\:\:ProhibitUnusedVariables/,
-            qr/Successuflly created session/,
+            qr/Successfully created session/,
             qr/perl_critic_policy\s+\= Variables\:\:ProhibitUnusedVariables/,
             qr/git_branch\s+\= master/,
             qr/git_work_tree\s+\= $work_tree/,
@@ -67,7 +67,7 @@ subtest '... testing init on new branch' => sub {
         [
             qr/Attempting to initialize session file/,
             qr/\-\-perl\-critic\-policy\s+\= Variables\:\:ProhibitReusedNames/,
-            qr/Successuflly created session/,
+            qr/Successfully created session/,
             qr/perl_critic_policy\s+\= Variables\:\:ProhibitReusedNames/,
             qr/git_branch\s+\= test-branch-001/,
             qr/git_work_tree\s+\= $work_tree/,
